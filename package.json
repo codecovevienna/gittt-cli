@@ -1,0 +1,31 @@
+{
+  "name": "git-time-tracker",
+  "version": "0.0.1",
+  "description": "Tracking time with CLI into a git repository",
+  "main": "index.ts",
+  "scripts": {
+    "start": "./node_modules/.bin/ts-node index.ts",
+    "build": "./node_modules/.bin/tsc && cp package.json dist && pkg -t node10-linux-x64,node10-macos-x64 dist/index.js --out-path dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@gitlab.codecove.at:10022/codecove/git-time-tracker.git"
+  },
+  "keywords": [
+    "git",
+    "time",
+    "tracking"
+  ],
+  "author": "Manuel Zangl",
+  "license": "MIT",
+  "dependencies": {
+    "@types/inquirer": "0.0.43",
+    "@types/shelljs": "^0.8.2",
+    "chalk": "^2.4.2",
+    "inquirer": "^6.2.2",
+    "shelljs": "^0.8.3",
+    "ts-node": "^8.0.2",
+    "typescript": "^3.3.1"
+  }
+}

@@ -1,0 +1,34 @@
+image: node:10.14.1
+
+stages:
+  - test
+  - build
+  
+cache:
+  paths:
+    - node_modules
+  
+test:
+  tags:
+    - docker
+    - codecove
+  stage: test
+  script:
+    - echo "There should be tests"
+  except:
+    - tags
+
+build:
+  tags:
+    - docker
+    - codecove
+  stage: build
+  script:
+    - npm install -g pkg
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - "dist"
+  only:
+    - master
