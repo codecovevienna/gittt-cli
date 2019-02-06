@@ -15,6 +15,11 @@ const DEBUG = true;
     setup: boolean;
   }
 
+  interface IProjectNameAnswers {
+    userProjectNamespace: string;
+    userProjectName: string;
+  }
+
   interface IProject {
     name: string;
   }
@@ -55,21 +60,56 @@ const DEBUG = true;
     return home;
   };
 
-  const getProjectName = () => {
+  const getProjectNameUser = async (): Promise<string> => {
+    info("Unable to determinate project, please add it manually");
+    const projectNameAnswer = await inquirer.prompt([
+      {
+        message: "Project namespace:",
+        name: "userProjectNamespace",
+        type: "input",
+      },
+      {
+        message: "Project name:",
+        name: "userProjectName",
+        type: "input",
+      },
+    ]) as IProjectNameAnswers;
+
+    const { userProjectName, userProjectNamespace } = projectNameAnswer;
+
+    if (userProjectName.length <= 1 || userProjectNamespace.length <= 1) {
+      return await getProjectNameUser();
+    }
+
+    return `${userProjectNamespace}/${userProjectName}`;
+  };
+
+  const getProjectNameGit = (): string | undefined => {
     debug("Trying to find project name from .git folder");
-    const gitConfigExec: ExecOutputReturnValue | ChildProcess = shelljs.exec("git config remote.origin.url", {
+    const gitConfigExec: ExecOutputReturnValue = shelljs.exec("git config remote.origin.url", {
       silent: true,
-    });
+    }) as ExecOutputReturnValue;
 
-    console.log(gitConfigExec);
+    if (gitConfigExec.code !== 0 || gitConfigExec.stdout.length < 4) {
+      return;
+    }
 
-    // if(typeof gitConfigExec == ChildProcess || gitConfigExec.code !== 0 || gitConfigExec.stdout.length < 4){
-    //   return
-    // }
+    const originUrl = gitConfigExec.stdout.trim();
+    const splittedOriginUrl = originUrl
+      .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
 
-    // const originUrl = gitConfigExec.stdout.trim();
+    if (!splittedOriginUrl || splittedOriginUrl.length !== 6) {
+      return;
+    }
 
-    // console.log(originUrl)
+    const [,
+      /*schema*/,
+      /*user*/,
+      /*domain*/,
+      /*port*/,
+      projectName] = splittedOriginUrl;
+
+    return projectName;
   };
 
   const setup = () => {
@@ -91,12 +131,21 @@ const DEBUG = true;
     }
   };
 
+  const initProject = async () => {
+    const config: IConfigFile = JSON.parse(fs.readFileSync(configFile).toString());
+    let projectName = getProjectNameGit();
+
+    if (!projectName) {
+      projectName = await getProjectNameUser();
+    }
+
+    console.log(projectName);
+  };
+
   const homeDir = getHomeDir();
   const configDir = path.join(homeDir, `.${APP_NAME}`);
   const configFile = path.join(configDir, "config.json");
   const configExists = fs.existsSync(configFile);
-
-  getProjectName();
 
   if (!configExists) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
@@ -117,9 +166,7 @@ const DEBUG = true;
       process.exit(0);
     }
 
-    debug(initAnswers);
-  } else {
-    const config: IConfigFile = JSON.parse(fs.readFileSync(configFile).toString());
-    debug(config);
   }
+
+  await initProject();
 })();
