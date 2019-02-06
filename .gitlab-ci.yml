@@ -24,9 +24,17 @@ build:
     - codecove
   stage: build
   script:
+    # Install packages
     - npm install -g pkg
     - npm install
-    - npm run build
+    # Compile ts into js
+    - ./node_modules/.bin/tsc
+    - cp package.json dist
+    # Compile package for various systems
+    - pkg -t node10-linux-x64,node10-macos-x64 dist/index.js --out-path dist
+    # Cleanup
+    - rm -rf dist/index.js
+    - rm -rf dist/package.json
   artifacts:
     paths:
       - "dist"

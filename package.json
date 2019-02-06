@@ -5,7 +5,6 @@
   "main": "index.ts",
   "scripts": {
     "start": "./node_modules/.bin/ts-node index.ts",
-    "build": "./node_modules/.bin/tsc && cp package.json dist && pkg -t node10-linux-x64,node10-macos-x64 dist/index.js --out-path dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
