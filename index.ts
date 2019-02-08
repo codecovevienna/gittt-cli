@@ -20,6 +20,10 @@ const DEBUG = true;
     userProjectName: string;
   }
 
+  interface IGitRepoAnswers {
+    gitRepo: string;
+  }
+
   interface IProject {
     name: string;
   }
@@ -43,11 +47,20 @@ const DEBUG = true;
     console.log(chalk.yellow.bold(msg));
   };
 
+  const error = (msg: any) => {
+    console.log(chalk.red.bold(msg));
+  };
+
   const info = (msg: any) => {
     console.log(chalk.green.bold(msg));
   };
 
-  const getHomeDir = () => {
+  const exit = (msg: string, code: number) => {
+    warn(msg);
+    process.exit(code);
+  };
+
+  const getHomeDir = (): string => {
     const home = require("os").homedir()
       || process.env.HOME
       || process.env.HOMEPATH
@@ -60,6 +73,36 @@ const DEBUG = true;
     return home;
   };
 
+  const getProjectList = (config: IConfigFile): IProject[] => {
+    return config.projects;
+  };
+
+  const getProjectByName = (config: IConfigFile, name: string): IProject | undefined => {
+    config.projects.find((project: IProject) => {
+        return project.name === name;
+    });
+
+    return;
+  };
+
+  const parseProjectNameFromGitUrl = (input: string): string | undefined => {
+    const split = input
+      .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
+
+    if (!split || split.length !== 6) {
+      return;
+    }
+
+    const [,
+      /*schema*/,
+      /*user*/,
+      /*domain*/,
+      /*port*/,
+      projectName] = split;
+
+    return projectName;
+  };
+
   const getProjectNameUser = async (): Promise<string> => {
     info("Unable to determinate project, please add it manually");
     const projectNameAnswer = await inquirer.prompt([
@@ -67,19 +110,33 @@ const DEBUG = true;
         message: "Project namespace:",
         name: "userProjectNamespace",
         type: "input",
+        validate(input) {
+          const valid = input.length > 0;
+
+          if (valid) {
+            return true;
+          } else {
+            return "The namespace must not be empty";
+          }
+        },
       },
       {
         message: "Project name:",
         name: "userProjectName",
         type: "input",
+        validate(input) {
+          const valid = input.length > 0;
+
+          if (valid) {
+            return true;
+          } else {
+            return "The name must not be empty";
+          }
+        },
       },
     ]) as IProjectNameAnswers;
 
     const { userProjectName, userProjectNamespace } = projectNameAnswer;
-
-    if (userProjectName.length <= 1 || userProjectNamespace.length <= 1) {
-      return await getProjectNameUser();
-    }
 
     return `${userProjectNamespace}/${userProjectName}`;
   };
@@ -95,24 +152,31 @@ const DEBUG = true;
     }
 
     const originUrl = gitConfigExec.stdout.trim();
-    const splittedOriginUrl = originUrl
-      .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
 
-    if (!splittedOriginUrl || splittedOriginUrl.length !== 6) {
-      return;
-    }
-
-    const [,
-      /*schema*/,
-      /*user*/,
-      /*domain*/,
-      /*port*/,
-      projectName] = splittedOriginUrl;
-
-    return projectName;
+    return parseProjectNameFromGitUrl(originUrl);
   };
 
-  const setup = () => {
+  const setup = async (): Promise<void> => {
+    info("Where to store the projects");
+    const gitRepoAnswers = await inquirer.prompt([
+      {
+        message: "Git Repository URL:",
+        name: "gitRepo",
+        type: "input",
+        validate(input) {
+          const projectName = parseProjectNameFromGitUrl(input);
+
+          const valid = (input.length > 0 && !!projectName);
+
+          if (valid) {
+            return true;
+          } else {
+            return "The url has to look like ssh://git@github.com:eiabea/awesomeProject.git";
+          }
+        },
+      },
+    ]) as IGitRepoAnswers;
+
     try {
       fs.mkdirSync(configDir);
       info(`Created config dir (${configDir})`);
@@ -120,9 +184,12 @@ const DEBUG = true;
       debug(`Error creating config dir ${err}`);
     }
 
+    const { gitRepo } = gitRepoAnswers;
+
     try {
       fs.writeFileSync(configFile, JSON.stringify({
         created: Date.now(),
+        gitRepo,
         projects: [],
       }));
       info(`Created config file (${configFile})`);
@@ -131,8 +198,21 @@ const DEBUG = true;
     }
   };
 
+  const getConfig = (): IConfigFile | undefined => {
+    const configString = fs.readFileSync(configFile).toString();
+    try {
+      return JSON.parse(configString);
+    } catch (err) {
+      error("Error parsing config");
+    }
+  };
+
   const initProject = async () => {
-    const config: IConfigFile = JSON.parse(fs.readFileSync(configFile).toString());
+    const config: IConfigFile | undefined = getConfig();
+    if (!config) {
+      return exit(`Unable to parse config file`, 1);
+    }
+
     let projectName = getProjectNameGit();
 
     if (!projectName) {
@@ -140,6 +220,10 @@ const DEBUG = true;
     }
 
     console.log(projectName);
+    console.log(config);
+
+    console.log(await getProjectList(config));
+    console.log(await getProjectByName(config, "test"));
   };
 
   const homeDir = getHomeDir();
@@ -150,7 +234,7 @@ const DEBUG = true;
   if (!configExists) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
       {
-        message: "Looks like you never used `${APP_NAME}`, should it be set up?",
+        message: `Looks like you never used ${APP_NAME}, should it be set up?`,
         name: "setup",
         type: "confirm",
       },
@@ -160,13 +244,13 @@ const DEBUG = true;
     // }
 
     if (initAnswers.setup) {
-      setup();
+      await setup();
     } else {
-      warn(`${APP_NAME} does not work without setup, bye!`);
-      process.exit(0);
+      exit(`${APP_NAME} does not work without setup, bye!`, 0);
     }
 
   }
 
   await initProject();
+
 })();
