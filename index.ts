@@ -1,9 +1,9 @@
 import chalk from "chalk";
-import { ChildProcess } from "child_process";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
+import simplegit, { StatusResult } from "simple-git/promise";
 
 // tslint:disable-next-line no-var-requires
 const APP_NAME = require("./package.json").name;
@@ -13,6 +13,10 @@ const DEBUG = true;
 (async () => {
   interface IInitAnswers {
     setup: boolean;
+  }
+
+  interface IOverrideAnswers {
+    override: number;
   }
 
   interface IProjectNameAnswers {
@@ -30,6 +34,7 @@ const DEBUG = true;
 
   interface IConfigFile {
     created: number;
+    gitRepo: string;
     projects: IProject[];
   }
 
@@ -156,6 +161,16 @@ const DEBUG = true;
     return parseProjectNameFromGitUrl(originUrl);
   };
 
+  const getProjectName = async (): Promise<string> => {
+    let projectName = getProjectNameGit();
+
+    if (!projectName) {
+      projectName = await getProjectNameUser();
+    }
+
+    return projectName;
+  };
+
   const setup = async (): Promise<void> => {
     info("Where to store the projects");
     const gitRepoAnswers = await inquirer.prompt([
@@ -198,28 +213,69 @@ const DEBUG = true;
     }
   };
 
-  const getConfig = (): IConfigFile | undefined => {
-    const configString = fs.readFileSync(configFile).toString();
+  const getConfig = (): IConfigFile => {
+    return JSON.parse(fs.readFileSync(configFile).toString());
+  };
+
+  const initRepo = async (config: IConfigFile) => {
+    const git = simplegit(configDir);
+    const repoInitialized = await git.checkIsRepo();
+    if (!repoInitialized) {
+      await git.init();
+      await git.addRemote("origin", config.gitRepo);
+    }
+
     try {
-      return JSON.parse(configString);
+      await git.pull("origin", "master");
+      info("Pulled repo successfully");
     } catch (err) {
-      error("Error parsing config");
+      const overrideLocalAnswers: IOverrideAnswers = await inquirer.prompt([
+        {
+          choices: [
+            {name: "Override local config file", value: 0},
+            {name: "Override remote config file", value: 1},
+            {name: "Exit", value: 2},
+          ],
+          message: `Remote repo is not empty, override local changes?`,
+          name: "override",
+          type: "list",
+        },
+      ]) as IOverrideAnswers;
+
+      const { override } = overrideLocalAnswers;
+      console.log(override);
+
+      switch (override) {
+        case 0:
+          await git.reset(["--hard", "origin/master"]);
+          await git.pull("origin", "master");
+          break;
+        case 1:
+          try {
+            await git.add(configFile);
+            info("Added initial config file");
+            await git.commit("Setup commit");
+            info("Committed initial config file");
+            await git.raw(["push", "origin", "master", "--force"]);
+            info("Pushed to repo");
+            const status: StatusResult = await git.status();
+            console.log(status);
+          } catch (err) {
+            warn("Unable to fetch repo " + config.gitRepo);
+          }
+          break;
+        case 2:
+          exit("Bye!", 0);
+          break;
+
+        default:
+          break;
+      }
     }
   };
 
-  const initProject = async () => {
-    const config: IConfigFile | undefined = getConfig();
-    if (!config) {
-      return exit(`Unable to parse config file`, 1);
-    }
-
-    let projectName = getProjectNameGit();
-
-    if (!projectName) {
-      projectName = await getProjectNameUser();
-    }
-
-    console.log(projectName);
+  const initProject = async (config: IConfigFile) => {
+    console.log(await getProjectName());
     console.log(config);
 
     console.log(await getProjectList(config));
@@ -230,6 +286,7 @@ const DEBUG = true;
   const configDir = path.join(homeDir, `.${APP_NAME}`);
   const configFile = path.join(configDir, "config.json");
   const configExists = fs.existsSync(configFile);
+  let configObj: IConfigFile;
 
   if (!configExists) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
@@ -239,18 +296,18 @@ const DEBUG = true;
         type: "confirm",
       },
     ]) as IInitAnswers;
-    // const initAnswers = {
-    //   setup: true
-    // }
 
     if (initAnswers.setup) {
       await setup();
+      configObj = getConfig();
+      await initRepo(configObj);
     } else {
       exit(`${APP_NAME} does not work without setup, bye!`, 0);
     }
-
   }
 
-  await initProject();
+  configObj = getConfig();
+
+  await initProject(configObj);
 
 })();

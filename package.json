@@ -24,6 +24,7 @@
     "chalk": "^2.4.2",
     "inquirer": "^6.2.2",
     "shelljs": "^0.8.3",
+    "simple-git": "^1.107.0",
     "ts-node": "^8.0.2",
     "typescript": "^3.3.1"
   }
