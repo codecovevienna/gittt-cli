@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import commander from "commander";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
@@ -6,7 +7,9 @@ import shelljs, { ExecOutputReturnValue } from "shelljs";
 import simplegit, { StatusResult } from "simple-git/promise";
 
 // tslint:disable-next-line no-var-requires
-const APP_NAME = require("./package.json").name;
+const packageJson = require("./package.json");
+const APP_NAME = packageJson.name;
+const APP_VERSION = packageJson.version;
 
 const DEBUG = true;
 
@@ -30,6 +33,7 @@ const DEBUG = true;
 
   interface IProject {
     name: string;
+    hours: number;
   }
 
   interface IConfigFile {
@@ -61,8 +65,16 @@ const DEBUG = true;
   };
 
   const exit = (msg: string, code: number) => {
-    warn(msg);
+    if (code === 0) {
+      warn(msg);
+    } else {
+      error(msg);
+    }
     process.exit(code);
+  };
+
+  const saveConfig = async (config: IConfigFile) => {
+    fs.writeFileSync(configFile, JSON.stringify(config));
   };
 
   const getHomeDir = (): string => {
@@ -274,12 +286,70 @@ const DEBUG = true;
     }
   };
 
-  const initProject = async (config: IConfigFile) => {
-    console.log(await getProjectName());
-    console.log(config);
+  const initCommander = async (config: IConfigFile) => {
+    commander
+      .version(APP_VERSION);
 
-    console.log(await getProjectList(config));
-    console.log(await getProjectByName(config, "test"));
+    commander
+      .command("add <hours>")
+      .description("Adding hours to the project")
+      .action((hoursRaw) => {
+        const hours = parseFloat(hoursRaw);
+        if (isNaN(hours)) {
+          exit("Unable to parse hours", 1);
+        }
+        console.log(hours);
+      });
+
+    commander
+      .command("push")
+      .description("Pushing changes to repository")
+      .action(() => {
+        console.log("Pushing changes to repository");
+      });
+
+    commander
+      .command("list")
+      .description("Listing all projects")
+      .action(async () => {
+        const projects = await getProjectList(config);
+
+        info("Projects:");
+        for (const prj of projects) {
+          console.log(`- ${prj.name}`);
+        }
+      });
+
+    commander
+      .command("status")
+      .description("Status")
+      .action(async () => {
+        const projectName = await getProjectName();
+        const project = await getProjectByName(config, projectName);
+
+        console.log(project);
+      });
+
+    return commander;
+  };
+
+  const initProject = async (config: IConfigFile) => {
+    const name = await getProjectName();
+    const project = await getProjectByName(config, name);
+    const hours = 0;
+
+    console.log(config, project);
+
+    if (!project) {
+      config.projects.push({
+        hours,
+        name,
+      });
+    }
+
+    // await saveConfig(config);
+
+    // TODO
   };
 
   const homeDir = getHomeDir();
@@ -309,5 +379,13 @@ const DEBUG = true;
   configObj = getConfig();
 
   await initProject(configObj);
+
+  await initCommander(configObj);
+
+  if (process.argv.length === 2) {
+    commander.help();
+  } else {
+    commander.parse(process.argv);
+  }
 
 })();
