@@ -1,76 +1,41 @@
-import chalk from "chalk";
 import commander from "commander";
 import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
-import simplegit, { StatusResult } from "simple-git/promise";
+import { DefaultLogFields } from "simple-git/typings/response";
+import { GitHelper, LogHelper } from "./helper";
+import { IConfigFile, IGitRepoAnswers, IHour, IInitAnswers, IProject, IProjectNameAnswers } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
 const packageJson = require("./package.json");
 const APP_NAME = packageJson.name;
 const APP_VERSION = packageJson.version;
 
-const DEBUG = true;
-
 (async () => {
-  interface IInitAnswers {
-    setup: boolean;
-  }
-
-  interface IOverrideAnswers {
-    override: number;
-  }
-
-  interface IProjectNameAnswers {
-    userProjectNamespace: string;
-    userProjectName: string;
-  }
-
-  interface IGitRepoAnswers {
-    gitRepo: string;
-  }
-
-  interface IProject {
-    name: string;
-    hours: number;
-  }
-
-  interface IConfigFile {
-    created: number;
-    gitRepo: string;
-    projects: IProject[];
-  }
-
-  const debug = (msg: any) => {
-    if (DEBUG) {
-      console.log(msg);
-    }
-  };
-
-  const log = (msg: any) => {
-    console.log(chalk.white.bold(msg));
-  };
-
-  const warn = (msg: any) => {
-    console.log(chalk.yellow.bold(msg));
-  };
-
-  const error = (msg: any) => {
-    console.log(chalk.red.bold(msg));
-  };
-
-  const info = (msg: any) => {
-    console.log(chalk.green.bold(msg));
-  };
-
   const exit = (msg: string, code: number) => {
     if (code === 0) {
-      warn(msg);
+      LogHelper.warn(msg);
     } else {
-      error(msg);
+      LogHelper.error(msg);
     }
     process.exit(code);
+  };
+
+  const saveProject = async (project: IProject) => {
+    const config: IConfigFile = getConfig();
+
+    // remove project from config file
+    const filteredProjects = config.projects.filter(({ name }) => name !== project.name);
+
+    // add project to config file
+
+    filteredProjects.push(project);
+    // save config file
+
+    config.projects = filteredProjects;
+
+    await saveConfig(config);
   };
 
   const saveConfig = async (config: IConfigFile) => {
@@ -95,11 +60,7 @@ const DEBUG = true;
   };
 
   const getProjectByName = (config: IConfigFile, name: string): IProject | undefined => {
-    config.projects.find((project: IProject) => {
-        return project.name === name;
-    });
-
-    return;
+    return config.projects.find((project: IProject) =>  project.name === name);
   };
 
   const parseProjectNameFromGitUrl = (input: string): string | undefined => {
@@ -121,7 +82,7 @@ const DEBUG = true;
   };
 
   const getProjectNameUser = async (): Promise<string> => {
-    info("Unable to determinate project, please add it manually");
+    LogHelper.info("Unable to determinate project, please add it manually");
     const projectNameAnswer = await inquirer.prompt([
       {
         message: "Project namespace:",
@@ -159,7 +120,7 @@ const DEBUG = true;
   };
 
   const getProjectNameGit = (): string | undefined => {
-    debug("Trying to find project name from .git folder");
+    LogHelper.debug("Trying to find project name from .git folder");
     const gitConfigExec: ExecOutputReturnValue = shelljs.exec("git config remote.origin.url", {
       silent: true,
     }) as ExecOutputReturnValue;
@@ -184,7 +145,7 @@ const DEBUG = true;
   };
 
   const setup = async (): Promise<void> => {
-    info("Where to store the projects");
+    LogHelper.info("Where to store the projects");
     const gitRepoAnswers = await inquirer.prompt([
       {
         message: "Git Repository URL:",
@@ -206,9 +167,9 @@ const DEBUG = true;
 
     try {
       fs.mkdirSync(configDir);
-      info(`Created config dir (${configDir})`);
+      LogHelper.info(`Created config dir (${configDir})`);
     } catch (err) {
-      debug(`Error creating config dir ${err}`);
+      LogHelper.debug(`Error creating config dir ${err}`);
     }
 
     const { gitRepo } = gitRepoAnswers;
@@ -219,9 +180,9 @@ const DEBUG = true;
         gitRepo,
         projects: [],
       }));
-      info(`Created config file (${configFile})`);
+      LogHelper.info(`Created config file (${configFile})`);
     } catch (err) {
-      debug(`Error creating config file ${err}`);
+      LogHelper.debug(`Error creating config file ${err}`);
     }
   };
 
@@ -229,83 +190,34 @@ const DEBUG = true;
     return JSON.parse(fs.readFileSync(configFile).toString());
   };
 
-  const initRepo = async (config: IConfigFile) => {
-    const git = simplegit(configDir);
-    const repoInitialized = await git.checkIsRepo();
-    if (!repoInitialized) {
-      await git.init();
-      await git.addRemote("origin", config.gitRepo);
-    }
-
-    try {
-      await git.pull("origin", "master");
-      info("Pulled repo successfully");
-    } catch (err) {
-      const overrideLocalAnswers: IOverrideAnswers = await inquirer.prompt([
-        {
-          choices: [
-            {name: "Override local config file", value: 0},
-            {name: "Override remote config file", value: 1},
-            {name: "Exit", value: 2},
-          ],
-          message: `Remote repo is not empty, override local changes?`,
-          name: "override",
-          type: "list",
-        },
-      ]) as IOverrideAnswers;
-
-      const { override } = overrideLocalAnswers;
-      console.log(override);
-
-      switch (override) {
-        case 0:
-          await git.reset(["--hard", "origin/master"]);
-          await git.pull("origin", "master");
-          break;
-        case 1:
-          try {
-            await git.add(configFile);
-            info("Added initial config file");
-            await git.commit("Setup commit");
-            info("Committed initial config file");
-            await git.raw(["push", "origin", "master", "--force"]);
-            info("Pushed to repo");
-            const status: StatusResult = await git.status();
-            console.log(status);
-          } catch (err) {
-            warn("Unable to fetch repo " + config.gitRepo);
-          }
-          break;
-        case 2:
-          exit("Bye!", 0);
-          break;
-
-        default:
-          break;
-      }
-    }
-  };
-
   const initCommander = async (config: IConfigFile) => {
     commander
       .version(APP_VERSION);
 
     commander
-      .command("add <hours>")
+      .command("commit <hours>")
       .description("Adding hours to the project")
-      .action((hoursRaw) => {
-        const hours = parseFloat(hoursRaw);
+      .option("-m, --message <message>", "Description of the spent hours")
+      .action(async (cmd, options) => {
+        const hours = parseFloat(cmd);
         if (isNaN(hours)) {
           exit("Unable to parse hours", 1);
         }
-        console.log(hours);
+
+        await addHoursToProject(config, await getProjectName(), {
+          count: hours,
+          created: Date.now(),
+          message: options.message,
+        });
       });
 
     commander
       .command("push")
       .description("Pushing changes to repository")
-      .action(() => {
-        console.log("Pushing changes to repository");
+      .action(async () => {
+        LogHelper.info("Pushing changes...");
+        await gitHelper.pushChanges();
+        LogHelper.info("Done");
       });
 
     commander
@@ -314,20 +226,25 @@ const DEBUG = true;
       .action(async () => {
         const projects = await getProjectList(config);
 
-        info("Projects:");
+        LogHelper.info("Projects:");
         for (const prj of projects) {
           console.log(`- ${prj.name}`);
         }
       });
 
     commander
-      .command("status")
-      .description("Status")
+      .command("log")
+      .description("List of local changes")
       .action(async () => {
-        const projectName = await getProjectName();
-        const project = await getProjectByName(config, projectName);
-
-        console.log(project);
+        const logs: ReadonlyArray<DefaultLogFields> = await gitHelper.logChanges();
+        if (logs.length > 0) {
+          LogHelper.warn("Local changes:");
+          for (const log of logs) {
+            console.log(`${log.date}\n  ${log.message.trim()}`);
+          }
+        } else {
+          LogHelper.info("Everything is up to date");
+        }
       });
 
     return commander;
@@ -336,27 +253,44 @@ const DEBUG = true;
   const initProject = async (config: IConfigFile) => {
     const name = await getProjectName();
     const project = await getProjectByName(config, name);
-    const hours = 0;
-
-    console.log(config, project);
+    const hours: IHour[] = [];
 
     if (!project) {
       config.projects.push({
         hours,
         name,
       });
+
+      await saveConfig(config);
+      await gitHelper.commitChanges(`Initiated ${name}`);
+      await gitHelper.pushChanges();
     }
 
-    // await saveConfig(config);
-
-    // TODO
   };
+
+  const addHoursToProject = async (config: IConfigFile, projectName: string, hour: IHour) => {
+    const project = await getProjectByName(config, projectName);
+    if (!project) {
+      throw new Error(`Project "${projectName}" not found`);
+    }
+
+    project.hours.push(hour);
+
+    await saveProject(project);
+
+    const hourString = hour.count === 1 ? "hour" : "hours";
+
+    await gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
+  };
+
+  LogHelper.DEBUG = true;
 
   const homeDir = getHomeDir();
   const configDir = path.join(homeDir, `.${APP_NAME}`);
   const configFile = path.join(configDir, "config.json");
   const configExists = fs.existsSync(configFile);
   let configObj: IConfigFile;
+  let gitHelper: GitHelper;
 
   if (!configExists) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
@@ -370,13 +304,15 @@ const DEBUG = true;
     if (initAnswers.setup) {
       await setup();
       configObj = getConfig();
-      await initRepo(configObj);
+      gitHelper = new GitHelper(configDir);
+      await gitHelper.initRepo(configObj);
     } else {
       exit(`${APP_NAME} does not work without setup, bye!`, 0);
     }
   }
 
   configObj = getConfig();
+  gitHelper = new GitHelper(configDir);
 
   await initProject(configObj);
 
