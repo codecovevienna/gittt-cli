@@ -6,7 +6,15 @@
     "jsRules": {},
     "rules": {
         "indent": [true, "spaces", 2],
-        "no-console": false
+        "no-console": false,
+        "typedef": [
+            true,
+            "arrow-parameter",
+            "arrow-call-signature"
+        ],
+        "await-promise": true,
+        "no-unused-expression": true,
+        "import-spacing": true
     },
     "rulesDirectory": []
 }

@@ -6,14 +6,14 @@ import { LogHelper } from "./";
 export class FileHelper {
   private configFilePath: string;
   private configDir: string;
-  private configObject: IConfigFile; // Cache
+  private configObject: IConfigFile | undefined; // Cache
 
   constructor(configDir: string, configFileName: string) {
     this.configDir = configDir;
     this.configFilePath = path.join(configDir, configFileName);
   }
 
-  public createConfigDir = async () => {
+  public createConfigDir = (): void => {
     try {
       fs.mkdirSync(this.configDir);
     } catch (err) {
@@ -21,7 +21,7 @@ export class FileHelper {
     }
   }
 
-  public initConfigFile = async (gitRepo: string) => {
+  public initConfigFile = async (gitRepo: string): Promise<void> => {
     try {
       const initial: IConfigFile = {
         created: Date.now(),
@@ -29,13 +29,13 @@ export class FileHelper {
         projects: [],
       };
       fs.writeFileSync(this.configFilePath, JSON.stringify(initial));
-      await this.setConfigObject(initial);
+      this.setConfigObject(initial);
     } catch (err) {
       LogHelper.error("Error initializing config file");
     }
   }
 
-  public configFileExists = async () => {
+  public configFileExists = (): boolean => {
     try {
       return fs.existsSync(this.configFilePath);
     } catch (err) {
@@ -44,7 +44,7 @@ export class FileHelper {
     }
   }
 
-  public getConfigObject = async (): Promise<IConfigFile> => {
+  public getConfigObject = (): IConfigFile => {
     if (!this.configObject) {
       return JSON.parse(fs.readFileSync(this.configFilePath).toString());
     } else {
@@ -55,7 +55,7 @@ export class FileHelper {
   public saveConfigObject = async (config: IConfigFile): Promise<boolean> => {
     try {
       fs.writeFileSync(this.configFilePath, JSON.stringify(config));
-      await this.setConfigObject(config);
+      this.setConfigObject(config);
       return true;
     } catch (err) {
       LogHelper.error("Error writing config file");
@@ -63,7 +63,11 @@ export class FileHelper {
     }
   }
 
-  private setConfigObject = async (config: IConfigFile) => {
+  public invalidateCache = (): void => {
+    this.configObject = undefined;
+  }
+
+  private setConfigObject = (config: IConfigFile): void => {
     this.configObject = config;
   }
 

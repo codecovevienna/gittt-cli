@@ -1,42 +1,23 @@
-import commander from "commander";
-import fs from "fs";
+import commander, { CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import path from "path";
-import shelljs, { ExecOutputReturnValue } from "shelljs";
 import { DefaultLogFields } from "simple-git/typings/response";
-import { GitHelper, LogHelper } from "./helper";
-import { FileHelper } from "./helper/file";
-import { IConfigFile, IGitRepoAnswers, IHour, IInitAnswers, IProject, IProjectNameAnswers } from "./interfaces";
+import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "./helper";
+import { IGitRepoAnswers, IInitAnswers } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
 const packageJson = require("./package.json");
 const APP_NAME = packageJson.name;
 const APP_VERSION = packageJson.version;
 
-(async () => {
-  const exit = (msg: string, code: number) => {
+(async (): Promise<void> => {
+  const exit = (msg: string, code: number): void => {
     if (code === 0) {
       LogHelper.warn(msg);
     } else {
       LogHelper.error(msg);
     }
     process.exit(code);
-  };
-
-  const saveProject = async (project: IProject) => {
-    const config: IConfigFile = await fileHelper.getConfigObject();
-
-    // remove project from config file
-    const filteredProjects = config.projects.filter(({ name }) => name !== project.name);
-
-    // add project to config file
-
-    filteredProjects.push(project);
-    // save config file
-
-    config.projects = filteredProjects;
-
-    await fileHelper.saveConfigObject(config);
   };
 
   const getHomeDir = (): string => {
@@ -52,95 +33,6 @@ const APP_VERSION = packageJson.version;
     return home;
   };
 
-  const getProjectList = (config: IConfigFile): IProject[] => {
-    return config.projects;
-  };
-
-  const getProjectByName = (config: IConfigFile, name: string): IProject | undefined => {
-    return config.projects.find((project: IProject) =>  project.name === name);
-  };
-
-  const parseProjectNameFromGitUrl = (input: string): string | undefined => {
-    const split = input
-      .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
-
-    if (!split || split.length !== 6) {
-      return;
-    }
-
-    const [,
-      /*schema*/,
-      /*user*/,
-      /*domain*/,
-      /*port*/,
-      projectName] = split;
-
-    return projectName;
-  };
-
-  const getProjectNameUser = async (): Promise<string> => {
-    LogHelper.info("Unable to determinate project, please add it manually");
-    const projectNameAnswer = await inquirer.prompt([
-      {
-        message: "Project namespace:",
-        name: "userProjectNamespace",
-        type: "input",
-        validate(input) {
-          const valid = input.length > 0;
-
-          if (valid) {
-            return true;
-          } else {
-            return "The namespace must not be empty";
-          }
-        },
-      },
-      {
-        message: "Project name:",
-        name: "userProjectName",
-        type: "input",
-        validate(input) {
-          const valid = input.length > 0;
-
-          if (valid) {
-            return true;
-          } else {
-            return "The name must not be empty";
-          }
-        },
-      },
-    ]) as IProjectNameAnswers;
-
-    const { userProjectName, userProjectNamespace } = projectNameAnswer;
-
-    return `${userProjectNamespace}/${userProjectName}`;
-  };
-
-  const getProjectNameGit = (): string | undefined => {
-    LogHelper.debug("Trying to find project name from .git folder");
-    const gitConfigExec: ExecOutputReturnValue = shelljs.exec("git config remote.origin.url", {
-      silent: true,
-    }) as ExecOutputReturnValue;
-
-    if (gitConfigExec.code !== 0 || gitConfigExec.stdout.length < 4) {
-      return;
-    }
-
-    const originUrl = gitConfigExec.stdout.trim();
-
-    return parseProjectNameFromGitUrl(originUrl);
-  };
-
-  const getProjectName = async (): Promise<string> => {
-    let projectName = getProjectNameGit();
-
-    if (!projectName) {
-      projectName = await getProjectNameUser();
-    }
-
-    return projectName;
-  };
-
   const setup = async (): Promise<void> => {
     LogHelper.info("Where to store the projects");
     const gitRepoAnswers = await inquirer.prompt([
@@ -149,7 +41,7 @@ const APP_VERSION = packageJson.version;
         name: "gitRepo",
         type: "input",
         validate(input) {
-          const projectName = parseProjectNameFromGitUrl(input);
+          const projectName = ProjectHelper.parseProjectNameFromGitUrl(input);
 
           const valid = (input.length > 0 && !!projectName);
 
@@ -162,7 +54,7 @@ const APP_VERSION = packageJson.version;
       },
     ]) as IGitRepoAnswers;
 
-    await fileHelper.createConfigDir();
+    fileHelper.createConfigDir();
     LogHelper.info(`Created config dir (${configDir})`);
 
     const { gitRepo } = gitRepoAnswers;
@@ -171,7 +63,7 @@ const APP_VERSION = packageJson.version;
     LogHelper.info("Created config file");
   };
 
-  const initCommander = async (config: IConfigFile) => {
+  const initCommander = (): CommanderStatic => {
     commander
       .version(APP_VERSION);
 
@@ -179,13 +71,13 @@ const APP_VERSION = packageJson.version;
       .command("commit <hours>")
       .description("Adding hours to the project")
       .option("-m, --message <message>", "Description of the spent hours")
-      .action(async (cmd, options) => {
+      .action(async (cmd: string, options: any): Promise<void> => {
         const hours = parseFloat(cmd);
         if (isNaN(hours)) {
           exit("Unable to parse hours", 1);
         }
 
-        await addHoursToProject(config, await getProjectName(), {
+        await projectHelper.addHoursToProject(await projectHelper.getProjectName(), {
           count: hours,
           created: Date.now(),
           message: options.message,
@@ -205,7 +97,7 @@ const APP_VERSION = packageJson.version;
       .command("list")
       .description("Listing all projects")
       .action(async () => {
-        const projects = await getProjectList(config);
+        const projects = await projectHelper.getProjectList();
 
         LogHelper.info("Projects:");
         for (const prj of projects) {
@@ -231,14 +123,14 @@ const APP_VERSION = packageJson.version;
     return commander;
   };
 
-  const initProject = async (config: IConfigFile) => {
-    const name = await getProjectName();
-    const project = await getProjectByName(config, name);
-    const hours: IHour[] = [];
+  const initProject = async (): Promise<void> => {
+    const config = fileHelper.getConfigObject();
+    const name = await projectHelper.getProjectName();
+    const project = await projectHelper.getProjectByName(name);
 
     if (!project) {
       config.projects.push({
-        hours,
+        hours: [],
         name,
       });
 
@@ -246,34 +138,17 @@ const APP_VERSION = packageJson.version;
       await gitHelper.commitChanges(`Initiated ${name}`);
       await gitHelper.pushChanges();
     }
-
-  };
-
-  const addHoursToProject = async (config: IConfigFile, projectName: string, hour: IHour) => {
-    const project = await getProjectByName(config, projectName);
-    if (!project) {
-      throw new Error(`Project "${projectName}" not found`);
-    }
-
-    project.hours.push(hour);
-
-    await saveProject(project);
-
-    const hourString = hour.count === 1 ? "hour" : "hours";
-
-    await gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
   };
 
   LogHelper.DEBUG = true;
 
   const homeDir = getHomeDir();
   const configDir = path.join(homeDir, `.${APP_NAME}`);
-  let configObj: IConfigFile;
+  const fileHelper: FileHelper = new FileHelper(configDir, "config.json");
   let gitHelper: GitHelper;
-  let fileHelper: FileHelper;
-  fileHelper = new FileHelper(configDir, "config.json");
+  let projectHelper: ProjectHelper;
 
-  if (!(await fileHelper.configFileExists())) {
+  if (!(fileHelper.configFileExists())) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
       {
         message: `Looks like you never used ${APP_NAME}, should it be set up?`,
@@ -284,20 +159,20 @@ const APP_VERSION = packageJson.version;
 
     if (initAnswers.setup) {
       await setup();
-      configObj = await fileHelper.getConfigObject();
-      gitHelper = new GitHelper(configDir);
-      await gitHelper.initRepo(configObj);
+      gitHelper = new GitHelper(configDir, fileHelper);
+      projectHelper = new ProjectHelper(gitHelper, fileHelper);
+      await gitHelper.initRepo();
     } else {
       exit(`${APP_NAME} does not work without setup, bye!`, 0);
     }
   }
 
-  configObj = await fileHelper.getConfigObject();
-  gitHelper = new GitHelper(configDir);
+  gitHelper = new GitHelper(configDir, fileHelper);
+  projectHelper = new ProjectHelper(gitHelper, fileHelper);
 
-  await initProject(configObj);
+  await initProject();
 
-  await initCommander(configObj);
+  initCommander();
 
   if (process.argv.length === 2) {
     commander.help();

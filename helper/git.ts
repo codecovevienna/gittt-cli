@@ -1,13 +1,15 @@
 import inquirer from "inquirer";
 import simplegit, { SimpleGit, StatusResult } from "simple-git/promise";
 import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
-import { IConfigFile, IOverrideAnswers } from "../interfaces";
-import { LogHelper } from "./log";
+import { IOverrideAnswers } from "../interfaces";
+import { FileHelper, LogHelper } from "./index";
 
 export class GitHelper {
   private git: SimpleGit;
-  constructor(configDir: string) {
+  private fileHelper: FileHelper;
+  constructor(configDir: string, fileHelper: FileHelper) {
      this.git = simplegit(configDir);
+     this.fileHelper = fileHelper;
   }
 
   public logChanges = async (): Promise<ReadonlyArray<DefaultLogFields>> => {
@@ -19,18 +21,19 @@ export class GitHelper {
     return listLogSummery.all;
   }
 
-  public pushChanges = async () => {
+  public pushChanges = async (): Promise<void> => {
     await this.git.pull("origin", "master");
     await this.git.push("origin", "master");
   }
 
-  public commitChanges = async (message?: string) => {
+  public commitChanges = async (message?: string): Promise<void> => {
     await this.git.pull("origin", "master");
     await this.git.add("./*");
     await this.git.commit(message ? message : "Did some changes");
   }
 
-  public initRepo = async (config: IConfigFile) => {
+  public initRepo = async (): Promise<void> => {
+    const config = this.fileHelper.getConfigObject();
     const repoInitialized = await this.git.checkIsRepo();
     if (!repoInitialized) {
       await this.git.init();
@@ -55,7 +58,6 @@ export class GitHelper {
       ]) as IOverrideAnswers;
 
       const { override } = overrideLocalAnswers;
-      console.log(override);
 
       switch (override) {
         case 0:
@@ -84,6 +86,9 @@ export class GitHelper {
         default:
           break;
       }
+
+      // Force fileHelper to load config file from disk
+      this.fileHelper.invalidateCache();
     }
   }
 }
