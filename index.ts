@@ -5,6 +5,7 @@ import path from "path";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import { DefaultLogFields } from "simple-git/typings/response";
 import { GitHelper, LogHelper } from "./helper";
+import { FileHelper } from "./helper/file";
 import { IConfigFile, IGitRepoAnswers, IHour, IInitAnswers, IProject, IProjectNameAnswers } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
@@ -23,7 +24,7 @@ const APP_VERSION = packageJson.version;
   };
 
   const saveProject = async (project: IProject) => {
-    const config: IConfigFile = getConfig();
+    const config: IConfigFile = await fileHelper.getConfigObject();
 
     // remove project from config file
     const filteredProjects = config.projects.filter(({ name }) => name !== project.name);
@@ -35,11 +36,7 @@ const APP_VERSION = packageJson.version;
 
     config.projects = filteredProjects;
 
-    await saveConfig(config);
-  };
-
-  const saveConfig = async (config: IConfigFile) => {
-    fs.writeFileSync(configFile, JSON.stringify(config));
+    await fileHelper.saveConfigObject(config);
   };
 
   const getHomeDir = (): string => {
@@ -165,29 +162,13 @@ const APP_VERSION = packageJson.version;
       },
     ]) as IGitRepoAnswers;
 
-    try {
-      fs.mkdirSync(configDir);
-      LogHelper.info(`Created config dir (${configDir})`);
-    } catch (err) {
-      LogHelper.debug(`Error creating config dir ${err}`);
-    }
+    await fileHelper.createConfigDir();
+    LogHelper.info(`Created config dir (${configDir})`);
 
     const { gitRepo } = gitRepoAnswers;
 
-    try {
-      fs.writeFileSync(configFile, JSON.stringify({
-        created: Date.now(),
-        gitRepo,
-        projects: [],
-      }));
-      LogHelper.info(`Created config file (${configFile})`);
-    } catch (err) {
-      LogHelper.debug(`Error creating config file ${err}`);
-    }
-  };
-
-  const getConfig = (): IConfigFile => {
-    return JSON.parse(fs.readFileSync(configFile).toString());
+    await fileHelper.initConfigFile(gitRepo);
+    LogHelper.info("Created config file");
   };
 
   const initCommander = async (config: IConfigFile) => {
@@ -261,7 +242,7 @@ const APP_VERSION = packageJson.version;
         name,
       });
 
-      await saveConfig(config);
+      await fileHelper.saveConfigObject(config);
       await gitHelper.commitChanges(`Initiated ${name}`);
       await gitHelper.pushChanges();
     }
@@ -287,12 +268,12 @@ const APP_VERSION = packageJson.version;
 
   const homeDir = getHomeDir();
   const configDir = path.join(homeDir, `.${APP_NAME}`);
-  const configFile = path.join(configDir, "config.json");
-  const configExists = fs.existsSync(configFile);
   let configObj: IConfigFile;
   let gitHelper: GitHelper;
+  let fileHelper: FileHelper;
+  fileHelper = new FileHelper(configDir, "config.json");
 
-  if (!configExists) {
+  if (!(await fileHelper.configFileExists())) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
       {
         message: `Looks like you never used ${APP_NAME}, should it be set up?`,
@@ -303,7 +284,7 @@ const APP_VERSION = packageJson.version;
 
     if (initAnswers.setup) {
       await setup();
-      configObj = getConfig();
+      configObj = await fileHelper.getConfigObject();
       gitHelper = new GitHelper(configDir);
       await gitHelper.initRepo(configObj);
     } else {
@@ -311,7 +292,7 @@ const APP_VERSION = packageJson.version;
     }
   }
 
-  configObj = getConfig();
+  configObj = await fileHelper.getConfigObject();
   gitHelper = new GitHelper(configDir);
 
   await initProject(configObj);
