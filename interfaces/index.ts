@@ -7,12 +7,20 @@ export interface IHour {
 }
 
 export interface IProject {
+  guid: string;
   name: string;
   hours: IHour[];
+}
+
+export interface IProjectLink {
+  file: string;
+  guid: string;
+  name: string;
+  created: number;
 }
 
 export interface  IConfigFile {
   created: number;
   gitRepo: string;
-  projects: IProject[];
+  projects: IProjectLink[];
 }

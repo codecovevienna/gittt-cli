@@ -23,12 +23,14 @@
     "@types/commander": "^2.12.2",
     "@types/inquirer": "0.0.43",
     "@types/shelljs": "^0.8.2",
+    "@types/uuid": "^3.4.4",
     "chalk": "^2.4.2",
     "commander": "^2.19.0",
     "inquirer": "^6.2.2",
     "shelljs": "^0.8.3",
     "simple-git": "^1.107.0",
     "ts-node": "^8.0.2",
-    "typescript": "^3.3.1"
+    "typescript": "^3.3.1",
+    "uuid": "^3.3.2"
   }
 }

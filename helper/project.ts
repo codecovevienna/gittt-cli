@@ -1,10 +1,10 @@
 import inquirer from "inquirer";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
-import { IConfigFile, IHour, IProject, IProjectNameAnswers } from "../interfaces";
+import uuid from "uuid/v1"
+import { IHour, IProjectLink, IProjectNameAnswers } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper } from "./index";
 
 export class ProjectHelper {
-
   public static parseProjectNameFromGitUrl = (input: string): string | undefined => {
     const split = input
       .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
@@ -30,32 +30,60 @@ export class ProjectHelper {
     this.fileHelper = fileHelper;
   }
 
+  public init = async (): Promise<void> => {
+    const config = this.fileHelper.getConfigObject();
+    const name = await this.getProjectName();
+
+    try{
+      await this.getProjectByName(name);
+    }catch(err){
+      const projectLink: IProjectLink = {
+        file: name.replace("/", "_") + ".json",
+        guid: uuid(),
+        name,
+        created: Date.now(),
+      }
+
+      config.projects.push(projectLink);
+
+      await this.fileHelper.initProjectFile(projectLink)
+
+      await this.fileHelper.saveConfigObject(config);
+      await this.gitHelper.commitChanges(`Initiated ${name}`);
+      await this.gitHelper.pushChanges();
+    }
+  };
+
   public addHoursToProject = async (projectName: string, hour: IHour): Promise<void> => {
     const project = await this.getProjectByName(projectName);
     if (!project) {
       throw new Error(`Project "${projectName}" not found`);
     }
 
-    project.hours.push(hour);
+    // TODO refactor
+    // project.hours.push(hour);
 
-    await this.saveProject(project);
+    // await this.saveProject(project);
 
     const hourString = hour.count === 1 ? "hour" : "hours";
 
     await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
   }
 
-  public getProjectList = async (): Promise<IProject[]> => {
+  public getProjectList = async (): Promise<IProjectLink[]> => {
     const config = this.fileHelper.getConfigObject();
     return config.projects;
   }
 
-  public getProjectByName = async (name: string): Promise<IProject> => {
+  public getProjectByName = async (name: string): Promise<IProjectLink> => {
     const config = this.fileHelper.getConfigObject();
-    const foundProject = config.projects.find((project: IProject) =>  project.name === name);
+
+    // TODO foundProject is only the project object in the config file
+    const foundProject = config.projects.find((project: IProjectLink) =>  project.name === name);
     if (!foundProject) {
       throw new Error(`Unable to find project "${name}"`);
     }
+
     return foundProject;
   }
 
@@ -122,19 +150,20 @@ export class ProjectHelper {
     return ProjectHelper.parseProjectNameFromGitUrl(originUrl);
   }
 
-  private saveProject = async (project: IProject): Promise<boolean> => {
-    const config: IConfigFile = this.fileHelper.getConfigObject();
+  // TODO refactor
+  // private saveProject = async (project: IProject): Promise<boolean> => {
+  //   const config: IConfigFile = this.fileHelper.getConfigObject();
 
-    // remove project from config file
-    const filteredProjects = config.projects.filter((p: IProject) => p.name !== project.name);
+  //   // remove project from config file
+  //   const filteredProjects = config.projects.filter((p: IProjectLink) => p.name !== project.name);
 
-    // add project to config file
+  //   // add project to config file
 
-    filteredProjects.push(project);
-    // save config file
+  //   filteredProjects.push(project);
+  //   // save config file
 
-    config.projects = filteredProjects;
+  //   config.projects = filteredProjects;
 
-    return await this.fileHelper.saveConfigObject(config);
-  }
+  //   return await this.fileHelper.saveConfigObject(config);
+  // }
 }

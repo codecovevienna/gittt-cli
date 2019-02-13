@@ -1,21 +1,24 @@
 import fs from "fs";
 import path from "path";
-import { IConfigFile } from "../interfaces";
+import { IConfigFile, IProject, IProjectLink } from "../interfaces";
 import { LogHelper } from "./";
 
 export class FileHelper {
   private configFilePath: string;
   private configDir: string;
+  private projectDir: string;
   private configObject: IConfigFile | undefined; // Cache
 
-  constructor(configDir: string, configFileName: string) {
+  constructor(configDir: string, configFileName: string, projectDir: string) {
     this.configDir = configDir;
+    this.projectDir = path.join(configDir, projectDir);
     this.configFilePath = path.join(configDir, configFileName);
   }
 
   public createConfigDir = (): void => {
     try {
       fs.mkdirSync(this.configDir);
+      fs.mkdirSync(this.projectDir);
     } catch (err) {
       LogHelper.error("Error creating config directory");
     }
@@ -32,6 +35,19 @@ export class FileHelper {
       this.setConfigObject(initial);
     } catch (err) {
       LogHelper.error("Error initializing config file");
+    }
+  }
+
+  public initProjectFile = async (projectLink: IProjectLink): Promise<void> => {
+    try {
+      const initial: IProject = {
+        name: projectLink.name,
+        guid: projectLink.guid,
+        hours: [],
+      };
+      fs.writeFileSync(path.join(this.projectDir, projectLink.file), JSON.stringify(initial));
+    } catch (err) {
+      LogHelper.error("Error initializing project file");
     }
   }
 

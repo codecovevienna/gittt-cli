@@ -123,28 +123,11 @@ const APP_VERSION = packageJson.version;
     return commander;
   };
 
-  const initProject = async (): Promise<void> => {
-    const config = fileHelper.getConfigObject();
-    const name = await projectHelper.getProjectName();
-    const project = await projectHelper.getProjectByName(name);
-
-    if (!project) {
-      config.projects.push({
-        hours: [],
-        name,
-      });
-
-      await fileHelper.saveConfigObject(config);
-      await gitHelper.commitChanges(`Initiated ${name}`);
-      await gitHelper.pushChanges();
-    }
-  };
-
   LogHelper.DEBUG = true;
 
   const homeDir = getHomeDir();
   const configDir = path.join(homeDir, `.${APP_NAME}`);
-  const fileHelper: FileHelper = new FileHelper(configDir, "config.json");
+  const fileHelper: FileHelper = new FileHelper(configDir, "config.json", "projects");
   let gitHelper: GitHelper;
   let projectHelper: ProjectHelper;
 
@@ -170,7 +153,7 @@ const APP_VERSION = packageJson.version;
   gitHelper = new GitHelper(configDir, fileHelper);
   projectHelper = new ProjectHelper(gitHelper, fileHelper);
 
-  await initProject();
+  await projectHelper.init();
 
   initCommander();
 
