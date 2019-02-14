@@ -68,10 +68,26 @@ export class FileHelper {
     }
   }
 
+  public getProjectObject = (link: IProjectLink): IProject => {
+    // TODO add caching
+    return JSON.parse(fs.readFileSync(path.join(this.projectDir, link.file)).toString());
+  }
+
   public saveConfigObject = async (config: IConfigFile): Promise<boolean> => {
     try {
       fs.writeFileSync(this.configFilePath, JSON.stringify(config));
       this.setConfigObject(config);
+      return true;
+    } catch (err) {
+      LogHelper.error("Error writing config file");
+      return false;
+    }
+  }
+
+  public saveProjectObject = async (project: IProject, link: IProjectLink): Promise<boolean> => {
+    try {
+      fs.writeFileSync(path.join(this.projectDir, link.file), JSON.stringify(project));
+      // TODO update cache
       return true;
     } catch (err) {
       LogHelper.error("Error writing config file");
