@@ -120,6 +120,23 @@ const APP_VERSION = packageJson.version;
         }
       });
 
+    commander
+      .command("status")
+      .description("Overview of all projects")
+      .action(async () => {
+        const projects = await projectHelper.getProjectList();
+        let totalHours = 0;
+
+        for(const pL of projects){
+          const hours = await projectHelper.getTotalHours(pL.name);
+          LogHelper.info(`${pL.name}:\t${hours}`)
+          totalHours += hours;
+        }
+
+        LogHelper.info(`Total projects:\t${projects.length}`)
+        LogHelper.info(`Total hours:\t${totalHours}`)
+      });
+
     return commander;
   };
 

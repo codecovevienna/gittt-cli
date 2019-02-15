@@ -67,6 +67,18 @@ export class ProjectHelper {
     await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
   }
 
+  public getTotalHours = async (projectName: string): Promise<number> =>{
+    const projectLink = await this.getProjectLinkByName(projectName);
+    if (!projectLink) {
+      throw new Error(`Project "${projectName}" not found`);
+    }
+
+    const project = await this.fileHelper.getProjectObject(projectLink);
+    return project.hours.reduce((prev: number, curr: IHour) =>{
+      return prev + curr.count;
+    }, 0)
+  }
+
   public getProjectList = async (): Promise<IProjectLink[]> => {
     const config = this.fileHelper.getConfigObject();
     return config.projects;
