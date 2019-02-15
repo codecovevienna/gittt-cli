@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "fs-extra";
 import path from "path";
 import { IConfigFile, IProject, IProjectLink } from "../interfaces";
 import { LogHelper } from "./";
@@ -16,12 +16,8 @@ export class FileHelper {
   }
 
   public createConfigDir = (): void => {
-    try {
-      fs.mkdirSync(this.configDir);
-      fs.mkdirSync(this.projectDir);
-    } catch (err) {
-      LogHelper.error("Error creating config directory");
-    }
+    fs.ensureDirSync(this.configDir);
+    fs.ensureDirSync(this.projectDir);
   }
 
   public initConfigFile = async (gitRepo: string): Promise<void> => {
@@ -41,9 +37,9 @@ export class FileHelper {
   public initProjectFile = async (projectLink: IProjectLink): Promise<void> => {
     try {
       const initial: IProject = {
-        name: projectLink.name,
         guid: projectLink.guid,
         hours: [],
+        name: projectLink.name,
       };
       fs.writeFileSync(path.join(this.projectDir, projectLink.file), JSON.stringify(initial));
     } catch (err) {
@@ -60,9 +56,11 @@ export class FileHelper {
     }
   }
 
-  public getConfigObject = (): IConfigFile => {
-    if (!this.configObject) {
-      return JSON.parse(fs.readFileSync(this.configFilePath).toString());
+  public getConfigObject = (force: boolean = false): IConfigFile => {
+    if (!this.configObject || force) {
+      const configObj: IConfigFile = JSON.parse(fs.readFileSync(this.configFilePath).toString());
+      this.setConfigObject(configObj);
+      return configObj;
     } else {
       return this.configObject;
     }

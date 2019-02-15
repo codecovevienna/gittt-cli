@@ -1,9 +1,10 @@
+import { assert } from "chai";
 import commander, { CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "./helper";
-import { IGitRepoAnswers, IInitAnswers } from "./interfaces";
+import { IConfigFile, IGitRepoAnswers, IInitAnswers } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
 const packageJson = require("./package.json");
@@ -33,8 +34,39 @@ const APP_VERSION = packageJson.version;
     return home;
   };
 
-  const setup = async (): Promise<void> => {
-    LogHelper.info("Where to store the projects");
+  const isConfigFileValid = (): boolean => {
+    if (!(fileHelper.configFileExists())) {
+      LogHelper.debug("Config file does not exist");
+      return false;
+    }
+
+    let config: IConfigFile;
+
+    try {
+      config = fileHelper.getConfigObject(true);
+
+      // TODO use some kind of generic interface-json-schema-validator
+      assert.isDefined(config.created, "created has to be defined");
+      assert.isDefined(config.gitRepo, "gitRepo has to be defined");
+      assert.isDefined(config.projects, "projects has to be defined");
+      assert.isArray(config.projects, "projects has to be an array");
+    } catch (err) {
+      LogHelper.debug(`Unable to parse config file: ${err.message}`);
+      return false;
+    }
+
+    const projectName = ProjectHelper.parseProjectNameFromGitUrl(config.gitRepo);
+
+    if (projectName) {
+      return true;
+    } else {
+      LogHelper.debug("Project name is undefined");
+      return false;
+    }
+
+  };
+
+  const askGitUrl = async (): Promise<string> => {
     const gitRepoAnswers = await inquirer.prompt([
       {
         message: "Git Repository URL:",
@@ -54,13 +86,49 @@ const APP_VERSION = packageJson.version;
       },
     ]) as IGitRepoAnswers;
 
-    fileHelper.createConfigDir();
-    LogHelper.info(`Created config dir (${configDir})`);
+    return gitRepoAnswers.gitRepo;
+  };
 
-    const { gitRepo } = gitRepoAnswers;
+  const init = async (): Promise<void> => {
+    if (!(fileHelper.configFileExists())) {
+      LogHelper.info(`Initializing config directory ${configDir}`);
+      try {
+        fileHelper.createConfigDir();
+        LogHelper.info("Created config directory");
+      } catch (err) {
+        LogHelper.error("Error creating config directory");
+        exit(err.message, 1);
+      }
 
-    await fileHelper.initConfigFile(gitRepo);
-    LogHelper.info("Created config file");
+      gitHelper = new GitHelper(configDir, fileHelper);
+
+      if (!isConfigFileValid()) {
+        const gitUrl = await askGitUrl();
+        await gitHelper.initRepo(gitUrl);
+        // TODO remove reset=true?
+        await gitHelper.pullRepo();
+
+        // Check if a valid config file is already in the repo
+        if (!isConfigFileValid()) {
+          await fileHelper.initConfigFile(gitUrl);
+          await gitHelper.commitChanges("Initialized config file");
+          await gitHelper.pushChanges();
+        }
+      } else {
+        await gitHelper.pullRepo();
+      }
+
+    } else {
+      if (isConfigFileValid()) {
+        gitHelper = new GitHelper(configDir, fileHelper);
+        await gitHelper.pullRepo();
+        LogHelper.info(`Config directory ${configDir} already initialized`);
+      } else {
+        LogHelper.warn(`Config file exists, but is invalid`);
+        exit("Invalid config file", 1);
+        // TODO reinitialize?
+      }
+    }
   };
 
   const initCommander = (): CommanderStatic => {
@@ -127,14 +195,24 @@ const APP_VERSION = packageJson.version;
         const projects = await projectHelper.getProjectList();
         let totalHours = 0;
 
-        for(const pL of projects){
+        LogHelper.info("Projects:");
+        for (const pL of projects) {
           const hours = await projectHelper.getTotalHours(pL.name);
-          LogHelper.info(`${pL.name}:\t${hours}`)
+          LogHelper.info(`${pL.name}:\t${hours}`);
           totalHours += hours;
         }
+        LogHelper.info("");
 
-        LogHelper.info(`Total projects:\t${projects.length}`)
-        LogHelper.info(`Total hours:\t${totalHours}`)
+        LogHelper.info("Summery:");
+        LogHelper.info(`Total projects:\t${projects.length}`);
+        LogHelper.info(`Total hours:\t${totalHours}`);
+      });
+
+    commander
+      .command("init")
+      .description("Initializes config directory")
+      .action(async () => {
+        await init();
       });
 
     return commander;
@@ -146,9 +224,8 @@ const APP_VERSION = packageJson.version;
   const configDir = path.join(homeDir, `.${APP_NAME}`);
   const fileHelper: FileHelper = new FileHelper(configDir, "config.json", "projects");
   let gitHelper: GitHelper;
-  let projectHelper: ProjectHelper;
 
-  if (!(fileHelper.configFileExists())) {
+  if (!isConfigFileValid()) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
       {
         message: `Looks like you never used ${APP_NAME}, should it be set up?`,
@@ -158,19 +235,14 @@ const APP_VERSION = packageJson.version;
     ]) as IInitAnswers;
 
     if (initAnswers.setup) {
-      await setup();
-      gitHelper = new GitHelper(configDir, fileHelper);
-      projectHelper = new ProjectHelper(gitHelper, fileHelper);
-      await gitHelper.initRepo();
+      await init();
     } else {
       exit(`${APP_NAME} does not work without setup, bye!`, 0);
     }
   }
 
   gitHelper = new GitHelper(configDir, fileHelper);
-  projectHelper = new ProjectHelper(gitHelper, fileHelper);
-
-  await projectHelper.init();
+  const projectHelper: ProjectHelper = new ProjectHelper(gitHelper, fileHelper);
 
   initCommander();
 

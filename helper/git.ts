@@ -32,15 +32,21 @@ export class GitHelper {
     await this.git.commit(message ? message : "Did some changes");
   }
 
-  public initRepo = async (): Promise<void> => {
-    const config = this.fileHelper.getConfigObject();
+  public initRepo = async (gitUrl: string): Promise<void> => {
     const repoInitialized = await this.git.checkIsRepo();
     if (!repoInitialized) {
+      LogHelper.debug("Initializing repo");
       await this.git.init();
-      await this.git.addRemote("origin", config.gitRepo);
+      await this.git.addRemote("origin", gitUrl);
     }
+  }
 
+  public pullRepo = async (reset: boolean = false): Promise<void> => {
     try {
+      if (reset) {
+        LogHelper.debug("Resetting to origin/master");
+        await this.git.reset(["--hard", "origin/master"]);
+      }
       await this.git.pull("origin", "master");
       LogHelper.info("Pulled repo successfully");
     } catch (err) {
@@ -75,7 +81,7 @@ export class GitHelper {
             const status: StatusResult = await this.git.status();
             console.log(status);
           } catch (err) {
-            LogHelper.warn("Unable to fetch repo " + config.gitRepo);
+            LogHelper.warn("Unable to fetch repo");
           }
           break;
         case 2:
