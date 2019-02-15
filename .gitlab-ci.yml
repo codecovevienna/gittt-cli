@@ -14,7 +14,8 @@ test:
     - codecove
   stage: test
   script:
-    - echo "There should be tests"
+    - npm install
+    - npm run test:ci
   except:
     - tags
 

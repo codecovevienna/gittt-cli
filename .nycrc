@@ -1,0 +1,21 @@
+{
+  "extension": [
+    ".ts",
+    ".tsx"
+  ],
+  "exclude": [
+    "typings",
+    "coverage",
+    "doc",
+    "dist",
+    "**/*test.ts"
+  ],
+  "reporter": [
+    "text",
+    "html"
+  ],
+  "require": [
+    "ts-node/register"
+  ],
+  "all": true
+}
