@@ -47,6 +47,7 @@ export class GitHelper {
         LogHelper.debug("Resetting to origin/master");
         await this.git.reset(["--hard", "origin/master"]);
       }
+      console.log(this.git)
       await this.git.pull("origin", "master");
       LogHelper.info("Pulled repo successfully");
     } catch (err) {

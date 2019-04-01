@@ -2,26 +2,35 @@ import chalk from "chalk";
 
 export class LogHelper {
   public static DEBUG: boolean = true;
+  public static silence: boolean = false;
 
   public static debug = (msg: any): void => {
-    if (LogHelper.DEBUG) {
+    if (LogHelper.DEBUG && !LogHelper.silence) {
       console.log(msg);
     }
   }
 
   public static log = (msg: any): void => {
-    console.log(chalk.white.bold(msg));
+    if(!LogHelper.silence){
+      console.log(chalk.white.bold(msg));
+    }
   }
 
   public static warn = (msg: any): void => {
-    console.log(chalk.yellow.bold(msg));
+    if(!LogHelper.silence){
+      console.log(chalk.yellow.bold(msg));
+    }
   }
 
   public static error = (msg: any): void => {
-    console.log(chalk.red.bold(msg));
+    if(!LogHelper.silence){
+      console.log(chalk.red.bold(msg));
+    }
   }
 
   public static info = (msg: any): void => {
-    console.log(chalk.green.bold(msg));
+    if(!LogHelper.silence){
+      console.log(chalk.green.bold(msg));
+    }
   }
 }
