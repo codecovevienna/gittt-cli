@@ -27,7 +27,7 @@ export class FileHelper {
         gitRepo,
         projects: [],
       };
-      fs.writeFileSync(this.configFilePath, JSON.stringify(initial));
+      await fs.writeJson(this.configFilePath, initial);
       this.setConfigObject(initial);
     } catch (err) {
       LogHelper.error("Error initializing config file");
@@ -41,7 +41,7 @@ export class FileHelper {
         hours: [],
         name: projectLink.name,
       };
-      fs.writeFileSync(path.join(this.projectDir, projectLink.file), JSON.stringify(initial));
+      await fs.writeJson(path.join(this.projectDir, projectLink.file), initial);
     } catch (err) {
       LogHelper.error("Error initializing project file");
     }

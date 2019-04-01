@@ -1,39 +1,39 @@
 import { assert, expect } from "chai"
-import { FileHelper } from "../../helper/index"
+import { FileHelper, LogHelper } from "../../helper/index"
 import fs from "fs-extra";
 import path from "path";
-import mock from "mock-fs"
-import { IConfigFile } from "../../interfaces";
+import { IConfigFile, IProject } from "../../interfaces";
 
 const sandboxDir = "./sandbox"
 const configDir = path.join(sandboxDir, ".git-time-tracker");
 const configFileName = "config.json"
 const projectsDir = "projects"
- 
-describe("FileHelper",()=>{
-  before(async ()=>{
+
+describe("FileHelper", () => {
+  before(async () => {
+    LogHelper.silence = true;
     // Create sandbox directory
     await fs.ensureDir(sandboxDir);
   })
-  after(async ()=>{
+  after(async () => {
     await fs.remove(sandboxDir)
   })
 
-  it("should create instance",async ()=>{
-    const fileHelper = new FileHelper(configDir,configFileName, projectsDir);
+  it("should create instance", async () => {
+    const fileHelper = new FileHelper(configDir, configFileName, projectsDir);
     assert.isTrue(fileHelper instanceof FileHelper);
   })
 
-  it("should create config directories",async ()=>{
-    const instance = new FileHelper(configDir,configFileName, projectsDir);
+  it("should create config directories", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
 
     await instance.createConfigDir()
     fs.pathExistsSync(configDir)
     fs.pathExistsSync(path.join(configDir, projectsDir))
   })
 
-  it("should initialize config file",async ()=>{
-    const instance = new FileHelper(configDir,configFileName, projectsDir);
+  it("should initialize config file", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
     await instance.createConfigDir();
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
@@ -46,15 +46,31 @@ describe("FileHelper",()=>{
     expect(configFile.projects).to.be.an("Array")
   })
 
-  it("should fail to initialize config file [dir does not exist]",async ()=>{
-    const instance = new FileHelper(configDir,configFileName, projectsDir);
+  it("should fail to initialize config file [dir does not exist]", async () => {
+    const instance = new FileHelper("./sandbox/none-existing", configFileName, projectsDir);
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
-    try{
-      await instance.initConfigFile(gitUrl)
-    }catch(err){
-      assert.isDefined(err)
-    }
+    await instance.initConfigFile(gitUrl);
+  })
+
+  it("should initialize project file", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    await instance.initProjectFile({
+      created: Date.now(),
+      guid: "GUID",
+      name: "TestProject",
+      file: "test.json"
+    })
+
+    const configFile: IProject = JSON.parse(fs.readFileSync(path.join(configDir, projectsDir, "test.json")).toString());
+    expect(configFile.guid).to.eq("GUID");
+    expect(configFile.name).to.eq("TestProject")
+    expect(configFile.hours).to.be.an("Array")
   })
 })
