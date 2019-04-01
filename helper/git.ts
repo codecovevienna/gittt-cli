@@ -8,8 +8,8 @@ export class GitHelper {
   private git: SimpleGit;
   private fileHelper: FileHelper;
   constructor(configDir: string, fileHelper: FileHelper) {
-     this.git = simplegit(configDir);
-     this.fileHelper = fileHelper;
+    this.git = simplegit(configDir);
+    this.fileHelper = fileHelper;
   }
 
   public logChanges = async (): Promise<ReadonlyArray<DefaultLogFields>> => {
@@ -47,24 +47,32 @@ export class GitHelper {
         LogHelper.debug("Resetting to origin/master");
         await this.git.reset(["--hard", "origin/master"]);
       }
-      console.log(this.git)
       await this.git.pull("origin", "master");
       LogHelper.info("Pulled repo successfully");
     } catch (err) {
-      const overrideLocalAnswers: IOverrideAnswers = await inquirer.prompt([
-        {
-          choices: [
-            {name: "Override local config file", value: 0},
-            {name: "Override remote config file", value: 1},
-            {name: "Exit", value: 2},
-          ],
-          message: `Remote repo is not empty, override local changes?`,
-          name: "override",
-          type: "list",
-        },
-      ]) as IOverrideAnswers;
 
-      const { override } = overrideLocalAnswers;
+      let override = 255;
+
+      if (err.message === "fatal: couldn't find remote ref master\n") {
+        await this.fileHelper.initReadme();
+        override = 1;
+      } else {
+        const overrideLocalAnswers: IOverrideAnswers = await inquirer.prompt([
+          {
+            choices: [
+              { name: "Override local config file", value: 0 },
+              { name: "Override remote config file", value: 1 },
+              { name: "Exit", value: 2 },
+            ],
+            message: `Remote repo is not empty, override local changes?`,
+            name: "override",
+            type: "list",
+          },
+        ]) as IOverrideAnswers;
+
+        // const { override } = overrideLocalAnswers;
+        override = overrideLocalAnswers.override;
+      }
 
       switch (override) {
         case 0:
@@ -86,7 +94,7 @@ export class GitHelper {
           }
           break;
         case 2:
-        // TODO helper?
+          // TODO helper?
           // exit("Bye!", 0);
           break;
 

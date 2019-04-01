@@ -236,6 +236,7 @@ const APP_VERSION = packageJson.version;
 
     if (initAnswers.setup) {
       await init();
+      LogHelper.info("Initialized git-time-tracker (GITTT) you are good to go now ;)\n\n");
     } else {
       exit(`${APP_NAME} does not work without setup, bye!`, 0);
     }

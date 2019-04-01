@@ -97,6 +97,14 @@ export class FileHelper {
     this.configObject = undefined;
   }
 
+  public initReadme = async (): Promise<void> => {
+    try {
+      await fs.writeFile(path.join(this.configDir, "README.md"), "# Initially generated gittt README.md file");
+    } catch (err) {
+      LogHelper.error("Error initializing project file");
+    }
+  }
+
   private setConfigObject = (config: IConfigFile): void => {
     this.configObject = config;
   }
