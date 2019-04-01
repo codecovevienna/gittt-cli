@@ -48,14 +48,12 @@ const APP_VERSION = packageJson.version;
       // TODO use some kind of generic interface-json-schema-validator
       assert.isDefined(config.created, "created has to be defined");
       assert.isDefined(config.gitRepo, "gitRepo has to be defined");
-      assert.isDefined(config.projects, "projects has to be defined");
-      assert.isArray(config.projects, "projects has to be an array");
     } catch (err) {
       LogHelper.debug(`Unable to parse config file: ${err.message}`);
       return false;
     }
 
-    const projectName = ProjectHelper.parseProjectNameFromGitUrl(config.gitRepo);
+    const projectName = ProjectHelper.parseProjectNameFromGitUrl(config.gitRepo).name;
 
     if (projectName) {
       return true;
@@ -73,7 +71,7 @@ const APP_VERSION = packageJson.version;
         name: "gitRepo",
         type: "input",
         validate(input) {
-          const projectName = ProjectHelper.parseProjectNameFromGitUrl(input);
+          const projectName = ProjectHelper.parseProjectNameFromGitUrl(input).name;
 
           const valid = (input.length > 0 && !!projectName);
 
@@ -252,5 +250,4 @@ const APP_VERSION = packageJson.version;
   } else {
     commander.parse(process.argv);
   }
-
 })();

@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
-import { IConfigFile, IProject, IProjectLink } from "../interfaces";
+import { IConfigFile, IProject, IProjectMeta } from "../interfaces";
 import { LogHelper } from "./";
 
 export class FileHelper {
@@ -24,8 +24,7 @@ export class FileHelper {
     try {
       const initial: IConfigFile = {
         created: Date.now(),
-        gitRepo,
-        projects: [],
+        gitRepo
       };
       await fs.writeJson(this.configFilePath, initial);
       this.setConfigObject(initial);
@@ -34,14 +33,24 @@ export class FileHelper {
     }
   }
 
-  public initProjectFile = async (projectLink: IProjectLink): Promise<void> => {
+  public initHostPath = async (projectDomain: IProjectMeta): Promise<void> => {
+    try {
+      await fs.ensureDir(this.projectDomainToPath(projectDomain));
+    } catch (err) {
+      LogHelper.error("Error ....")
+    }
+  }
+
+  public initProjectFile = async (projectDomain: IProjectMeta): Promise<void> => {
     try {
       const initial: IProject = {
-        guid: projectLink.guid,
         hours: [],
-        name: projectLink.name,
+        name: projectDomain.name,
       };
-      await fs.writeJson(path.join(this.projectDir, projectLink.file), initial);
+
+      const projectDomainString = this.projectDomainToPath(projectDomain);
+
+      await fs.writeJson(path.join(this.projectDir, projectDomainString, `${projectDomain.name}.json`), initial);
     } catch (err) {
       LogHelper.error("Error initializing project file");
     }
@@ -66,9 +75,11 @@ export class FileHelper {
     }
   }
 
-  public getProjectObject = (link: IProjectLink): IProject => {
+  public getProjectObject = (projectDomain: IProjectMeta): Promise<IProject> => {
     // TODO add caching
-    return JSON.parse(fs.readFileSync(path.join(this.projectDir, link.file)).toString());
+    const projectDomainString = this.projectDomainToPath(projectDomain);
+
+    return fs.readJson(path.join(this.projectDir, projectDomainString, `${projectDomain.name}.json`));
   }
 
   public saveConfigObject = async (config: IConfigFile): Promise<boolean> => {
@@ -82,9 +93,12 @@ export class FileHelper {
     }
   }
 
-  public saveProjectObject = async (project: IProject, link: IProjectLink): Promise<boolean> => {
+  public saveProjectObject = async (project: IProject, projectDomain: IProjectMeta): Promise<boolean> => {
     try {
-      fs.writeFileSync(path.join(this.projectDir, link.file), JSON.stringify(project));
+
+      const projectDomainString = this.projectDomainToPath(projectDomain);
+
+      await fs.writeJson(path.join(this.projectDir, projectDomainString, `${projectDomain.name}.json`), project);
       // TODO update cache
       return true;
     } catch (err) {
@@ -105,8 +119,22 @@ export class FileHelper {
     }
   }
 
+  public getProjects = async (): Promise<string[]> => {
+    const projectNames: string[] = [];
+    const projectDomains = fs.readdirSync(this.projectDir);
+    for(const projectDomain of projectDomains){
+      projectNames.pushAll = fs.readdirSync(projectDomain);
+    }
+    return 
+  }
+
   private setConfigObject = (config: IConfigFile): void => {
     this.configObject = config;
+  }
+
+  private projectDomainToPath = (projectDomain: IProjectMeta): string => {
+    const { host, port } = projectDomain;
+    return `${host.replace(".", "_")}_${port}`;
   }
 
 }

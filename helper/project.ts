@@ -1,11 +1,11 @@
 import inquirer from "inquirer";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import uuid from "uuid/v1";
-import { IHour, IProject, IProjectLink, IProjectNameAnswers } from "../interfaces";
+import { IHour, IProject, IProjectNameAnswers, IProjectMeta } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper } from "./index";
 
 export class ProjectHelper {
-  public static parseProjectNameFromGitUrl = (input: string): string | undefined => {
+  public static parseProjectNameFromGitUrl = (input: string): IProjectMeta | undefined => {
     const split = input
       .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
 
@@ -16,11 +16,11 @@ export class ProjectHelper {
     const [,
       /*schema*/,
       /*user*/,
-      /*domain*/,
-      /*port*/,
-      projectName] = split;
+      host,
+      port,
+      name] = split;
 
-    return projectName;
+    return { host, port: parseInt(port, 10), name, raw: split };
   }
   private fileHelper: FileHelper;
   private gitHelper: GitHelper;
@@ -33,80 +33,86 @@ export class ProjectHelper {
   public init = async (): Promise<void> => {
     const config = this.fileHelper.getConfigObject();
     const name = await this.getProjectName();
-    const projectLink = await this.getProjectLinkByName(name);
+    // const projectLink = await this.getProjectLinkByName(name);
 
-    if (!projectLink) {
-      const pL: IProjectLink = {
-        created: Date.now(),
-        file: name.replace("/", "_") + ".json",
-        guid: uuid(),
-        name,
-      };
+    // if (!projectLink) {
+    //   const pL: IProjectLink = {
+    //     created: Date.now(),
+    //     file: name.replace("/", "_") + ".json",
+    //     guid: uuid(),
+    //     name,
+    //   };
 
-      config.projects.push(pL);
+    //   config.projects.push(pL);
 
-      await this.fileHelper.initProjectFile(pL);
+    //   await this.fileHelper.initProjectFile(pL);
 
-      await this.fileHelper.saveConfigObject(config);
-      await this.gitHelper.commitChanges(`Initiated ${name}`);
-      await this.gitHelper.pushChanges();
-    }
+    //   await this.fileHelper.saveConfigObject(config);
+    //   await this.gitHelper.commitChanges(`Initiated ${name}`);
+    //   await this.gitHelper.pushChanges();
+    // }
   }
 
   public addHoursToProject = async (projectName: string, hour: IHour): Promise<void> => {
-    let projectLink: IProjectLink | undefined = await this.getProjectLinkByName(projectName);
-    if (!projectLink) {
+    let projectDomain: IProjectMeta | undefined = await this.getProjectLinkByName(projectName);
+    if (!projectDomain) {
       LogHelper.warn(`Project "${projectName}" not found`);
       await this.init();
-      projectLink = await this.getProjectLinkByName(projectName);
+      projectDomain = await this.getProjectLinkByName(projectName);
     }
 
-    if (!projectLink) {
+    if (!projectDomain) {
       throw new Error("Unable to initialize project");
     }
 
-    const project = this.fileHelper.getProjectObject(projectLink);
+    const project = await this.fileHelper.getProjectObject(projectDomain);
     project.hours.push(hour);
-    await this.fileHelper.saveProjectObject(project, projectLink);
+    await this.fileHelper.saveProjectObject(project, projectDomain);
 
     const hourString = hour.count === 1 ? "hour" : "hours";
     await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
   }
 
   public getTotalHours = async (projectName: string): Promise<number> => {
-    const projectLink = await this.getProjectLinkByName(projectName);
-    if (!projectLink) {
+    const projectDomain = await this.getProjectLinkByName(projectName);
+    if (!projectDomain) {
       throw new Error(`Project "${projectName}" not found`);
     }
 
-    const project = this.fileHelper.getProjectObject(projectLink);
+    const project = await this.fileHelper.getProjectObject(projectDomain);
     return project.hours.reduce((prev: number, curr: IHour) => {
       return prev + curr.count;
     }, 0);
   }
 
   public getProjectList = async (): Promise<IProjectLink[]> => {
+    const projects = this.fileHelper.getProjects()
     const config = this.fileHelper.getConfigObject();
     return config.projects;
   }
 
-  public getProjectLinkByName = async (name: string): Promise<IProjectLink | undefined> => {
+  public getProjectLinkByName = async (name: string): Promise<IProjectMeta | undefined> => {
+    // get all hosts
+    // get all projects
+
+
     const config = this.fileHelper.getConfigObject();
 
-    return config.projects.find((project: IProjectLink) =>  project.name === name);
+    return config.projects.find((project: IProjectLink) => project.name === name);
   }
 
-  public getProjectName = async (): Promise<string> => {
-    let projectName = this.getProjectNameGit();
+// TODO rename?! projectName vs. projectDomain
+  public getProjectName = async (): Promise<IProjectMeta> => {
+    let projectDomain: IProjectMeta = this.getProjectNameGit();
 
-    if (!projectName) {
-      projectName = await this.getProjectNameUser();
+    if (!projectDomain) {
+      projectDomain = await this.getProjectNameUser();
     }
 
-    return projectName;
+    return projectDomain;
   }
 
-  private getProjectNameUser = async (): Promise<string> => {
+  private getProjectNameUser = async (): Promise<IProjectMeta> => {
     LogHelper.info("Unable to determinate project, please add it manually");
     const projectNameAnswer = await inquirer.prompt([
       {
@@ -141,10 +147,15 @@ export class ProjectHelper {
 
     const { userProjectName, userProjectNamespace } = projectNameAnswer;
 
+    // TODO find project in .git-time-tracker folder in HOME
+    // TODO if not unique (on more than 1 host), ask user for host and port or ssh:// https:// URL
+      // TODO create domain directory
+      // TODO create project json
+
     return `${userProjectNamespace}/${userProjectName}`;
   }
 
-  private getProjectNameGit = (): string | undefined => {
+  private getProjectNameGit = (): IProjectMeta | undefined => {
     LogHelper.debug("Trying to find project name from .git folder");
     const gitConfigExec: ExecOutputReturnValue = shelljs.exec("git config remote.origin.url", {
       silent: true,

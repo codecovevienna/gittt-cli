@@ -7,20 +7,27 @@ export interface IHour {
 }
 
 export interface IProject {
-  guid: string;
+//  guid: string;
   name: string;
   hours: IHour[];
 }
 
-export interface IProjectLink {
-  file: string;
-  guid: string;
-  name: string;
-  created: number;
-}
+// export interface IProjectLink {
+//   file: string;
+//   guid: string;
+//   name: string;
+//   created: number;
+// }
 
 export interface  IConfigFile {
   created: number;
   gitRepo: string;
-  projects: IProjectLink[];
+  // projects: IProjectLink[];
+}
+
+export interface IProjectMeta {
+  host: string;
+  port: number;
+  name: string;
+  raw: string[];
 }
