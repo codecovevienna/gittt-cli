@@ -1,4 +1,4 @@
-export * from "./ansers";
+export * from "./answers";
 
 export interface IHour {
   created: number;
@@ -7,7 +7,7 @@ export interface IHour {
 }
 
 export interface IProject {
-//  guid: string;
+  //  guid: string;
   name: string;
   hours: IHour[];
 }
@@ -19,7 +19,7 @@ export interface IProject {
 //   created: number;
 // }
 
-export interface  IConfigFile {
+export interface IConfigFile {
   created: number;
   gitRepo: string;
   // projects: IProjectLink[];
@@ -29,5 +29,5 @@ export interface IProjectMeta {
   host: string;
   port: number;
   name: string;
-  raw: string[];
+  raw?: string[];
 }

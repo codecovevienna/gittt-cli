@@ -33,26 +33,35 @@ export class FileHelper {
     }
   }
 
-  public initHostPath = async (projectDomain: IProjectMeta): Promise<void> => {
-    try {
-      await fs.ensureDir(this.projectDomainToPath(projectDomain));
-    } catch (err) {
-      LogHelper.error("Error ....")
-    }
-  }
+  // TODO private?
+  // public initHostPath = async (projectDomain: IProjectMeta): Promise<void> => {
+  //   try {
+  //     await fs.ensureDir(this.projectDomainToPath(projectDomain));
+  //   } catch (err) {
+  //     LogHelper.error("Error ....")
+  //   }
+  // }
 
-  public initProjectFile = async (projectDomain: IProjectMeta): Promise<void> => {
+  public initProject = async (projectDomain: IProjectMeta): Promise<IProject | undefined> => {
     try {
+
+      const projectDomainString = this.projectDomainToPath(projectDomain);
+      LogHelper.debug("Ensuring domain for project")
+      await fs.ensureDir(projectDomainString);
+
       const initial: IProject = {
         hours: [],
         name: projectDomain.name,
       };
 
-      const projectDomainString = this.projectDomainToPath(projectDomain);
+      const projectFilePath = path.join(projectDomainString, `${projectDomain.name}.json`);
 
-      await fs.writeJson(path.join(this.projectDir, projectDomainString, `${projectDomain.name}.json`), initial);
+      LogHelper.debug(`Creating project file ${projectFilePath}`)
+      await fs.writeJson(projectFilePath, initial);
+      return initial;
     } catch (err) {
-      LogHelper.error("Error initializing project file");
+      LogHelper.error("Error initializing project");
+      return undefined;
     }
   }
 
@@ -120,12 +129,12 @@ export class FileHelper {
   }
 
   public getProjects = async (): Promise<string[]> => {
-    const projectNames: string[] = [];
-    const projectDomains = fs.readdirSync(this.projectDir);
-    for(const projectDomain of projectDomains){
-      projectNames.pushAll = fs.readdirSync(projectDomain);
-    }
-    return 
+    // const projectNames: string[] = [];
+    // const projectDomains = fs.readdirSync(this.projectDir);
+    // for (const projectDomain of projectDomains) {
+    //   projectNames.pushAll = fs.readdirSync(projectDomain);
+    // }
+    return []
   }
 
   private setConfigObject = (config: IConfigFile): void => {
@@ -134,7 +143,6 @@ export class FileHelper {
 
   private projectDomainToPath = (projectDomain: IProjectMeta): string => {
     const { host, port } = projectDomain;
-    return `${host.replace(".", "_")}_${port}`;
+    return path.join(this.projectDir, `${host.replace(".", "_")}_${port}`);
   }
-
 }
