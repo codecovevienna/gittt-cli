@@ -145,13 +145,31 @@ export class FileHelper {
     }
   }
 
-  public getProjects = async (): Promise<string[]> => {
-    // const projectNames: string[] = [];
-    // const projectDomains = fs.readdirSync(this.projectDir);
-    // for (const projectDomain of projectDomains) {
-    //   projectNames.pushAll = fs.readdirSync(projectDomain);
-    // }
-    return []
+  public getAllProjects = async (): Promise<IProject[]> => {
+    const allProjects: IProject[] = [];
+    const projectDomains = fs.readdirSync(this.projectDir);
+    for (const projectDomain of projectDomains) {
+      const projectFiles = fs.readdirSync(path.join(this.projectDir, projectDomain))
+      for (const projectFile of projectFiles) {
+        const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile))
+        allProjects.push(project);
+      }
+    }
+    return allProjects
+  }
+
+  public getProjectsForDomain = async (projectMeta: IProjectMeta): Promise<IProject[]> => {
+    const projects: IProject[] = [];
+    if (!await fs.pathExists(this.projectMetaToPath(projectMeta))) {
+      return projects
+    }
+
+    const projectFiles = fs.readdirSync(this.projectMetaToPath(projectMeta))
+    for (const projectFile of projectFiles) {
+      const project: IProject = await fs.readJson(path.join(this.projectMetaToPath(projectMeta), projectFile))
+      projects.push(project);
+    }
+    return projects
   }
 
   private setConfigObject = (config: IConfigFile): void => {

@@ -12,12 +12,15 @@ const configFileName = "config.json"
 const projectsDir = "projects"
 
 describe.only("FileHelper", () => {
-  before(async () => {
-    // LogHelper.silence = true;
+  before(() => {
+    LogHelper.silence = true;
+  })
+
+  beforeEach(async () => {
     // Create sandbox directory
     await fs.ensureDir(sandboxDir);
   })
-  after(async () => {
+  afterEach(async () => {
     await fs.remove(sandboxDir)
   })
 
@@ -380,6 +383,74 @@ describe.only("FileHelper", () => {
     } catch (err) {
       assert.isDefined(err);
     }
+  })
+
+  it("should get all projects", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject0",
+    })
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject1",
+    })
+
+    const list = await instance.getAllProjects()
+    expect(list.length).to.eq(2);
+  })
+
+  it("should get all projects for one domain", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject0",
+    })
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject1",
+    })
+
+    await instance.initProject({
+      host: "gitlab.com",
+      port: 33,
+      name: "TestProject2",
+    })
+
+    const listGithub = await instance.getProjectsForDomain({
+      host: "github.com",
+      port: 22,
+      name: "ignore"
+    })
+    expect(listGithub.length).to.eq(2);
+
+    const listGitlab = await instance.getProjectsForDomain({
+      host: "gitlab.com",
+      port: 33,
+      name: "ignore"
+    })
+    expect(listGitlab.length).to.eq(1);
+
+    const listNonExists = await instance.getProjectsForDomain({
+      host: "google.com",
+      port: 44,
+      name: "ignore"
+    })
+    expect(listNonExists.length).to.eq(0);
   })
 
   it("should initialize project file", async () => {
