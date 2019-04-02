@@ -21,7 +21,7 @@ export class FileHelper {
     fs.ensureDirSync(this.projectDir);
   }
 
-  public initConfigFile = async (gitRepo: string): Promise<boolean> => {
+  public initConfigFile = async (gitRepo: string): Promise<void> => {
     const initial: IConfigFile = {
       created: Date.now(),
       gitRepo
@@ -41,7 +41,6 @@ export class FileHelper {
 
   public initProject = async (projectMeta: IProjectMeta): Promise<IProject | undefined> => {
     try {
-
       const projectPath = this.projectMetaToPath(projectMeta);
       LogHelper.debug(`Ensuring domain directory for ${projectMeta.host}`)
       await fs.ensureDir(projectPath);
@@ -110,28 +109,26 @@ export class FileHelper {
     }
   }
 
-  public saveConfigObject = async (config: IConfigFile): Promise<boolean> => {
+  public saveConfigObject = async (config: IConfigFile): Promise<void> => {
     try {
       await fs.writeJson(this.configFilePath, config);
       this.setConfigObject(config);
-      return true;
     } catch (err) {
-      LogHelper.error("Error writing config file");
-      return false;
+      LogHelper.debug("Error writing config file", err);
+      throw new Error("Error writing config file")
     }
   }
 
-  public saveProjectObject = async (project: IProject, projectDomain: IProjectMeta): Promise<boolean> => {
+  public saveProjectObject = async (project: IProject, projectDomain: IProjectMeta): Promise<void> => {
     try {
 
       const projectDomainString = this.projectMetaToPath(projectDomain);
 
       await fs.writeJson(path.join(projectDomainString, `${projectDomain.name}.json`), project);
       // TODO update cache
-      return true;
     } catch (err) {
-      LogHelper.error("Error writing config file");
-      return false;
+      LogHelper.debug("Error writing project file", err);
+      throw new Error("Error writing project file")
     }
   }
 

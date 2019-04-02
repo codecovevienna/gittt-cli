@@ -38,16 +38,14 @@ describe.only("FileHelper", () => {
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
-    const success = await instance.initConfigFile(gitUrl)
-
-    assert.isTrue(success)
+    await instance.initConfigFile(gitUrl)
   })
 
   it("should fail to init config file", async () => {
     const proxy = proxyquire.noCallThru().load("../../helper/file", {
       'fs-extra': {
         ensureDirSync: sinon.stub().resolves(),
-        writeJson: sinon.stub().rejects(),
+        writeJson: sinon.stub().rejects(new Error("Mocked error")),
       },
     });
 
@@ -55,9 +53,11 @@ describe.only("FileHelper", () => {
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
-    const success = await instance.initConfigFile(gitUrl)
-
-    assert.isFalse(success)
+    try {
+      await instance.initConfigFile(gitUrl)
+    } catch (err) {
+      assert.isDefined(err)
+    }
   })
 
   it("should check existence of config file", async () => {
@@ -176,8 +176,8 @@ describe.only("FileHelper", () => {
       ]
     }
 
-    const success = await instance.saveProjectObject(project, projectMeta)
-    assert.isTrue(success)
+    await instance.saveProjectObject(project, projectMeta)
+    // TODO check?
   })
 
   it("should fail to save project object", async () => {
@@ -219,8 +219,11 @@ describe.only("FileHelper", () => {
       ]
     }
 
-    const success = await instance.saveProjectObject(project, projectMeta)
-    assert.isFalse(success)
+    try {
+      await instance.saveProjectObject(project, projectMeta)
+    } catch (err) {
+      assert.isDefined(err);
+    }
   })
 
   it("should get invalidate config cache", async () => {
@@ -351,12 +354,12 @@ describe.only("FileHelper", () => {
   it("should save config file", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
 
-    const success = await instance.saveConfigObject({
+    await instance.saveConfigObject({
       created: Date.now(),
       gitRepo: "ssh://git@test.com/test/git-time-tracker.git"
     })
 
-    assert.isTrue(success)
+    // TODO check?
   })
 
   it("should fail to save config file", async () => {
@@ -369,12 +372,14 @@ describe.only("FileHelper", () => {
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const success = await instance.saveConfigObject({
-      created: Date.now(),
-      gitRepo: "ssh://git@test.com/test/git-time-tracker.git"
-    })
-
-    assert.isFalse(success)
+    try {
+      await instance.saveConfigObject({
+        created: Date.now(),
+        gitRepo: "ssh://git@test.com/test/git-time-tracker.git"
+      })
+    } catch (err) {
+      assert.isDefined(err);
+    }
   })
 
   it("should initialize project file", async () => {
