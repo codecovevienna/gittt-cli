@@ -145,6 +145,45 @@ export class FileHelper {
     }
   }
 
+  public getProjectByName = async (projectName: string, projectMeta?: IProjectMeta): Promise<IProject | undefined> => {
+    const allFoundProjects: IProject[] = [];
+
+    if (projectMeta) {
+      // Use specific domain
+      const domainProjects = await this.getProjectsForDomain(projectMeta);
+      for (const project of domainProjects) {
+        if (project.name === projectName) {
+          allFoundProjects.push(project);
+        }
+      }
+    } else {
+      // Search in all domains
+      const projectDomains = fs.readdirSync(this.projectDir);
+      for (const projectDomain of projectDomains) {
+        const projectFiles = fs.readdirSync(path.join(this.projectDir, projectDomain))
+        for (const projectFile of projectFiles) {
+          const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile))
+          if (project.name === projectName) {
+            allFoundProjects.push(project);
+          }
+        }
+      }
+    }
+
+    switch (allFoundProjects.length) {
+      case 0:
+        // No project found
+        return undefined;
+      case 1:
+        // No project found
+        return allFoundProjects[0];
+      default:
+        // If more than 1 project with the given name gets found, throw error
+        throw new Error(`Found more than 1 project named "${projectName}"`)
+    }
+
+  }
+
   public getAllProjects = async (): Promise<IProject[]> => {
     const allProjects: IProject[] = [];
     const projectDomains = fs.readdirSync(this.projectDir);

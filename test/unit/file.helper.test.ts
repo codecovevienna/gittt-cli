@@ -11,7 +11,7 @@ const configDir = path.join(sandboxDir, ".git-time-tracker");
 const configFileName = "config.json"
 const projectsDir = "projects"
 
-describe.only("FileHelper", () => {
+describe("FileHelper", () => {
   before(() => {
     LogHelper.silence = true;
   })
@@ -451,6 +451,107 @@ describe.only("FileHelper", () => {
       name: "ignore"
     })
     expect(listNonExists.length).to.eq(0);
+  })
+
+  it("should get one project by name", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject0",
+    })
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject1",
+    })
+
+    await instance.initProject({
+      host: "gitlab.com",
+      port: 33,
+      name: "TestProject2",
+    })
+
+    const project = await instance.getProjectByName("TestProject1")
+    assert.isDefined(project)
+    if (project) {
+      expect(project.name).to.eq("TestProject1")
+    }
+  })
+
+  it("should get one project by name and domain", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject0",
+    })
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject1",
+    })
+
+    await instance.initProject({
+      host: "gitlab.com",
+      port: 33,
+      name: "TestProject2",
+    })
+
+    const project = await instance.getProjectByName("TestProject1", {
+      host: "github.com",
+      port: 22,
+      name: "ignore"
+    })
+    assert.isDefined(project)
+    if (project) {
+      expect(project.name).to.eq("TestProject1")
+    }
+  })
+
+  it("should fail to get duplicated project by name", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject2",
+    })
+
+    await instance.initProject({
+      host: "gitlab.com",
+      port: 33,
+      name: "TestProject2",
+    })
+
+    try {
+      await instance.getProjectByName("TestProject2")
+    } catch (err) {
+      assert.isDefined(err)
+    }
+  })
+
+  it("should fail to get non existing project by name", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const project = await instance.getProjectByName("TestProject1")
+    assert.isUndefined(project)
   })
 
   it("should initialize project file", async () => {

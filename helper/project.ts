@@ -54,21 +54,21 @@ export class ProjectHelper {
   }
 
   public addHoursToProject = async (projectName: string, hour: IHour): Promise<void> => {
-    let projectDomain: IProjectMeta | undefined = await this.getProjectLinkByName(projectName);
-    if (!projectDomain) {
+    let projectMeta: IProjectMeta | undefined = await this.getProjectLinkByName(projectName);
+    if (!projectMeta) {
       LogHelper.warn(`Project "${projectName}" not found`);
       await this.init();
-      projectDomain = await this.getProjectLinkByName(projectName);
+      projectMeta = await this.getProjectLinkByName(projectName);
     }
 
-    if (!projectDomain) {
+    if (!projectMeta) {
       throw new Error("Unable to initialize project");
     }
 
     // TODO reenable
-    // const project = await this.fileHelper.getProjectObject(projectDomain);
+    // const project = await this.fileHelper.getProjectObject(projectMeta);
     // project.hours.push(hour);
-    // await this.fileHelper.saveProjectObject(project, projectDomain);
+    // await this.fileHelper.saveProjectObject(project, projectMeta);
 
     const hourString = hour.count === 1 ? "hour" : "hours";
     await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
