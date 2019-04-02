@@ -28,6 +28,7 @@ export interface IConfigFile {
 export interface IProjectMeta {
   host: string;
   port: number;
+  // TODO should only be part of the project
   name: string;
   raw?: string[];
 }

@@ -1,5 +1,5 @@
 import inquirer from "inquirer";
-import shelljs, { ExecOutputReturnValue } from "shelljs";
+import shelljs, { ExecOutputReturnValue, exit } from "shelljs";
 import uuid from "uuid/v1";
 import { IHour, IProject, IProjectNameAnswers, IProjectMeta } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper } from "./index";
@@ -30,44 +30,19 @@ export class ProjectHelper {
     this.fileHelper = fileHelper;
   }
 
-  public init = async (): Promise<void> => {
-    const config = this.fileHelper.getConfigObject();
-    // const name = await this.getProjectName();
-    // const projectLink = await this.getProjectLinkByName(name);
-
-    // if (!projectLink) {
-    //   const pL: IProjectLink = {
-    //     created: Date.now(),
-    //     file: name.replace("/", "_") + ".json",
-    //     guid: uuid(),
-    //     name,
-    //   };
-
-    //   config.projects.push(pL);
-
-    //   await this.fileHelper.initProjectFile(pL);
-
-    //   await this.fileHelper.saveConfigObject(config);
-    //   await this.gitHelper.commitChanges(`Initiated ${name}`);
-    //   await this.gitHelper.pushChanges();
-    // }
-  }
-
   public addHoursToProject = async (projectName: string, hour: IHour): Promise<void> => {
-    let projectMeta: IProjectMeta | undefined = await this.getProjectLinkByName(projectName);
-    if (!projectMeta) {
+    const project: IProject | undefined = await this.fileHelper.getProjectByName(projectName);
+
+    if (!project) {
       LogHelper.warn(`Project "${projectName}" not found`);
-      await this.init();
-      projectMeta = await this.getProjectLinkByName(projectName);
+      // await this.fileHelper.initProject({
+
+      // });
+      // TODO remove
+      return process.exit(1);
     }
 
-    if (!projectMeta) {
-      throw new Error("Unable to initialize project");
-    }
-
-    // TODO reenable
-    // const project = await this.fileHelper.getProjectObject(projectMeta);
-    // project.hours.push(hour);
+    project.hours.push(hour);
     // await this.fileHelper.saveProjectObject(project, projectMeta);
 
     const hourString = hour.count === 1 ? "hour" : "hours";
@@ -75,19 +50,14 @@ export class ProjectHelper {
   }
 
   public getTotalHours = async (projectName: string): Promise<number> => {
-    const projectDomain = await this.getProjectLinkByName(projectName);
-    if (!projectDomain) {
+    const project: IProject | undefined = await this.fileHelper.getProjectByName(projectName);
+    if (!project) {
       throw new Error(`Project "${projectName}" not found`);
     }
 
-    // TODO disable
-    return 0
-
-    // TODO reenable
-    // const project = await this.fileHelper.getProjectObject(projectDomain);
-    // return project.hours.reduce((prev: number, curr: IHour) => {
-    //   return prev + curr.count;
-    // }, 0);
+    return project.hours.reduce((prev: number, curr: IHour) => {
+      return prev + curr.count;
+    }, 0);
   }
 
   // public getProjectList = async (): Promise<IProjectLink[]> => {
@@ -96,69 +66,78 @@ export class ProjectHelper {
   //   return config.projects;
   // }
 
-  public getProjectLinkByName = async (name: string): Promise<IProjectMeta | undefined> => {
-    // get all hosts
-    // get all projects
+  // public getProjectLinkByName = async (name: string): Promise<IProjectMeta | undefined> => {
+  //   // get all hosts
+  //   // get all projects
 
 
-    const config = this.fileHelper.getConfigObject();
+  //   const config = this.fileHelper.getConfigObject();
 
-    // return config.projects.find((project: IProjectLink) => project.name === name);
-    return
+  //   // return config.projects.find((project: IProjectLink) => project.name === name);
+  //   return
+  // }
+
+  public getProjectName = async (): Promise<IProjectMeta> => {
+    let projectDomain: IProjectMeta | undefined = this.getProjectNameGit();
+
+    if (!projectDomain) {
+      projectDomain = await this.getProjectNameUser();
+    }
+
+    return projectDomain;
   }
 
-  // public getProjectName = async (): Promise<IProjectMeta> => {
-  //   let projectDomain: IProjectMeta = this.getProjectNameGit();
+  private getProjectNameUser = async (): Promise<IProjectMeta> => {
+    LogHelper.info("Unable to determinate project, please add it manually");
+    const projectNameAnswer = await inquirer.prompt([
+      {
+        message: "Project namespace:",
+        name: "userProjectNamespace",
+        type: "input",
+        validate(input) {
+          const valid = input.length > 0;
 
-  //   if (!projectDomain) {
-  //     projectDomain = await this.getProjectNameUser();
-  //   }
+          if (valid) {
+            return true;
+          } else {
+            return "The namespace must not be empty";
+          }
+        },
+      },
+      {
+        message: "Project name:",
+        name: "userProjectName",
+        type: "input",
+        validate(input) {
+          const valid = input.length > 0;
 
-  //   return projectDomain;
-  // }
+          if (valid) {
+            return true;
+          } else {
+            return "The name must not be empty";
+          }
+        },
+      },
+    ]) as IProjectNameAnswers;
 
-  // private getProjectNameUser = async (): Promise<IProjectMeta> => {
-  //   LogHelper.info("Unable to determinate project, please add it manually");
-  //   const projectNameAnswer = await inquirer.prompt([
-  //     {
-  //       message: "Project namespace:",
-  //       name: "userProjectNamespace",
-  //       type: "input",
-  //       validate(input) {
-  //         const valid = input.length > 0;
+    const { userProjectName, userProjectNamespace } = projectNameAnswer;
 
-  //         if (valid) {
-  //           return true;
-  //         } else {
-  //           return "The namespace must not be empty";
-  //         }
-  //       },
-  //     },
-  //     {
-  //       message: "Project name:",
-  //       name: "userProjectName",
-  //       type: "input",
-  //       validate(input) {
-  //         const valid = input.length > 0;
+    // TODO find project in .git-time-tracker folder in HOME
+    // TODO if not unique (on more than 1 host), ask user for host and port or ssh:// https:// URL
+    // TODO create domain directory
+    // TODO create project json
 
-  //         if (valid) {
-  //           return true;
-  //         } else {
-  //           return "The name must not be empty";
-  //         }
-  //       },
-  //     },
-  //   ]) as IProjectNameAnswers;
+    const projectMeta = {
+      // TODO using inquirer
+      host: "TO_BE_ADDED",
+      port: 1337,
+      name: `${userProjectNamespace}/${userProjectName}`
+    }
 
-  //   const { userProjectName, userProjectNamespace } = projectNameAnswer;
+    this.fileHelper.initProject(`${userProjectNamespace}/${userProjectName}`, projectMeta)
 
-  //   // TODO find project in .git-time-tracker folder in HOME
-  //   // TODO if not unique (on more than 1 host), ask user for host and port or ssh:// https:// URL
-  //   // TODO create domain directory
-  //   // TODO create project json
-
-  //   return `${userProjectNamespace}/${userProjectName}`;
-  // }
+    return projectMeta;
+  }
 
   private getProjectNameGit = (): IProjectMeta | undefined => {
     LogHelper.debug("Trying to find project name from .git folder");

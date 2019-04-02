@@ -4,6 +4,20 @@ import { IConfigFile, IProject, IProjectMeta } from "../interfaces";
 import { LogHelper } from "./";
 
 export class FileHelper {
+  public static decodeDomainDirectory = (domainDirectory: string): IProjectMeta => {
+    const split = domainDirectory.split("_");
+    const port = parseInt(split[split.length - 1], 10);
+
+    const rawHost = domainDirectory.replace(`_${port}`, "");
+    const host = rawHost.replace(/\_/gi, ".");
+
+    return {
+      host,
+      port,
+      name: "should be removed"
+    }
+  }
+
   private configFilePath: string;
   private configDir: string;
   private projectDir: string;
@@ -39,7 +53,7 @@ export class FileHelper {
   //   }
   // }
 
-  public initProject = async (projectMeta: IProjectMeta): Promise<IProject | undefined> => {
+  public initProject = async (projectName: string, projectMeta: IProjectMeta): Promise<IProject | undefined> => {
     try {
       const projectPath = this.projectMetaToPath(projectMeta);
       LogHelper.debug(`Ensuring domain directory for ${projectMeta.host}`)
@@ -47,10 +61,10 @@ export class FileHelper {
 
       const initial: IProject = {
         hours: [],
-        name: projectMeta.name,
+        name: projectName,
       };
 
-      const projectFilePath = path.join(projectPath, `${projectMeta.name}.json`);
+      const projectFilePath = path.join(projectPath, `${projectName}.json`);
 
       LogHelper.debug(`Creating project file ${projectFilePath}`)
       await fs.writeJson(projectFilePath, initial);
@@ -119,12 +133,12 @@ export class FileHelper {
     }
   }
 
-  public saveProjectObject = async (project: IProject, projectDomain: IProjectMeta): Promise<void> => {
+  public saveProjectObject = async (project: IProject, projectMeta: IProjectMeta): Promise<void> => {
     try {
 
-      const projectDomainString = this.projectMetaToPath(projectDomain);
+      const projectMetaString = this.projectMetaToPath(projectMeta);
 
-      await fs.writeJson(path.join(projectDomainString, `${projectDomain.name}.json`), project);
+      await fs.writeJson(path.join(projectMetaString, `${projectMeta.name}.json`), project);
       // TODO update cache
     } catch (err) {
       LogHelper.debug("Error writing project file", err);
@@ -184,6 +198,19 @@ export class FileHelper {
 
   }
 
+  public getProjectMeta = async (projectName: string): Promise<IProjectMeta | undefined> => {
+    const projectDomains = fs.readdirSync(this.projectDir);
+    for (const projectDomain of projectDomains) {
+      const projectFiles = fs.readdirSync(path.join(this.projectDir, projectDomain))
+      for (const projectFile of projectFiles) {
+        const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile))
+        if (project.name === projectName) {
+          return FileHelper.decodeDomainDirectory(projectDomain)
+        }
+      }
+    }
+  }
+
   public getAllProjects = async (): Promise<IProject[]> => {
     const allProjects: IProject[] = [];
     const projectDomains = fs.readdirSync(this.projectDir);
@@ -215,8 +242,8 @@ export class FileHelper {
     this.configObject = config;
   }
 
-  private projectMetaToPath = (projectDomain: IProjectMeta): string => {
-    const { host, port } = projectDomain;
-    return path.join(this.projectDir, `${host.replace(".", "_")}_${port}`);
+  private projectMetaToPath = (projectMeta: IProjectMeta): string => {
+    const { host, port } = projectMeta;
+    return path.join(this.projectDir, `${host.replace(/\./gi, "_")}_${port}`);
   }
 }
