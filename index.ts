@@ -53,7 +53,7 @@ const APP_VERSION = packageJson.version;
       return false;
     }
 
-    const projectName = ProjectHelper.parseProjectNameFromGitUrl(config.gitRepo).name;
+    const projectName = ProjectHelper.parseProjectNameFromGitUrl(config.gitRepo);
 
     if (projectName) {
       return true;
@@ -71,7 +71,7 @@ const APP_VERSION = packageJson.version;
         name: "gitRepo",
         type: "input",
         validate(input) {
-          const projectName = ProjectHelper.parseProjectNameFromGitUrl(input).name;
+          const projectName = ProjectHelper.parseProjectNameFromGitUrl(input);
 
           const valid = (input.length > 0 && !!projectName);
 
@@ -143,11 +143,12 @@ const APP_VERSION = packageJson.version;
           exit("Unable to parse hours", 1);
         }
 
-        await projectHelper.addHoursToProject(await projectHelper.getProjectName(), {
-          count: hours,
-          created: Date.now(),
-          message: options.message,
-        });
+        // TODO reenable
+        // await projectHelper.addHoursToProject(await projectHelper.getProjectName(), {
+        //   count: hours,
+        //   created: Date.now(),
+        //   message: options.message,
+        // });
       });
 
     commander
@@ -163,12 +164,13 @@ const APP_VERSION = packageJson.version;
       .command("list")
       .description("Listing all projects")
       .action(async () => {
-        const projects = await projectHelper.getProjectList();
+        // TODO reenable
+        // const projects = await projectHelper.getProjectList();
 
-        LogHelper.info("Projects:");
-        for (const prj of projects) {
-          console.log(`- ${prj.name}`);
-        }
+        // LogHelper.info("Projects:");
+        // for (const prj of projects) {
+        //   console.log(`- ${prj.name}`);
+        // }
       });
 
     commander
@@ -190,20 +192,21 @@ const APP_VERSION = packageJson.version;
       .command("status")
       .description("Overview of all projects")
       .action(async () => {
-        const projects = await projectHelper.getProjectList();
-        let totalHours = 0;
+        // TODO reenable
+        // const projects = await projectHelper.getProjectList();
+        // let totalHours = 0;
 
-        LogHelper.info("Projects:");
-        for (const pL of projects) {
-          const hours = await projectHelper.getTotalHours(pL.name);
-          LogHelper.info(`${pL.name}:\t${hours}`);
-          totalHours += hours;
-        }
-        LogHelper.info("");
+        // LogHelper.info("Projects:");
+        // for (const pL of projects) {
+        //   const hours = await projectHelper.getTotalHours(pL.name);
+        //   LogHelper.info(`${pL.name}:\t${hours}`);
+        //   totalHours += hours;
+        // }
+        // LogHelper.info("");
 
-        LogHelper.info("Summery:");
-        LogHelper.info(`Total projects:\t${projects.length}`);
-        LogHelper.info(`Total hours:\t${totalHours}`);
+        // LogHelper.info("Summery:");
+        // LogHelper.info(`Total projects:\t${projects.length}`);
+        // LogHelper.info(`Total hours:\t${totalHours}`);
       });
 
     commander
