@@ -13,24 +13,21 @@ export class FileHelper {
     this.configDir = configDir;
     this.projectDir = path.join(configDir, projectDir);
     this.configFilePath = path.join(configDir, configFileName);
+    this.createConfigDir();
   }
 
-  public createConfigDir = (): void => {
+  private createConfigDir = (): void => {
     fs.ensureDirSync(this.configDir);
     fs.ensureDirSync(this.projectDir);
   }
 
-  public initConfigFile = async (gitRepo: string): Promise<void> => {
-    try {
-      const initial: IConfigFile = {
-        created: Date.now(),
-        gitRepo
-      };
-      await fs.writeJson(this.configFilePath, initial);
-      this.setConfigObject(initial);
-    } catch (err) {
-      LogHelper.error("Error initializing config file");
-    }
+  public initConfigFile = async (gitRepo: string): Promise<boolean> => {
+    const initial: IConfigFile = {
+      created: Date.now(),
+      gitRepo
+    };
+
+    return await this.saveConfigObject(initial);
   }
 
   // TODO private?
@@ -115,7 +112,7 @@ export class FileHelper {
 
   public saveConfigObject = async (config: IConfigFile): Promise<boolean> => {
     try {
-      fs.writeFileSync(this.configFilePath, JSON.stringify(config));
+      await fs.writeJson(this.configFilePath, config);
       this.setConfigObject(config);
       return true;
     } catch (err) {
@@ -129,7 +126,7 @@ export class FileHelper {
 
       const projectDomainString = this.projectMetaToPath(projectDomain);
 
-      await fs.writeJson(path.join(this.projectDir, projectDomainString, `${projectDomain.name}.json`), project);
+      await fs.writeJson(path.join(projectDomainString, `${projectDomain.name}.json`), project);
       // TODO update cache
       return true;
     } catch (err) {
@@ -147,6 +144,7 @@ export class FileHelper {
       await fs.writeFile(path.join(this.configDir, "README.md"), "# Initially generated gittt README.md file");
     } catch (err) {
       LogHelper.error("Error initializing project file");
+      throw new Error("Error initializing project file")
     }
   }
 

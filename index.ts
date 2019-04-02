@@ -93,15 +93,6 @@ const APP_VERSION = packageJson.version;
 
   const init = async (): Promise<void> => {
     if (!(fileHelper.configFileExists())) {
-      LogHelper.info(`Initializing config directory ${configDir}`);
-      try {
-        fileHelper.createConfigDir();
-        LogHelper.info("Created config directory");
-      } catch (err) {
-        LogHelper.error("Error creating config directory");
-        exit(err.message, 1);
-      }
-
       gitHelper = new GitHelper(configDir, fileHelper);
 
       if (!isConfigFileValid()) {
