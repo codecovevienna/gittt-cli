@@ -42,19 +42,19 @@ export class FileHelper {
   //   }
   // }
 
-  public initProject = async (projectDomain: IProjectMeta): Promise<IProject | undefined> => {
+  public initProject = async (projectMeta: IProjectMeta): Promise<IProject | undefined> => {
     try {
 
-      const projectDomainString = this.projectDomainToPath(projectDomain);
-      LogHelper.debug("Ensuring domain for project")
-      await fs.ensureDir(projectDomainString);
+      const projectPath = this.projectMetaToPath(projectMeta);
+      LogHelper.debug(`Ensuring domain directory for ${projectMeta.host}`)
+      await fs.ensureDir(projectPath);
 
       const initial: IProject = {
         hours: [],
-        name: projectDomain.name,
+        name: projectMeta.name,
       };
 
-      const projectFilePath = path.join(projectDomainString, `${projectDomain.name}.json`);
+      const projectFilePath = path.join(projectPath, `${projectMeta.name}.json`);
 
       LogHelper.debug(`Creating project file ${projectFilePath}`)
       await fs.writeJson(projectFilePath, initial);
@@ -65,12 +65,12 @@ export class FileHelper {
     }
   }
 
-  public configFileExists = (): boolean => {
+  public configFileExists = (): Promise<boolean> => {
     try {
-      return fs.existsSync(this.configFilePath);
+      return fs.pathExists(this.configFilePath);
     } catch (err) {
       LogHelper.error("Error checking config file existence");
-      return false;
+      return Promise.resolve(false);
     }
   }
 
@@ -86,7 +86,7 @@ export class FileHelper {
 
   public getProjectObject = (projectDomain: IProjectMeta): Promise<IProject> => {
     // TODO add caching
-    const projectDomainString = this.projectDomainToPath(projectDomain);
+    const projectDomainString = this.projectMetaToPath(projectDomain);
 
     return fs.readJson(path.join(this.projectDir, projectDomainString, `${projectDomain.name}.json`));
   }
@@ -105,7 +105,7 @@ export class FileHelper {
   public saveProjectObject = async (project: IProject, projectDomain: IProjectMeta): Promise<boolean> => {
     try {
 
-      const projectDomainString = this.projectDomainToPath(projectDomain);
+      const projectDomainString = this.projectMetaToPath(projectDomain);
 
       await fs.writeJson(path.join(this.projectDir, projectDomainString, `${projectDomain.name}.json`), project);
       // TODO update cache
@@ -141,7 +141,7 @@ export class FileHelper {
     this.configObject = config;
   }
 
-  private projectDomainToPath = (projectDomain: IProjectMeta): string => {
+  private projectMetaToPath = (projectDomain: IProjectMeta): string => {
     const { host, port } = projectDomain;
     return path.join(this.projectDir, `${host.replace(".", "_")}_${port}`);
   }

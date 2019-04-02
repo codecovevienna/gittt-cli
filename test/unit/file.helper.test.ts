@@ -2,6 +2,8 @@ import { assert, expect } from "chai"
 import { FileHelper, LogHelper } from "../../helper/index"
 import fs from "fs-extra";
 import path from "path";
+import sinon from "sinon"
+import proxyquire from "proxyquire"
 import { IConfigFile, IProject } from "../../interfaces";
 
 const sandboxDir = "./sandbox"
@@ -40,7 +42,9 @@ describe.only("FileHelper", () => {
 
     await instance.initConfigFile(gitUrl)
 
-    const configFile: IConfigFile = JSON.parse(fs.readFileSync(path.join(configDir, configFileName)).toString());
+    assert.isTrue(await instance.configFileExists())
+
+    const configFile: IConfigFile = await fs.readJson(path.join(configDir, configFileName));
     expect(configFile.created).to.be.a("Number");
     expect(configFile.gitRepo).to.eq(gitUrl)
   })
@@ -66,11 +70,34 @@ describe.only("FileHelper", () => {
       name: "TestProject",
     })
 
-    console.log(initialProject)
+    assert.isDefined(initialProject)
 
-    // const configFile: IProject = JSON.parse(fs.readFileSync(path.join(configDir, projectsDir, "test.json")).toString());
-    // expect(configFile.guid).to.eq("GUID");
-    // expect(configFile.name).to.eq("TestProject")
-    // expect(configFile.hours).to.be.an("Array")
+    const configFile: IProject = await fs.readJson(path.join(configDir, projectsDir, "github_com_22", "TestProject.json"));
+    expect(configFile.name).to.eq("TestProject")
+    expect(configFile.hours).to.be.an("Array")
+  })
+
+  it("should fail to initialize project file", async () => {
+    const proxy = proxyquire.noCallThru().load("../../helper/file", {
+      'fs-extra': {
+        writeJson: sinon.stub().resolves(),
+        ensureDirSync: sinon.stub().resolves(),
+        ensureDir: sinon.stub().rejects()
+      },
+    });
+
+    const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const initialProject = await instance.initProject({
+      host: "github.com",
+      port: 22,
+      name: "TestProject",
+    })
+
+    assert.isUndefined(initialProject)
   })
 })
