@@ -34,16 +34,20 @@ const APP_VERSION = packageJson.version;
     return home;
   };
 
-  const isConfigFileValid = (): boolean => {
+  const isConfigFileValid = async (): Promise<boolean> => {
     if (!(fileHelper.configFileExists())) {
       LogHelper.debug("Config file does not exist");
       return false;
     }
 
-    let config: IConfigFile;
+    let config: IConfigFile | undefined;
 
     try {
-      config = fileHelper.getConfigObject(true);
+      config = await fileHelper.getConfigObject(true);
+
+      if (!config) {
+        return false;
+      }
 
       // TODO use some kind of generic interface-json-schema-validator
       assert.isDefined(config.created, "created has to be defined");

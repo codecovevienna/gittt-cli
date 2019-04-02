@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import path from "path";
 import sinon from "sinon"
 import proxyquire from "proxyquire"
-import { IConfigFile, IProject } from "../../interfaces";
+import { IConfigFile, IProject, IProjectMeta } from "../../interfaces";
 
 const sandboxDir = "./sandbox"
 const configDir = path.join(sandboxDir, ".git-time-tracker");
@@ -34,7 +34,7 @@ describe.only("FileHelper", () => {
     fs.pathExistsSync(path.join(configDir, projectsDir))
   })
 
-  it("should initialize config file", async () => {
+  it("should check existence of config file", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
     await instance.createConfigDir();
 
@@ -43,6 +43,34 @@ describe.only("FileHelper", () => {
     await instance.initConfigFile(gitUrl)
 
     assert.isTrue(await instance.configFileExists())
+  })
+
+  it("should fail to check existence of config file", async () => {
+    const proxy = proxyquire.noCallThru().load("../../helper/file", {
+      'fs-extra': {
+        writeJson: sinon.stub().resolves(),
+        ensureDirSync: sinon.stub().resolves(),
+        pathExists: sinon.stub().rejects()
+      },
+    });
+
+    const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+
+    await instance.initConfigFile(gitUrl)
+
+    assert.isFalse(await instance.configFileExists())
+  })
+
+  it("should initialize config file", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+
+    await instance.initConfigFile(gitUrl)
 
     const configFile: IConfigFile = await fs.readJson(path.join(configDir, configFileName));
     expect(configFile.created).to.be.a("Number");
@@ -55,6 +83,146 @@ describe.only("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
     await instance.initConfigFile(gitUrl);
+  })
+
+  it("should get config file as IConfigFile", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const configObject = await instance.getConfigObject(true);
+
+    assert.isDefined(configObject)
+  })
+
+  it("should get config file as IConfigFile from cache", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const configObject = await instance.getConfigObject();
+
+    assert.isDefined(configObject)
+  })
+
+  it("should fail to get config file as IConfigFile", async () => {
+    const proxy = proxyquire.noCallThru().load("../../helper/file", {
+      'fs-extra': {
+        writeJson: sinon.stub().resolves(),
+        ensureDirSync: sinon.stub().resolves(),
+        readJson: sinon.stub().rejects()
+      },
+    });
+
+    const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const configObject = await instance.getConfigObject(true);
+
+    assert.isUndefined(configObject)
+  })
+
+  it("should get project object", async () => {
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const projectMeta: IProjectMeta = {
+      host: "github.com",
+      port: 22,
+      name: "TestProject",
+    }
+
+    await instance.initProject(projectMeta)
+
+    const projectObject = await instance.getProjectObject(projectMeta)
+    assert.isDefined(projectMeta)
+  })
+
+  it("should fail to get project object", async () => {
+    const proxy = proxyquire.noCallThru().load("../../helper/file", {
+      'fs-extra': {
+        writeJson: sinon.stub().resolves(),
+        ensureDirSync: sinon.stub().resolves(),
+        pathExists: sinon.stub().resolves(false)
+      },
+    });
+
+    const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const projectMeta: IProjectMeta = {
+      host: "github.com",
+      port: 22,
+      name: "TestProject",
+    }
+
+    const projectObject = await instance.getProjectObject(projectMeta)
+    assert.isUndefined(projectObject)
+  })
+
+  it("should fail to get project object", async () => {
+    const proxy = proxyquire.noCallThru().load("../../helper/file", {
+      'fs-extra': {
+        writeJson: sinon.stub().resolves(),
+        ensureDirSync: sinon.stub().resolves(),
+        pathExists: sinon.stub()
+          .onCall(0).resolves(true)
+          .onCall(1).resolves(false)
+      },
+    });
+
+    const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const projectMeta: IProjectMeta = {
+      host: "github.com",
+      port: 22,
+      name: "TestProject",
+    }
+
+    const projectObject = await instance.getProjectObject(projectMeta)
+    assert.isUndefined(projectObject)
+  })
+
+  it("should fail to get project object", async () => {
+    const proxy = proxyquire.noCallThru().load("../../helper/file", {
+      'fs-extra': {
+        writeJson: sinon.stub().resolves(),
+        ensureDirSync: sinon.stub().resolves(),
+        pathExists: sinon.stub().rejects()
+      },
+    });
+
+    const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    await instance.createConfigDir();
+
+    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
+    await instance.initConfigFile(gitUrl)
+
+    const projectMeta: IProjectMeta = {
+      host: "github.com",
+      port: 22,
+      name: "TestProject",
+    }
+
+    const projectObject = await instance.getProjectObject(projectMeta)
+    assert.isUndefined(projectObject)
   })
 
   it("should initialize project file", async () => {

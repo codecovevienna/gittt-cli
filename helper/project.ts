@@ -65,9 +65,10 @@ export class ProjectHelper {
       throw new Error("Unable to initialize project");
     }
 
-    const project = await this.fileHelper.getProjectObject(projectDomain);
-    project.hours.push(hour);
-    await this.fileHelper.saveProjectObject(project, projectDomain);
+    // TODO reenable
+    // const project = await this.fileHelper.getProjectObject(projectDomain);
+    // project.hours.push(hour);
+    // await this.fileHelper.saveProjectObject(project, projectDomain);
 
     const hourString = hour.count === 1 ? "hour" : "hours";
     await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
@@ -79,10 +80,14 @@ export class ProjectHelper {
       throw new Error(`Project "${projectName}" not found`);
     }
 
-    const project = await this.fileHelper.getProjectObject(projectDomain);
-    return project.hours.reduce((prev: number, curr: IHour) => {
-      return prev + curr.count;
-    }, 0);
+    // TODO disable
+    return 0
+
+    // TODO reenable
+    // const project = await this.fileHelper.getProjectObject(projectDomain);
+    // return project.hours.reduce((prev: number, curr: IHour) => {
+    //   return prev + curr.count;
+    // }, 0);
   }
 
   // public getProjectList = async (): Promise<IProjectLink[]> => {

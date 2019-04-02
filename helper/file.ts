@@ -65,30 +65,52 @@ export class FileHelper {
     }
   }
 
-  public configFileExists = (): Promise<boolean> => {
+  public configFileExists = async (): Promise<boolean> => {
     try {
-      return fs.pathExists(this.configFilePath);
+      return await fs.pathExists(this.configFilePath);
     } catch (err) {
       LogHelper.error("Error checking config file existence");
-      return Promise.resolve(false);
+      return false;
     }
   }
 
-  public getConfigObject = (force: boolean = false): IConfigFile => {
-    if (!this.configObject || force) {
-      const configObj: IConfigFile = JSON.parse(fs.readFileSync(this.configFilePath).toString());
-      this.setConfigObject(configObj);
-      return configObj;
-    } else {
-      return this.configObject;
+  public getConfigObject = async (fromDisk: boolean = false): Promise<IConfigFile | undefined> => {
+    try {
+      if (!this.configObject || fromDisk) {
+        const configObj: IConfigFile = await fs.readJson(this.configFilePath);
+        this.setConfigObject(configObj);
+        return configObj;
+      } else {
+        return this.configObject;
+      }
+    } catch (err) {
+      LogHelper.error("Error getting config object")
+      return undefined
     }
   }
 
-  public getProjectObject = (projectDomain: IProjectMeta): Promise<IProject> => {
-    // TODO add caching
-    const projectDomainString = this.projectMetaToPath(projectDomain);
+  public getProjectObject = async (projectMeta: IProjectMeta): Promise<IProject | undefined> => {
+    try {
+      // TODO add caching
+      const projectDomainPath = this.projectMetaToPath(projectMeta);
 
-    return fs.readJson(path.join(this.projectDir, projectDomainString, `${projectDomain.name}.json`));
+      if (!await fs.pathExists(projectDomainPath)) {
+        LogHelper.warn(`Unable to find project domain directory ${projectDomainPath}`)
+        return undefined;
+      }
+
+      const projectFilePath = path.join(projectDomainPath, `${projectMeta.name}.json`)
+
+      if (!await fs.pathExists(projectDomainPath)) {
+        LogHelper.warn(`Unable to find project file ${projectFilePath}`)
+        return undefined;
+      }
+
+      return await fs.readJson(projectFilePath) as IProject;
+    } catch (err) {
+      LogHelper.error("Error getting project object")
+      return undefined
+    }
   }
 
   public saveConfigObject = async (config: IConfigFile): Promise<boolean> => {
