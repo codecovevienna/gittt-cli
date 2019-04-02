@@ -24,3 +24,9 @@ export interface  IConfigFile {
   gitRepo: string;
   projects: IProjectLink[];
 }
+
+export interface ITimerFile {
+  start: number;
+  stop: number;
+  //TODO add projects as structure
+}

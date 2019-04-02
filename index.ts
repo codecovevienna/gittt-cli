@@ -3,7 +3,7 @@ import commander, { CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
-import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "./helper";
+import { FileHelper, GitHelper, LogHelper, ProjectHelper, TimerHelper } from "./helper";
 import { IConfigFile, IGitRepoAnswers, IInitAnswers } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
@@ -215,6 +215,28 @@ const APP_VERSION = packageJson.version;
         await init();
       });
 
+    commander
+      .command("start")
+      .description("Start the timer")
+      .action(async () => {
+        await TimerHelper.startTimer();
+        LogHelper.info("Started timer ...");
+      });
+
+    commander
+      .command("stop")
+      .description("Stop the timer and commit to a project")
+      .option("-k, --kill", "Kill the timer for a project")
+      .action(async (cmd: any): Promise<void> => {
+        if (cmd.kill) {
+          await TimerHelper.killTimer();
+          LogHelper.info("Killing timer ...");
+        } else {
+          await TimerHelper.stopTimer();
+          LogHelper.info("Stopping timer ...");
+        }
+      });
+
     return commander;
   };
 
@@ -222,7 +244,7 @@ const APP_VERSION = packageJson.version;
 
   const homeDir = getHomeDir();
   const configDir = path.join(homeDir, `.${APP_NAME}`);
-  const fileHelper: FileHelper = new FileHelper(configDir, "config.json", "projects");
+  const fileHelper: FileHelper = new FileHelper(configDir, "config.json", "timer.json", "projects");
   let gitHelper: GitHelper;
 
   if (!isConfigFileValid()) {
