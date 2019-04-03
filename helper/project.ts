@@ -4,12 +4,12 @@ import { IHour, IProject, IProjectNameAnswers } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper } from "./index";
 
 export class ProjectHelper {
-  public static parseProjectNameFromGitUrl = (input: string): IProject | undefined => {
+  public static parseProjectNameFromGitUrl = (input: string): IProject => {
     const split = input
       .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
 
     if (!split || split.length !== 6) {
-      return;
+      throw new Error("Unable to get project information from repo URL");
     }
 
     const [,
@@ -62,9 +62,9 @@ export class ProjectHelper {
     if (!project) {
       LogHelper.warn(`Project "${projectName}" not found`);
       try {
-        const tmp: IProject = await this.getProject()
-        // TODO ask user?
-        foundProject = await this.fileHelper.initProject(projectName, tmp.meta);
+
+        // TODO ask user if he wants to create this project?
+        foundProject = await this.fileHelper.initProject(await this.getProject());
       } catch (err) {
         LogHelper.error("Unable to initialize project, exiting...")
         return process.exit(1);
@@ -101,78 +101,95 @@ export class ProjectHelper {
     return this.fileHelper.getAllProjects();
   }
 
-  public getProject = async (): Promise<IProject> => {
+  // TODO remove? is just a proxy for getProjectNameGit()
+  public getProject = (): IProject => {
     let project: IProject | undefined = this.getProjectNameGit();
 
-    if (!project) {
-      project = await this.getProjectNameUser();
-    }
+    // if (!project) {
+    //   project = await this.getProjectNameUser();
+    // }
 
-    console.log(project)
-
-    return project;
-  }
-
-  private getProjectNameUser = async (): Promise<IProject> => {
-    LogHelper.info("Unable to determinate project, please add it manually");
-    // TODO ask if only local or ask for git url
-    // TODO parse git url and create IProject
-    const projectNameAnswer = await inquirer.prompt([
-      {
-        message: "Project namespace:",
-        name: "userProjectNamespace",
-        type: "input",
-        validate(input) {
-          const valid = input.length > 0;
-
-          if (valid) {
-            return true;
-          } else {
-            return "The namespace must not be empty";
-          }
-        },
-      },
-      {
-        message: "Project name:",
-        name: "userProjectName",
-        type: "input",
-        validate(input) {
-          const valid = input.length > 0;
-
-          if (valid) {
-            return true;
-          } else {
-            return "The name must not be empty";
-          }
-        },
-      },
-    ]) as IProjectNameAnswers;
-
-    const { userProjectName, userProjectNamespace } = projectNameAnswer;
-
-    const project: IProject = {
-      meta: {
-        // TODO using inquirer
-        host: "TO_BE_ADDED",
-        port: 1337,
-      },
-      name: `${userProjectNamespace}/${userProjectName}`,
-      hours: []
-    }
-
-    this.fileHelper.initProject(`${userProjectNamespace}/${userProjectName}`, project.meta)
+    // console.log(project)
 
     return project;
   }
 
-  private getProjectNameGit = (): IProject | undefined => {
+  public initProject = async (/*projectName: string, projectMeta: IProjectMeta*/): Promise<IProject> => {
+    try {
+      const project = await this.getProject();
+
+      await this.fileHelper.initProject(project);
+
+      await this.gitHelper.commitChanges(`Initialized project`);
+
+      return project
+    } catch (err) {
+      LogHelper.debug("Error writing project file", err);
+      throw new Error("Error initializing project");
+    }
+  }
+
+  // private getProjectNameUser = async (): Promise<IProject> => {
+  //   LogHelper.info("Unable to determinate project, please add it manually");
+  //   // TODO ask if only local or ask for git url
+  //   // TODO parse git url and create IProject
+  //   const projectNameAnswer = await inquirer.prompt([
+  //     {
+  //       message: "Project namespace:",
+  //       name: "userProjectNamespace",
+  //       type: "input",
+  //       validate(input) {
+  //         const valid = input.length > 0;
+
+  //         if (valid) {
+  //           return true;
+  //         } else {
+  //           return "The namespace must not be empty";
+  //         }
+  //       },
+  //     },
+  //     {
+  //       message: "Project name:",
+  //       name: "userProjectName",
+  //       type: "input",
+  //       validate(input) {
+  //         const valid = input.length > 0;
+
+  //         if (valid) {
+  //           return true;
+  //         } else {
+  //           return "The name must not be empty";
+  //         }
+  //       },
+  //     },
+  //   ]) as IProjectNameAnswers;
+
+  //   const { userProjectName, userProjectNamespace } = projectNameAnswer;
+
+  //   const project: IProject = {
+  //     meta: {
+  //       // TODO using inquirer
+  //       host: "TO_BE_ADDED",
+  //       port: 1337,
+  //     },
+  //     name: `${userProjectNamespace}/${userProjectName}`,
+  //     hours: []
+  //   }
+
+  //   this.fileHelper.initProject(`${userProjectNamespace}/${userProjectName}`, project.meta)
+
+  //   return project;
+  // }
+
+  private getProjectNameGit = (): IProject => {
     LogHelper.debug("Trying to find project name from .git folder");
     const gitConfigExec: ExecOutputReturnValue = shelljs.exec("git config remote.origin.url", {
       silent: true,
     }) as ExecOutputReturnValue;
 
     if (gitConfigExec.code !== 0 || gitConfigExec.stdout.length < 4) {
-      return;
+      LogHelper.debug("Error executing git config remote.origin.url", new Error(gitConfigExec.stdout))
+      throw new Error("Unable to get URL from git config")
     }
 
     const originUrl = gitConfigExec.stdout.trim();

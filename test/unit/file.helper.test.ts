@@ -173,8 +173,6 @@ describe("FileHelper", () => {
       port: 22,
     }
 
-    await instance.initProject("TestProject", projectMeta)
-
     const project: IProject = {
       meta: projectMeta,
       name: "TestProject",
@@ -186,6 +184,7 @@ describe("FileHelper", () => {
         }
       ]
     }
+    await instance.initProject(project)
 
     await instance.saveProjectObject(project)
     // TODO check?
@@ -207,6 +206,7 @@ describe("FileHelper", () => {
     });
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -215,8 +215,6 @@ describe("FileHelper", () => {
       host: "github.com",
       port: 22,
     }
-
-    await instance.initProject("TestProject", projectMeta)
 
     const project: IProject = {
       meta: projectMeta,
@@ -229,6 +227,7 @@ describe("FileHelper", () => {
         }
       ]
     }
+    await instance.initProject(project)
 
     try {
       await instance.saveProjectObject(project, projectMeta)
@@ -407,14 +406,22 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    await instance.initProject("TestProject0", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject0",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
-    await instance.initProject("TestProject1", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject1",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
     const list = await instance.getAllProjects()
@@ -428,19 +435,31 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    await instance.initProject("TestProject0", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject0",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
-    await instance.initProject("TestProject1", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject1",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
-    await instance.initProject("TestProject2", {
-      host: "gitlab.com",
-      port: 33,
+    await instance.initProject({
+      name: "TestProject2",
+      hours: [],
+      meta: {
+        host: "gitlab.com",
+        port: 33,
+      }
     })
 
     const listGithub = await instance.getProjectsForDomain({
@@ -469,19 +488,31 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    await instance.initProject("TestProject0", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject0",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
-    await instance.initProject("TestProject1", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject1",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
-    await instance.initProject("TestProject2", {
-      host: "gitlab.com",
-      port: 33,
+    await instance.initProject({
+      name: "TestProject2",
+      hours: [],
+      meta: {
+        host: "gitlab.com",
+        port: 33,
+      }
     })
 
     const project = await instance.getProjectByName("TestProject1")
@@ -498,19 +529,31 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    await instance.initProject("TestProject0", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject0",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
-    await instance.initProject("TestProject1", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject1",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
-    await instance.initProject("TestProject2", {
-      host: "gitlab.com",
-      port: 33,
+    await instance.initProject({
+      name: "TestProject2",
+      hours: [],
+      meta: {
+        host: "gitlab.com",
+        port: 33,
+      }
     })
 
     const project = await instance.getProjectByName("TestProject1", {
@@ -530,14 +573,22 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    await instance.initProject("TestProject2", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject2",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
-    await instance.initProject("TestProject2", {
-      host: "gitlab.com",
-      port: 33,
+    await instance.initProject({
+      name: "TestProject2",
+      hours: [],
+      meta: {
+        host: "gitlab.com",
+        port: 33,
+      }
     })
 
     try {
@@ -565,9 +616,13 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    await instance.initProject("TestProject", {
-      host: "github.com",
-      port: 22,
+    await instance.initProject({
+      name: "TestProject",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
     const meta = await instance.getProjectMeta("TestProject")
@@ -582,9 +637,13 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    const initialProject = await instance.initProject("TestProject", {
-      host: "github.com",
-      port: 22,
+    const initialProject = await instance.initProject({
+      name: "TestProject",
+      hours: [],
+      meta: {
+        host: "github.com",
+        port: 22,
+      }
     })
 
     assert.isDefined(initialProject)

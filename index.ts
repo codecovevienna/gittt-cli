@@ -4,7 +4,7 @@ import inquirer from "inquirer";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "./helper";
-import { IConfigFile, IGitRepoAnswers, IInitAnswers } from "./interfaces";
+import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
 const packageJson = require("./package.json");
@@ -203,10 +203,28 @@ const APP_VERSION = packageJson.version;
       });
 
     commander
-      .command("init")
+      .command("setup")
       .description("Initializes config directory")
       .action(async () => {
         await init();
+      });
+
+    commander
+      .command("init")
+      .description("Initializes the project in current git directory")
+      .action(async () => {
+        const initProjectAnswers = await inquirer.prompt([
+          {
+            message: "This will reset the project if it is already initialized, are you sure?",
+            name: "confirm",
+            type: "confirm",
+          },
+        ]) as IInitProjectAnswers;
+
+        if (initProjectAnswers.confirm) {
+          await projectHelper.initProject();
+        }
+
       });
 
     return commander;

@@ -43,23 +43,15 @@ export class FileHelper {
   }
 
   // TODO refactor to use only IProject
-  public initProject = async (projectName: string, projectMeta: IProjectMeta): Promise<IProject> => {
+  public initProject = async (project: IProject): Promise<IProject> => {
     try {
-      const projectPath = this.projectMetaToPath(projectMeta);
-      LogHelper.debug(`Ensuring domain directory for ${projectMeta.host}`)
+      const projectPath = this.projectMetaToPath(project.meta);
+      LogHelper.debug(`Ensuring domain directory for ${project.meta.host}`)
       await fs.ensureDir(projectPath);
 
-      const initial: IProject = {
-        meta: projectMeta,
-        hours: [],
-        name: projectName,
-      };
+      await this.saveProjectObject(project);
 
-      const projectFilePath = path.join(projectPath, `${projectName}.json`);
-
-      LogHelper.debug(`Creating project file ${projectFilePath}`)
-      await fs.writeJson(projectFilePath, initial);
-      return initial;
+      return project;
     } catch (err) {
       LogHelper.debug("Error writing project file", err);
       throw new Error("Error initializing project");
