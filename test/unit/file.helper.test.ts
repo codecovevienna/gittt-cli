@@ -217,7 +217,7 @@ describe("FileHelper", () => {
       name: "TestProject",
     }
 
-    await instance.initProject(projectMeta)
+    await instance.initProject("TestProject", projectMeta)
 
     const project: IProject = {
       name: projectMeta.name,
@@ -628,13 +628,16 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    const initialProject = await instance.initProject({
-      host: "github.com",
-      port: 22,
-      name: "TestProject",
-    })
+    try {
+      await instance.initProject("TestProject", {
+        host: "github.com",
+        port: 22,
+        name: "TestProject",
+      })
+    } catch (err) {
+      assert.isDefined(err)
+    }
 
-    assert.isUndefined(initialProject)
   })
 
   it("should decode domain directory to IProjectMeta", async () => {

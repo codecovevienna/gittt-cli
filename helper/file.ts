@@ -52,7 +52,7 @@ export class FileHelper {
   //   }
   // }
 
-  public initProject = async (projectName: string, projectMeta: IProjectMeta): Promise<IProject | undefined> => {
+  public initProject = async (projectName: string, projectMeta: IProjectMeta): Promise<IProject> => {
     try {
       const projectPath = this.projectMetaToPath(projectMeta);
       LogHelper.debug(`Ensuring domain directory for ${projectMeta.host}`)
@@ -69,8 +69,8 @@ export class FileHelper {
       await fs.writeJson(projectFilePath, initial);
       return initial;
     } catch (err) {
-      LogHelper.error("Error initializing project");
-      return undefined;
+      LogHelper.debug("Error writing project file", err);
+      throw new Error("Error initializing project");
     }
   }
 
@@ -132,24 +132,24 @@ export class FileHelper {
     }
   }
 
-  public saveProjectObject = async (project: IProject, projectMeta?: IProjectMeta): Promise<void> => {
+  public saveProjectObject = async (project: IProject, projectMeta: IProjectMeta): Promise<void> => {
     try {
 
-      let projectMetaFound: IProjectMeta | undefined;
+      // let projectMetaFound: IProjectMeta | undefined;
 
-      if (!projectMeta) {
-        projectMetaFound = await this.getProjectMeta(project.name)
-      } else {
-        projectMetaFound = projectMeta;
-      }
+      // if (!projectMeta) {
+      //   projectMetaFound = await this.project(project.name)
+      // } else {
+      //   projectMetaFound = projectMeta;
+      // }
 
-      if (!projectMetaFound) {
-        throw new Error("Unable to find project meta data")
-      }
+      // if (!projectMetaFound) {
+      //   throw new Error("Unable to find project meta data")
+      // }
 
-      const projectMetaString = this.projectMetaToPath(projectMetaFound);
+      const projectMetaString = this.projectMetaToPath(projectMeta);
 
-      await fs.writeJson(path.join(projectMetaString, `${projectMetaFound.name}.json`), project);
+      await fs.writeJson(path.join(projectMetaString, `${projectMeta.name}.json`), project);
       // TODO update cache
     } catch (err) {
       LogHelper.debug("Error writing project file", err);

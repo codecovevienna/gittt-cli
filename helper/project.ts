@@ -20,7 +20,28 @@ export class ProjectHelper {
       port,
       name] = split;
 
-    return { host, port: parseInt(port, 10), name, raw: input };
+    const nameSplit = name.split("/")
+
+    let parsedName;
+
+    if (nameSplit.length === 2) {
+      // Assuming namespace/project-name
+      const [
+        namespace,
+        projectName
+      ] = nameSplit
+      parsedName = `${namespace}_${projectName}`
+    } else {
+      // No slash found, using raw name
+      parsedName = name
+    }
+
+    return {
+      host,
+      port: parseInt(port.replace(":", ""), 10),
+      name: parsedName,
+      raw: input
+    };
   }
   private fileHelper: FileHelper;
   private gitHelper: GitHelper;
@@ -31,23 +52,28 @@ export class ProjectHelper {
   }
 
   public addHoursToProject = async (projectName: string, hour: IHour): Promise<void> => {
-    const project: IProject | undefined = await this.fileHelper.getProjectByName(projectName);
+    let project: IProject | undefined = await this.fileHelper.getProjectByName(projectName);
 
     if (!project) {
       LogHelper.warn(`Project "${projectName}" not found`);
-      // await this.fileHelper.initProject({
-
-      // });
-      // TODO ask user to init new project?
-      // TODO remove
-      return process.exit(1);
+      const meta = await this.getProjectMetaData()
+      try {
+        project = await this.fileHelper.initProject(projectName, meta);
+      } catch (err) {
+        LogHelper.error("Unable to initialize project, exiting...")
+        return process.exit(1);
+      }
     }
 
     project.hours.push(hour);
-    await this.fileHelper.saveProjectObject(project);
+    await this.fileHelper.saveProjectObject(project, await this.getProjectMetaData());
 
     const hourString = hour.count === 1 ? "hour" : "hours";
-    await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
+    if (hour.message) {
+      await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
+    } else {
+      await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}`);
+    }
   }
 
   public getTotalHours = async (projectName: string): Promise<number> => {
@@ -78,14 +104,16 @@ export class ProjectHelper {
   //   return
   // }
 
-  public getProjectName = async (): Promise<string> => {
-    let projectDomain: IProjectMeta | undefined = this.getProjectNameGit();
+  public getProjectMetaData = async (): Promise<IProjectMeta> => {
+    let projectMeta: IProjectMeta | undefined = this.getProjectNameGit();
 
-    if (!projectDomain) {
-      projectDomain = await this.getProjectNameUser();
+    if (!projectMeta) {
+      projectMeta = await this.getProjectNameUser();
     }
 
-    return projectDomain.name;
+    console.log(projectMeta)
+
+    return projectMeta;
   }
 
   private getProjectNameUser = async (): Promise<IProjectMeta> => {

@@ -35,11 +35,6 @@ const APP_VERSION = packageJson.version;
   };
 
   const isConfigFileValid = async (): Promise<boolean> => {
-    if (!(fileHelper.configDirExists())) {
-      LogHelper.debug("Config file does not exist");
-      return false;
-    }
-
     let config: IConfigFile | undefined;
 
     try {
@@ -92,19 +87,25 @@ const APP_VERSION = packageJson.version;
   };
 
   const init = async (): Promise<void> => {
-    if (!(fileHelper.configDirExists())) {
+    if (!(await fileHelper.configDirExists())) {
+      fileHelper.createConfigDir()
       gitHelper = new GitHelper(configDir, fileHelper);
 
-      if (!isConfigFileValid()) {
+      if (!(await isConfigFileValid())) {
         const gitUrl = await askGitUrl();
+        LogHelper.info("Initializing local repo")
         await gitHelper.initRepo(gitUrl);
         // TODO remove reset=true?
+        LogHelper.info("Pulling repo...")
         await gitHelper.pullRepo();
 
         // Check if a valid config file is already in the repo
-        if (!isConfigFileValid()) {
+        if (!(await isConfigFileValid())) {
+          LogHelper.info("Initializing gittt config file")
           await fileHelper.initConfigFile(gitUrl);
+          LogHelper.info("Committing created config file")
           await gitHelper.commitChanges("Initialized config file");
+          LogHelper.info("Pushing changes to remote repo")
           await gitHelper.pushChanges();
         }
       } else {
@@ -112,7 +113,7 @@ const APP_VERSION = packageJson.version;
       }
 
     } else {
-      if (isConfigFileValid()) {
+      if (await isConfigFileValid()) {
         gitHelper = new GitHelper(configDir, fileHelper);
         await gitHelper.pullRepo();
         LogHelper.info(`Config directory ${configDir} already initialized`);
@@ -138,7 +139,7 @@ const APP_VERSION = packageJson.version;
           exit("Unable to parse hours", 1);
         }
 
-        await projectHelper.addHoursToProject(await projectHelper.getProjectName(), {
+        await projectHelper.addHoursToProject((await projectHelper.getProjectMetaData()).name, {
           count: hours,
           created: Date.now(),
           message: options.message,
@@ -218,7 +219,7 @@ const APP_VERSION = packageJson.version;
   const fileHelper: FileHelper = new FileHelper(configDir, "config.json", "projects");
   let gitHelper: GitHelper;
 
-  if (!isConfigFileValid()) {
+  if (!(await fileHelper.configDirExists()) || !isConfigFileValid()) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
       {
         message: `Looks like you never used ${APP_NAME}, should it be set up?`,
