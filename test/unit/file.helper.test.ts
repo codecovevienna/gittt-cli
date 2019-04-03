@@ -30,7 +30,8 @@ describe("FileHelper", () => {
   })
 
   it("should create config directories", async () => {
-    new FileHelper(configDir, configFileName, projectsDir);
+    const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     fs.pathExistsSync(configDir)
     fs.pathExistsSync(path.join(configDir, projectsDir))
@@ -38,6 +39,7 @@ describe("FileHelper", () => {
 
   it("should init config file", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
@@ -65,12 +67,13 @@ describe("FileHelper", () => {
 
   it("should check existence of config file", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
     await instance.initConfigFile(gitUrl)
 
-    assert.isTrue(await instance.configFileExists())
+    assert.isTrue(await instance.configDirExists())
   })
 
   it("should fail to check existence of config file", async () => {
@@ -83,17 +86,18 @@ describe("FileHelper", () => {
     });
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
-    await instance.createConfigDir();
+    instance.createConfigDir();
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
     await instance.initConfigFile(gitUrl)
 
-    assert.isFalse(await instance.configFileExists())
+    assert.isFalse(await instance.configDirExists())
   })
 
   it("should initialize config file", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
@@ -106,6 +110,7 @@ describe("FileHelper", () => {
 
   it("should fail to initialize config file [dir does not exist]", async () => {
     const instance = new FileHelper("./sandbox/none-existing", configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
 
@@ -114,6 +119,7 @@ describe("FileHelper", () => {
 
   it("should get config file as IConfigFile", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -125,6 +131,7 @@ describe("FileHelper", () => {
 
   it("should get config file as IConfigFile from cache", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -144,7 +151,7 @@ describe("FileHelper", () => {
     });
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
-    await instance.createConfigDir();
+    instance.createConfigDir();
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -156,6 +163,7 @@ describe("FileHelper", () => {
 
   it("should save project object", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -238,6 +246,7 @@ describe("FileHelper", () => {
 
   it("should initialize readme", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     await instance.initReadme()
 
@@ -254,6 +263,7 @@ describe("FileHelper", () => {
     });
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     try {
       await instance.initReadme()
@@ -264,6 +274,7 @@ describe("FileHelper", () => {
 
   it("should get project object", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -290,6 +301,7 @@ describe("FileHelper", () => {
     });
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -316,6 +328,7 @@ describe("FileHelper", () => {
     });
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -340,6 +353,7 @@ describe("FileHelper", () => {
     });
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -356,6 +370,7 @@ describe("FileHelper", () => {
 
   it("should save config file", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     await instance.saveConfigObject({
       created: Date.now(),
@@ -387,6 +402,7 @@ describe("FileHelper", () => {
 
   it("should get all projects", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -409,6 +425,7 @@ describe("FileHelper", () => {
 
   it("should get all projects for one domain", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -455,6 +472,7 @@ describe("FileHelper", () => {
 
   it("should get one project by name", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -486,6 +504,7 @@ describe("FileHelper", () => {
 
   it("should get one project by name and domain", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -521,6 +540,7 @@ describe("FileHelper", () => {
 
   it("should fail to get duplicated project by name", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -546,6 +566,7 @@ describe("FileHelper", () => {
 
   it("should fail to get non existing project by name", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -556,6 +577,7 @@ describe("FileHelper", () => {
 
   it("should get project meta data", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -573,6 +595,7 @@ describe("FileHelper", () => {
 
   it("should initialize project file", async () => {
     const instance = new FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
@@ -600,6 +623,7 @@ describe("FileHelper", () => {
     });
 
     const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    instance.createConfigDir()
 
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)

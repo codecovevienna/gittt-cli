@@ -27,10 +27,9 @@ export class FileHelper {
     this.configDir = configDir;
     this.projectDir = path.join(configDir, projectDir);
     this.configFilePath = path.join(configDir, configFileName);
-    this.createConfigDir();
   }
 
-  private createConfigDir = (): void => {
+  public createConfigDir = (): void => {
     fs.ensureDirSync(this.configDir);
     fs.ensureDirSync(this.projectDir);
   }
@@ -75,7 +74,7 @@ export class FileHelper {
     }
   }
 
-  public configFileExists = async (): Promise<boolean> => {
+  public configDirExists = async (): Promise<boolean> => {
     try {
       return await fs.pathExists(this.configFilePath);
     } catch (err) {
@@ -133,12 +132,24 @@ export class FileHelper {
     }
   }
 
-  public saveProjectObject = async (project: IProject, projectMeta: IProjectMeta): Promise<void> => {
+  public saveProjectObject = async (project: IProject, projectMeta?: IProjectMeta): Promise<void> => {
     try {
 
-      const projectMetaString = this.projectMetaToPath(projectMeta);
+      let projectMetaFound: IProjectMeta | undefined;
 
-      await fs.writeJson(path.join(projectMetaString, `${projectMeta.name}.json`), project);
+      if (!projectMeta) {
+        projectMetaFound = await this.getProjectMeta(project.name)
+      } else {
+        projectMetaFound = projectMeta;
+      }
+
+      if (!projectMetaFound) {
+        throw new Error("Unable to find project meta data")
+      }
+
+      const projectMetaString = this.projectMetaToPath(projectMetaFound);
+
+      await fs.writeJson(path.join(projectMetaString, `${projectMetaFound.name}.json`), project);
       // TODO update cache
     } catch (err) {
       LogHelper.debug("Error writing project file", err);

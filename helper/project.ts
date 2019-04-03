@@ -20,7 +20,7 @@ export class ProjectHelper {
       port,
       name] = split;
 
-    return { host, port: parseInt(port, 10), name, raw: split };
+    return { host, port: parseInt(port, 10), name, raw: input };
   }
   private fileHelper: FileHelper;
   private gitHelper: GitHelper;
@@ -38,12 +38,13 @@ export class ProjectHelper {
       // await this.fileHelper.initProject({
 
       // });
+      // TODO ask user to init new project?
       // TODO remove
       return process.exit(1);
     }
 
     project.hours.push(hour);
-    // await this.fileHelper.saveProjectObject(project, projectMeta);
+    await this.fileHelper.saveProjectObject(project);
 
     const hourString = hour.count === 1 ? "hour" : "hours";
     await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
@@ -60,11 +61,11 @@ export class ProjectHelper {
     }, 0);
   }
 
-  // public getProjectList = async (): Promise<IProjectLink[]> => {
-  //   const projects = this.fileHelper.getProjects()
-  //   const config = this.fileHelper.getConfigObject();
-  //   return config.projects;
-  // }
+  // TODO remove? is just a proxy for the file helper
+  // TODO maybe move functionality from file helper here?
+  public getProjectList = async (): Promise<IProject[]> => {
+    return this.fileHelper.getAllProjects();
+  }
 
   // public getProjectLinkByName = async (name: string): Promise<IProjectMeta | undefined> => {
   //   // get all hosts
@@ -77,14 +78,14 @@ export class ProjectHelper {
   //   return
   // }
 
-  public getProjectName = async (): Promise<IProjectMeta> => {
+  public getProjectName = async (): Promise<string> => {
     let projectDomain: IProjectMeta | undefined = this.getProjectNameGit();
 
     if (!projectDomain) {
       projectDomain = await this.getProjectNameUser();
     }
 
-    return projectDomain;
+    return projectDomain.name;
   }
 
   private getProjectNameUser = async (): Promise<IProjectMeta> => {
@@ -154,7 +155,6 @@ export class ProjectHelper {
     return ProjectHelper.parseProjectNameFromGitUrl(originUrl);
   }
 
-  // TODO refactor
   // private saveProject = async (project: IProject, projectLink: IProjectLink): Promise<boolean> => {
 
   //   // remove project from config file

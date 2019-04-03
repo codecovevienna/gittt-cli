@@ -30,5 +30,5 @@ export interface IProjectMeta {
   port: number;
   // TODO should only be part of the project
   name: string;
-  raw?: string[];
+  raw?: string;
 }
