@@ -139,7 +139,7 @@ const APP_VERSION = packageJson.version;
           exit("Unable to parse hours", 1);
         }
 
-        await projectHelper.addHoursToProject((await projectHelper.getProject()).name, {
+        await projectHelper.addHoursToProject({
           count: hours,
           created: Date.now(),
           message: options.message,
@@ -159,7 +159,7 @@ const APP_VERSION = packageJson.version;
       .command("list")
       .description("Listing all projects")
       .action(async () => {
-        const projects = await projectHelper.getProjectList();
+        const projects = await fileHelper.findAllProjects();
 
         LogHelper.info("Projects:");
         for (const prj of projects) {
@@ -186,7 +186,7 @@ const APP_VERSION = packageJson.version;
       .command("status")
       .description("Overview of all projects")
       .action(async () => {
-        const projects = await projectHelper.getProjectList();
+        const projects = await fileHelper.findAllProjects();
         let totalHours = 0;
 
         LogHelper.info("Projects:");

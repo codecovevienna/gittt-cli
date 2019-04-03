@@ -117,12 +117,12 @@ export class FileHelper {
     }
   }
 
-  public getProjectByName = async (projectName: string, projectMeta?: IProjectMeta): Promise<IProject | undefined> => {
+  public findProjectByName = async (projectName: string, projectMeta?: IProjectMeta): Promise<IProject | undefined> => {
     const allFoundProjects: IProject[] = [];
 
     if (projectMeta) {
       // Use specific domain
-      const domainProjects = await this.getProjectsForDomain(projectMeta);
+      const domainProjects = await this.findProjectsForDomain(projectMeta);
       for (const project of domainProjects) {
         if (project.name === projectName) {
           allFoundProjects.push(project);
@@ -156,20 +156,7 @@ export class FileHelper {
 
   }
 
-  public getProjectMeta = async (projectName: string): Promise<IProjectMeta | undefined> => {
-    const projectDomains = fs.readdirSync(this.projectDir);
-    for (const projectDomain of projectDomains) {
-      const projectFiles = fs.readdirSync(path.join(this.projectDir, projectDomain))
-      for (const projectFile of projectFiles) {
-        const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile))
-        if (project.name === projectName) {
-          return FileHelper.decodeDomainDirectory(projectDomain)
-        }
-      }
-    }
-  }
-
-  public getAllProjects = async (): Promise<IProject[]> => {
+  public findAllProjects = async (): Promise<IProject[]> => {
     const allProjects: IProject[] = [];
     const projectDomains = fs.readdirSync(this.projectDir);
     for (const projectDomain of projectDomains) {
@@ -182,7 +169,7 @@ export class FileHelper {
     return allProjects
   }
 
-  public getProjectsForDomain = async (projectMeta: IProjectMeta): Promise<IProject[]> => {
+  public findProjectsForDomain = async (projectMeta: IProjectMeta): Promise<IProject[]> => {
     const projects: IProject[] = [];
     if (!await fs.pathExists(this.projectMetaToPath(projectMeta))) {
       return projects

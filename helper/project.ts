@@ -53,18 +53,21 @@ export class ProjectHelper {
     this.fileHelper = fileHelper;
   }
 
-  public addHoursToProject = async (projectName: string, hour: IHour): Promise<void> => {
+  public addHoursToProject = async (hour: IHour): Promise<void> => {
     let foundProject: IProject;
 
+    const projectFromGit = await this.getProjectFromGit()
+    const projectName = projectFromGit.name
+
     // Try to find project in projects directory
-    const project = await this.fileHelper.getProjectByName(projectName);
+    const project = await this.fileHelper.findProjectByName(projectName);
 
     if (!project) {
       LogHelper.warn(`Project "${projectName}" not found`);
       try {
 
         // TODO ask user if he wants to create this project?
-        foundProject = await this.fileHelper.initProject(await this.getProject());
+        foundProject = await this.fileHelper.initProject(await this.getProjectFromGit());
       } catch (err) {
         LogHelper.error("Unable to initialize project, exiting...")
         return process.exit(1);
@@ -85,7 +88,7 @@ export class ProjectHelper {
   }
 
   public getTotalHours = async (projectName: string): Promise<number> => {
-    const project: IProject | undefined = await this.fileHelper.getProjectByName(projectName);
+    const project: IProject | undefined = await this.fileHelper.findProjectByName(projectName);
     if (!project) {
       throw new Error(`Project "${projectName}" not found`);
     }
@@ -95,28 +98,9 @@ export class ProjectHelper {
     }, 0);
   }
 
-  // TODO remove? is just a proxy for the file helper
-  // TODO maybe move functionality from file helper here?
-  public getProjectList = async (): Promise<IProject[]> => {
-    return this.fileHelper.getAllProjects();
-  }
-
-  // TODO remove? is just a proxy for getProjectNameGit()
-  public getProject = (): IProject => {
-    let project: IProject | undefined = this.getProjectNameGit();
-
-    // if (!project) {
-    //   project = await this.getProjectNameUser();
-    // }
-
-    // console.log(project)
-
-    return project;
-  }
-
   public initProject = async (/*projectName: string, projectMeta: IProjectMeta*/): Promise<IProject> => {
     try {
-      const project = await this.getProject();
+      const project = await this.getProjectFromGit();
 
       await this.fileHelper.initProject(project);
 
@@ -181,7 +165,7 @@ export class ProjectHelper {
   //   return project;
   // }
 
-  private getProjectNameGit = (): IProject => {
+  public getProjectFromGit = (): IProject => {
     LogHelper.debug("Trying to find project name from .git folder");
     const gitConfigExec: ExecOutputReturnValue = shelljs.exec("git config remote.origin.url", {
       silent: true,

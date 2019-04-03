@@ -424,7 +424,7 @@ describe("FileHelper", () => {
       }
     })
 
-    const list = await instance.getAllProjects()
+    const list = await instance.findAllProjects()
     expect(list.length).to.eq(2);
   })
 
@@ -462,19 +462,19 @@ describe("FileHelper", () => {
       }
     })
 
-    const listGithub = await instance.getProjectsForDomain({
+    const listGithub = await instance.findProjectsForDomain({
       host: "github.com",
       port: 22,
     })
     expect(listGithub.length).to.eq(2);
 
-    const listGitlab = await instance.getProjectsForDomain({
+    const listGitlab = await instance.findProjectsForDomain({
       host: "gitlab.com",
       port: 33,
     })
     expect(listGitlab.length).to.eq(1);
 
-    const listNonExists = await instance.getProjectsForDomain({
+    const listNonExists = await instance.findProjectsForDomain({
       host: "google.com",
       port: 44,
     })
@@ -515,7 +515,7 @@ describe("FileHelper", () => {
       }
     })
 
-    const project = await instance.getProjectByName("TestProject1")
+    const project = await instance.findProjectByName("TestProject1")
     assert.isDefined(project)
     if (project) {
       expect(project.name).to.eq("TestProject1")
@@ -556,7 +556,7 @@ describe("FileHelper", () => {
       }
     })
 
-    const project = await instance.getProjectByName("TestProject1", {
+    const project = await instance.findProjectByName("TestProject1", {
       host: "github.com",
       port: 22,
     })
@@ -592,7 +592,7 @@ describe("FileHelper", () => {
     })
 
     try {
-      await instance.getProjectByName("TestProject2")
+      await instance.findProjectByName("TestProject2")
     } catch (err) {
       assert.isDefined(err)
     }
@@ -605,29 +605,8 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    const project = await instance.getProjectByName("TestProject1")
+    const project = await instance.findProjectByName("TestProject1")
     assert.isUndefined(project)
-  })
-
-  it("should get project meta data", async () => {
-    const instance = new FileHelper(configDir, configFileName, projectsDir);
-    instance.createConfigDir()
-
-    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
-    await instance.initConfigFile(gitUrl)
-
-    await instance.initProject({
-      name: "TestProject",
-      hours: [],
-      meta: {
-        host: "github.com",
-        port: 22,
-      }
-    })
-
-    const meta = await instance.getProjectMeta("TestProject")
-
-    assert.isDefined(meta)
   })
 
   it("should initialize project file", async () => {
