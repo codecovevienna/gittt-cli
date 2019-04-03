@@ -176,11 +176,12 @@ describe("FileHelper", () => {
     const project: IProject = {
       meta: projectMeta,
       name: "TestProject",
-      hours: [
+      records: [
         {
           created: Date.now(),
           count: 1337,
-          message: "TestMessage"
+          message: "TestMessage",
+          type: "Hour"
         }
       ]
     }
@@ -219,11 +220,12 @@ describe("FileHelper", () => {
     const project: IProject = {
       meta: projectMeta,
       name: "TestProject",
-      hours: [
+      records: [
         {
           created: Date.now(),
           count: 1337,
-          message: "TestMessage"
+          message: "TestMessage",
+          type: "Hour"
         }
       ]
     }
@@ -408,7 +410,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject0",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -417,7 +419,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject1",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -437,7 +439,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject0",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -446,7 +448,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject1",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -455,7 +457,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject2",
-      hours: [],
+      records: [],
       meta: {
         host: "gitlab.com",
         port: 33,
@@ -490,7 +492,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject0",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -499,7 +501,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject1",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -508,7 +510,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject2",
-      hours: [],
+      records: [],
       meta: {
         host: "gitlab.com",
         port: 33,
@@ -531,7 +533,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject0",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -540,7 +542,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject1",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -549,7 +551,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject2",
-      hours: [],
+      records: [],
       meta: {
         host: "gitlab.com",
         port: 33,
@@ -575,7 +577,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject2",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -584,7 +586,7 @@ describe("FileHelper", () => {
 
     await instance.initProject({
       name: "TestProject2",
-      hours: [],
+      records: [],
       meta: {
         host: "gitlab.com",
         port: 33,
@@ -618,7 +620,7 @@ describe("FileHelper", () => {
 
     const initialProject = await instance.initProject({
       name: "TestProject",
-      hours: [],
+      records: [],
       meta: {
         host: "github.com",
         port: 22,
@@ -629,7 +631,7 @@ describe("FileHelper", () => {
 
     const configFile: IProject = await fs.readJson(path.join(configDir, projectsDir, "github_com_22", "TestProject.json"));
     expect(configFile.name).to.eq("TestProject")
-    expect(configFile.hours).to.be.an("Array")
+    expect(configFile.records).to.be.an("Array")
   })
 
   it("should fail to initialize project file", async () => {

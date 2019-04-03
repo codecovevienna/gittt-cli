@@ -1,15 +1,16 @@
 export * from "./answers";
 
-export interface IHour {
+export interface IRecord {
   created: number;
   count: number;
   message: string;
+  type: RECORD_TYPES;
 }
 
 export interface IProject {
   meta: IProjectMeta;
   name: string;
-  hours: IHour[];
+  records: IRecord[];
 }
 
 export interface IConfigFile {
@@ -22,3 +23,5 @@ export interface IProjectMeta {
   port: number;
   raw?: string;
 }
+
+export type RECORD_TYPES = "Hour"

@@ -139,10 +139,11 @@ const APP_VERSION = packageJson.version;
           exit("Unable to parse hours", 1);
         }
 
-        await projectHelper.addHoursToProject({
+        await projectHelper.addRecordToProject({
           count: hours,
           created: Date.now(),
           message: options.message,
+          type: "Hour"
         });
       });
 

@@ -1,9 +1,13 @@
 import inquirer from "inquirer";
 import shelljs, { ExecOutputReturnValue, exit } from "shelljs";
-import { IHour, IProject, IProjectNameAnswers } from "../interfaces";
+import { IRecord, IProject, IProjectNameAnswers } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper } from "./index";
 
+enum RECORD_TYPES {
+  HOUR = 0
+}
 export class ProjectHelper {
+
   public static parseProjectNameFromGitUrl = (input: string): IProject => {
     const split = input
       .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
@@ -41,7 +45,7 @@ export class ProjectHelper {
         port: parseInt(port.replace(":", ""), 10),
         raw: input
       },
-      hours: [],
+      records: [],
       name: parsedName,
     };
   }
@@ -53,7 +57,7 @@ export class ProjectHelper {
     this.fileHelper = fileHelper;
   }
 
-  public addHoursToProject = async (hour: IHour): Promise<void> => {
+  public addRecordToProject = async (record: IRecord): Promise<void> => {
     let foundProject: IProject;
 
     const projectFromGit = await this.getProjectFromGit()
@@ -76,14 +80,14 @@ export class ProjectHelper {
       foundProject = project
     }
 
-    foundProject.hours.push(hour);
+    foundProject.records.push(record);
     await this.fileHelper.saveProjectObject(foundProject);
 
-    const hourString = hour.count === 1 ? "hour" : "hours";
-    if (hour.message) {
-      await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}: "${hour.message}"`);
+    const hourString = record.count === 1 ? "hour" : "hours";
+    if (record.message) {
+      await this.gitHelper.commitChanges(`Added ${record.count} ${hourString} to ${projectName}: "${record.message}"`);
     } else {
-      await this.gitHelper.commitChanges(`Added ${hour.count} ${hourString} to ${projectName}`);
+      await this.gitHelper.commitChanges(`Added ${record.count} ${hourString} to ${projectName}`);
     }
   }
 
@@ -93,8 +97,12 @@ export class ProjectHelper {
       throw new Error(`Project "${projectName}" not found`);
     }
 
-    return project.hours.reduce((prev: number, curr: IHour) => {
-      return prev + curr.count;
+    return project.records.reduce((prev: number, curr: IRecord) => {
+      if (curr.type === "Hour") {
+        return prev + curr.count;
+      } else {
+        return prev
+      }
     }, 0);
   }
 
