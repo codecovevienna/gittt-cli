@@ -14,7 +14,6 @@ export class FileHelper {
     return {
       host,
       port,
-      name: "should be removed"
     }
   }
 
@@ -43,15 +42,7 @@ export class FileHelper {
     return await this.saveConfigObject(initial);
   }
 
-  // TODO private?
-  // public initHostPath = async (projectDomain: IProjectMeta): Promise<void> => {
-  //   try {
-  //     await fs.ensureDir(this.projectDomainToPath(projectDomain));
-  //   } catch (err) {
-  //     LogHelper.error("Error ....")
-  //   }
-  // }
-
+  // TODO refactor to use only IProject
   public initProject = async (projectName: string, projectMeta: IProjectMeta): Promise<IProject> => {
     try {
       const projectPath = this.projectMetaToPath(projectMeta);
@@ -59,6 +50,7 @@ export class FileHelper {
       await fs.ensureDir(projectPath);
 
       const initial: IProject = {
+        meta: projectMeta,
         hours: [],
         name: projectName,
       };
@@ -98,30 +90,6 @@ export class FileHelper {
     }
   }
 
-  public getProjectObject = async (projectMeta: IProjectMeta): Promise<IProject | undefined> => {
-    try {
-      // TODO add caching
-      const projectDomainPath = this.projectMetaToPath(projectMeta);
-
-      if (!await fs.pathExists(projectDomainPath)) {
-        LogHelper.warn(`Unable to find project domain directory ${projectDomainPath}`)
-        return undefined;
-      }
-
-      const projectFilePath = path.join(projectDomainPath, `${projectMeta.name}.json`)
-
-      if (!await fs.pathExists(projectDomainPath)) {
-        LogHelper.warn(`Unable to find project file ${projectFilePath}`)
-        return undefined;
-      }
-
-      return await fs.readJson(projectFilePath) as IProject;
-    } catch (err) {
-      LogHelper.error("Error getting project object")
-      return undefined
-    }
-  }
-
   public saveConfigObject = async (config: IConfigFile): Promise<void> => {
     try {
       await fs.writeJson(this.configFilePath, config);
@@ -132,24 +100,11 @@ export class FileHelper {
     }
   }
 
-  public saveProjectObject = async (project: IProject, projectMeta: IProjectMeta): Promise<void> => {
+  public saveProjectObject = async (project: IProject /*, projectMeta: IProjectMeta*/): Promise<void> => {
     try {
+      const projectMetaString = this.projectMetaToPath(project.meta);
 
-      // let projectMetaFound: IProjectMeta | undefined;
-
-      // if (!projectMeta) {
-      //   projectMetaFound = await this.project(project.name)
-      // } else {
-      //   projectMetaFound = projectMeta;
-      // }
-
-      // if (!projectMetaFound) {
-      //   throw new Error("Unable to find project meta data")
-      // }
-
-      const projectMetaString = this.projectMetaToPath(projectMeta);
-
-      await fs.writeJson(path.join(projectMetaString, `${projectMeta.name}.json`), project);
+      await fs.writeJson(path.join(projectMetaString, `${project.name}.json`), project);
       // TODO update cache
     } catch (err) {
       LogHelper.debug("Error writing project file", err);

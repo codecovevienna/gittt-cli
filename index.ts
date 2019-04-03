@@ -139,7 +139,7 @@ const APP_VERSION = packageJson.version;
           exit("Unable to parse hours", 1);
         }
 
-        await projectHelper.addHoursToProject((await projectHelper.getProjectMetaData()).name, {
+        await projectHelper.addHoursToProject((await projectHelper.getProject()).name, {
           count: hours,
           created: Date.now(),
           message: options.message,
