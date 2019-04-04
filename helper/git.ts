@@ -70,7 +70,6 @@ export class GitHelper {
           },
         ]) as IOverrideAnswers;
 
-        // const { override } = overrideLocalAnswers;
         override = overrideLocalAnswers.override;
       }
 
@@ -88,18 +87,19 @@ export class GitHelper {
             await this.git.raw(["push", "origin", "master", "--force"]);
             LogHelper.info("Pushed to repo");
             const status: StatusResult = await this.git.status();
-            console.log(status);
+            LogHelper.debug(status);
           } catch (err) {
-            LogHelper.warn("Unable to fetch repo");
+            LogHelper.debug("Unable to fetch repo", err);
+            throw new Error("Initialize repo failed");
           }
           break;
         case 2:
           // TODO helper?
-          // exit("Bye!", 0);
+          process.exit(0);
           break;
 
         default:
-          break;
+          throw new Error(`Unknown option ${override}`);
       }
 
       // Force fileHelper to load config file from disk
