@@ -181,9 +181,9 @@ describe("FileHelper", () => {
       records: [
         {
           created: Date.now(),
-          count: 1337,
+          amount: 1337,
           message: "TestMessage",
-          type: "Hour"
+          type: "Time"
         }
       ]
     }
@@ -225,9 +225,9 @@ describe("FileHelper", () => {
       records: [
         {
           created: Date.now(),
-          count: 1337,
+          amount: 1337,
           message: "TestMessage",
-          type: "Hour"
+          type: "Time"
         }
       ]
     }
