@@ -24,4 +24,4 @@ export interface IProjectMeta {
   raw?: string;
 }
 
-export type RECORD_TYPES = "Hour"
+export type RECORD_TYPES = "Hour";

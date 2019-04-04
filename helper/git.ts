@@ -33,7 +33,7 @@ export class GitHelper {
   }
 
   public initRepo = async (gitUrl: string): Promise<void> => {
-    const repoInitialized = await this.git.checkIsRepo();
+    const repoInitialized: boolean = await this.git.checkIsRepo();
     if (!repoInitialized) {
       LogHelper.debug("Initializing repo");
       await this.git.init();
@@ -51,7 +51,7 @@ export class GitHelper {
       LogHelper.info("Pulled repo successfully");
     } catch (err) {
 
-      let override = 255;
+      let override: number = 255;
 
       if (err.message === "fatal: couldn't find remote ref master\n") {
         await this.fileHelper.initReadme();

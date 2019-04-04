@@ -5,16 +5,16 @@ import { LogHelper } from "./";
 
 export class FileHelper {
   public static decodeDomainDirectory = (domainDirectory: string): IProjectMeta => {
-    const split = domainDirectory.split("_");
-    const port = parseInt(split[split.length - 1], 10);
+    const split: string[] = domainDirectory.split("_");
+    const port: number = parseInt(split[split.length - 1], 10);
 
-    const rawHost = domainDirectory.replace(`_${port}`, "");
-    const host = rawHost.replace(/\_/gi, ".");
+    const rawHost: string = domainDirectory.replace(`_${port}`, "");
+    const host: string = rawHost.replace(/\_/gi, ".");
 
     return {
       host,
       port,
-    }
+    };
   }
 
   private configFilePath: string;
@@ -36,7 +36,7 @@ export class FileHelper {
   public initConfigFile = async (gitRepo: string): Promise<void> => {
     const initial: IConfigFile = {
       created: Date.now(),
-      gitRepo
+      gitRepo,
     };
 
     return await this.saveConfigObject(initial);
@@ -45,8 +45,8 @@ export class FileHelper {
   // TODO refactor to use only IProject
   public initProject = async (project: IProject): Promise<IProject> => {
     try {
-      const projectPath = this.projectMetaToPath(project.meta);
-      LogHelper.debug(`Ensuring domain directory for ${project.meta.host}`)
+      const projectPath: string = this.projectMetaToPath(project.meta);
+      LogHelper.debug(`Ensuring domain directory for ${project.meta.host}`);
       await fs.ensureDir(projectPath);
 
       await this.saveProjectObject(project);
@@ -67,7 +67,7 @@ export class FileHelper {
     }
   }
 
-  public getConfigObject = async (fromDisk: boolean = false): Promise<IConfigFile | undefined> => {
+  public getConfigObject = async (fromDisk: boolean = false): Promise<IConfigFile> => {
     try {
       if (!this.configObject || fromDisk) {
         const configObj: IConfigFile = await fs.readJson(this.configFilePath);
@@ -77,8 +77,8 @@ export class FileHelper {
         return this.configObject;
       }
     } catch (err) {
-      LogHelper.error("Error getting config object")
-      return undefined
+      LogHelper.debug("Error reading config file", err);
+      throw new Error("Error getting config object");
     }
   }
 
@@ -88,19 +88,18 @@ export class FileHelper {
       this.setConfigObject(config);
     } catch (err) {
       LogHelper.debug("Error writing config file", err);
-      throw new Error("Error writing config file")
+      throw new Error("Error writing config file");
     }
   }
 
   public saveProjectObject = async (project: IProject /*, projectMeta: IProjectMeta*/): Promise<void> => {
     try {
-      const projectMetaString = this.projectMetaToPath(project.meta);
-
+      const projectMetaString: string = this.projectMetaToPath(project.meta);
       await fs.writeJson(path.join(projectMetaString, `${project.name}.json`), project);
       // TODO update cache
     } catch (err) {
       LogHelper.debug("Error writing project file", err);
-      throw new Error("Error writing project file")
+      throw new Error("Error writing project file");
     }
   }
 
@@ -113,7 +112,7 @@ export class FileHelper {
       await fs.writeFile(path.join(this.configDir, "README.md"), "# Initially generated gittt README.md file");
     } catch (err) {
       LogHelper.error("Error initializing project file");
-      throw new Error("Error initializing project file")
+      throw new Error("Error initializing project file");
     }
   }
 
@@ -122,7 +121,7 @@ export class FileHelper {
 
     if (projectMeta) {
       // Use specific domain
-      const domainProjects = await this.findProjectsForDomain(projectMeta);
+      const domainProjects: IProject[] = await this.findProjectsForDomain(projectMeta);
       for (const project of domainProjects) {
         if (project.name === projectName) {
           allFoundProjects.push(project);
@@ -130,11 +129,11 @@ export class FileHelper {
       }
     } else {
       // Search in all domains
-      const projectDomains = fs.readdirSync(this.projectDir);
+      const projectDomains: string[] = fs.readdirSync(this.projectDir);
       for (const projectDomain of projectDomains) {
-        const projectFiles = fs.readdirSync(path.join(this.projectDir, projectDomain))
+        const projectFiles: string[] = fs.readdirSync(path.join(this.projectDir, projectDomain));
         for (const projectFile of projectFiles) {
-          const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile))
+          const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile));
           if (project.name === projectName) {
             allFoundProjects.push(project);
           }
@@ -151,36 +150,36 @@ export class FileHelper {
         return allFoundProjects[0];
       default:
         // If more than 1 project with the given name gets found, throw error
-        throw new Error(`Found more than 1 project named "${projectName}"`)
+        throw new Error(`Found more than 1 project named "${projectName}"`);
     }
 
   }
 
   public findAllProjects = async (): Promise<IProject[]> => {
     const allProjects: IProject[] = [];
-    const projectDomains = fs.readdirSync(this.projectDir);
+    const projectDomains: string[] = fs.readdirSync(this.projectDir);
     for (const projectDomain of projectDomains) {
-      const projectFiles = fs.readdirSync(path.join(this.projectDir, projectDomain))
+      const projectFiles: string[] = fs.readdirSync(path.join(this.projectDir, projectDomain));
       for (const projectFile of projectFiles) {
-        const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile))
+        const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile));
         allProjects.push(project);
       }
     }
-    return allProjects
+    return allProjects;
   }
 
   public findProjectsForDomain = async (projectMeta: IProjectMeta): Promise<IProject[]> => {
     const projects: IProject[] = [];
     if (!await fs.pathExists(this.projectMetaToPath(projectMeta))) {
-      return projects
+      return projects;
     }
 
-    const projectFiles = fs.readdirSync(this.projectMetaToPath(projectMeta))
+    const projectFiles: string[] = fs.readdirSync(this.projectMetaToPath(projectMeta));
     for (const projectFile of projectFiles) {
-      const project: IProject = await fs.readJson(path.join(this.projectMetaToPath(projectMeta), projectFile))
+      const project: IProject = await fs.readJson(path.join(this.projectMetaToPath(projectMeta), projectFile));
       projects.push(project);
     }
-    return projects
+    return projects;
   }
 
   private setConfigObject = (config: IConfigFile): void => {

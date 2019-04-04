@@ -156,9 +156,11 @@ describe("FileHelper", () => {
     const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
     await instance.initConfigFile(gitUrl)
 
-    const configObject = await instance.getConfigObject(true);
-
-    assert.isUndefined(configObject)
+    try {
+      await instance.getConfigObject(true);
+    } catch (err) {
+      assert.isDefined(err)
+    }
   })
 
   it("should save project object", async () => {

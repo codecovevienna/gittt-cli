@@ -1,15 +1,15 @@
 import inquirer from "inquirer";
 import shelljs, { ExecOutputReturnValue, exit } from "shelljs";
-import { IRecord, IProject, IProjectNameAnswers } from "../interfaces";
+import { IProject, IProjectNameAnswers, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper } from "./index";
 
 enum RECORD_TYPES {
-  HOUR = 0
+  HOUR = 0,
 }
 export class ProjectHelper {
 
   public static parseProjectNameFromGitUrl = (input: string): IProject => {
-    const split = input
+    const split: RegExpMatchArray | null = input
       .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
 
     if (!split || split.length !== 6) {
@@ -23,30 +23,30 @@ export class ProjectHelper {
       port,
       name] = split;
 
-    const nameSplit = name.split("/")
+    const nameSplit: string[] = name.split("/");
 
-    let parsedName;
+    let parsedName: string;
 
     if (nameSplit.length === 2) {
       // Assuming namespace/project-name
       const [
         namespace,
-        projectName
-      ] = nameSplit
-      parsedName = `${namespace}_${projectName}`
+        projectName,
+      ] = nameSplit;
+      parsedName = `${namespace}_${projectName}`;
     } else {
       // No slash found, using raw name
-      parsedName = name
+      parsedName = name;
     }
 
     return {
       meta: {
         host,
         port: parseInt(port.replace(":", ""), 10),
-        raw: input
+        raw: input,
       },
-      records: [],
       name: parsedName,
+      records: [],
     };
   }
   private fileHelper: FileHelper;
@@ -60,30 +60,30 @@ export class ProjectHelper {
   public addRecordToProject = async (record: IRecord): Promise<void> => {
     let foundProject: IProject;
 
-    const projectFromGit = await this.getProjectFromGit()
-    const projectName = projectFromGit.name
+    const projectFromGit: IProject = this.getProjectFromGit();
+    const projectName: string = projectFromGit.name;
 
     // Try to find project in projects directory
-    const project = await this.fileHelper.findProjectByName(projectName);
+    const project: IProject | undefined = await this.fileHelper.findProjectByName(projectName);
 
     if (!project) {
       LogHelper.warn(`Project "${projectName}" not found`);
       try {
 
         // TODO ask user if he wants to create this project?
-        foundProject = await this.fileHelper.initProject(await this.getProjectFromGit());
+        foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
       } catch (err) {
-        LogHelper.error("Unable to initialize project, exiting...")
+        LogHelper.error("Unable to initialize project, exiting...");
         return process.exit(1);
       }
     } else {
-      foundProject = project
+      foundProject = project;
     }
 
     foundProject.records.push(record);
     await this.fileHelper.saveProjectObject(foundProject);
 
-    const hourString = record.count === 1 ? "hour" : "hours";
+    const hourString: string = record.count === 1 ? "hour" : "hours";
     if (record.message) {
       await this.gitHelper.commitChanges(`Added ${record.count} ${hourString} to ${projectName}: "${record.message}"`);
     } else {
@@ -101,20 +101,20 @@ export class ProjectHelper {
       if (curr.type === "Hour") {
         return prev + curr.count;
       } else {
-        return prev
+        return prev;
       }
     }, 0);
   }
 
   public initProject = async (/*projectName: string, projectMeta: IProjectMeta*/): Promise<IProject> => {
     try {
-      const project = await this.getProjectFromGit();
+      const project: IProject = this.getProjectFromGit();
 
       await this.fileHelper.initProject(project);
 
       await this.gitHelper.commitChanges(`Initialized project`);
 
-      return project
+      return project;
     } catch (err) {
       LogHelper.debug("Error writing project file", err);
       throw new Error("Error initializing project");
@@ -180,11 +180,11 @@ export class ProjectHelper {
     }) as ExecOutputReturnValue;
 
     if (gitConfigExec.code !== 0 || gitConfigExec.stdout.length < 4) {
-      LogHelper.debug("Error executing git config remote.origin.url", new Error(gitConfigExec.stdout))
-      throw new Error("Unable to get URL from git config")
+      LogHelper.debug("Error executing git config remote.origin.url", new Error(gitConfigExec.stdout));
+      throw new Error("Unable to get URL from git config");
     }
 
-    const originUrl = gitConfigExec.stdout.trim();
+    const originUrl: string = gitConfigExec.stdout.trim();
 
     return ProjectHelper.parseProjectNameFromGitUrl(originUrl);
   }
