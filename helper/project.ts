@@ -1,13 +1,8 @@
-import inquirer from "inquirer";
-import shelljs, { ExecOutputReturnValue, exit } from "shelljs";
-import { IProject, IProjectNameAnswers, IRecord } from "../interfaces";
+import shelljs, { ExecOutputReturnValue } from "shelljs";
+import { IProject, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper } from "./index";
 
-enum RECORD_TYPES {
-  HOUR = 0,
-}
 export class ProjectHelper {
-
   public static parseProjectNameFromGitUrl = (input: string): IProject => {
     const split: RegExpMatchArray | null = input
       .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
@@ -71,6 +66,8 @@ export class ProjectHelper {
       try {
 
         // TODO ask user if he wants to create this project?
+        LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
+        LogHelper.info(`Initializing project "${projectName}"`);
         foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
       } catch (err) {
         LogHelper.error("Unable to initialize project, exiting...");
@@ -80,14 +77,17 @@ export class ProjectHelper {
       foundProject = project;
     }
 
+    LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}) to ${foundProject.name}`);
+
     foundProject.records.push(record);
     await this.fileHelper.saveProjectObject(foundProject);
 
-    const hourString: string = record.count === 1 ? "hour" : "hours";
+    // TODO differ between types
+    const hourString: string = record.amount === 1 ? "hour" : "hours";
     if (record.message) {
-      await this.gitHelper.commitChanges(`Added ${record.count} ${hourString} to ${projectName}: "${record.message}"`);
+      await this.gitHelper.commitChanges(`Added ${record.amount} ${hourString} to ${projectName}: "${record.message}"`);
     } else {
-      await this.gitHelper.commitChanges(`Added ${record.count} ${hourString} to ${projectName}`);
+      await this.gitHelper.commitChanges(`Added ${record.amount} ${hourString} to ${projectName}`);
     }
   }
 
@@ -98,8 +98,8 @@ export class ProjectHelper {
     }
 
     return project.records.reduce((prev: number, curr: IRecord) => {
-      if (curr.type === "Hour") {
-        return prev + curr.count;
+      if (curr.type === "Time") {
+        return prev + curr.amount;
       } else {
         return prev;
       }
@@ -121,58 +121,6 @@ export class ProjectHelper {
     }
   }
 
-  // private getProjectNameUser = async (): Promise<IProject> => {
-  //   LogHelper.info("Unable to determinate project, please add it manually");
-  //   // TODO ask if only local or ask for git url
-  //   // TODO parse git url and create IProject
-  //   const projectNameAnswer = await inquirer.prompt([
-  //     {
-  //       message: "Project namespace:",
-  //       name: "userProjectNamespace",
-  //       type: "input",
-  //       validate(input) {
-  //         const valid = input.length > 0;
-
-  //         if (valid) {
-  //           return true;
-  //         } else {
-  //           return "The namespace must not be empty";
-  //         }
-  //       },
-  //     },
-  //     {
-  //       message: "Project name:",
-  //       name: "userProjectName",
-  //       type: "input",
-  //       validate(input) {
-  //         const valid = input.length > 0;
-
-  //         if (valid) {
-  //           return true;
-  //         } else {
-  //           return "The name must not be empty";
-  //         }
-  //       },
-  //     },
-  //   ]) as IProjectNameAnswers;
-
-  //   const { userProjectName, userProjectNamespace } = projectNameAnswer;
-
-  //   const project: IProject = {
-  //     meta: {
-  //       // TODO using inquirer
-  //       host: "TO_BE_ADDED",
-  //       port: 1337,
-  //     },
-  //     name: `${userProjectNamespace}/${userProjectName}`,
-  //     hours: []
-  //   }
-
-  //   this.fileHelper.initProject(`${userProjectNamespace}/${userProjectName}`, project.meta)
-
-  //   return project;
-  // }
-
   public getProjectFromGit = (): IProject => {
     LogHelper.debug("Trying to find project name from .git folder");
     const gitConfigExec: ExecOutputReturnValue = shelljs.exec("git config remote.origin.url", {
@@ -188,19 +136,4 @@ export class ProjectHelper {
 
     return ProjectHelper.parseProjectNameFromGitUrl(originUrl);
   }
-
-  // private saveProject = async (project: IProject, projectLink: IProjectLink): Promise<boolean> => {
-
-  //   // remove project from config file
-  //   const filteredProjects = config.projects.filter((p: IProjectLink) => p.name !== project.name);
-
-  //   // add project to config file
-
-  //   filteredProjects.push(project);
-  //   // save config file
-
-  //   config.projects = filteredProjects;
-
-  //   return await this.fileHelper.saveConfigObject(config);
-  // }
 }

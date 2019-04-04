@@ -95,7 +95,9 @@ export class FileHelper {
   public saveProjectObject = async (project: IProject /*, projectMeta: IProjectMeta*/): Promise<void> => {
     try {
       const projectMetaString: string = this.projectMetaToPath(project.meta);
-      await fs.writeJson(path.join(projectMetaString, `${project.name}.json`), project);
+      const projectFilePath: string = path.join(projectMetaString, `${project.name}.json`);
+      LogHelper.debug(`Saving project file to ${projectFilePath}`);
+      await fs.writeJson(projectFilePath, project);
       // TODO update cache
     } catch (err) {
       LogHelper.debug("Error writing project file", err);

@@ -1,8 +1,10 @@
+import { RECORD_TYPES } from "../types";
+
 export * from "./answers";
 
 export interface IRecord {
   created: number;
-  count: number;
+  amount: number;
   message: string;
   type: RECORD_TYPES;
 }
@@ -23,5 +25,3 @@ export interface IProjectMeta {
   port: number;
   raw?: string;
 }
-
-export type RECORD_TYPES = "Hour";

@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
 export class LogHelper {
-  public static DEBUG: boolean = true;
+  public static DEBUG: boolean = process.env.DEBUG === "true" || false;
   public static silence: boolean = false;
 
   public static debug = (msg: any, err?: Error): void => {

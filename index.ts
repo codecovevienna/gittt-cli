@@ -132,10 +132,10 @@ const APP_VERSION: string = packageJson.version;
         }
 
         await projectHelper.addRecordToProject({
-          count: hours,
+          amount: hours,
           created: Date.now(),
           message: options.message,
-          type: "Hour",
+          type: "Time",
         });
       });
 
@@ -221,8 +221,6 @@ const APP_VERSION: string = packageJson.version;
 
     return commander;
   }
-
-  LogHelper.DEBUG = true;
 
   const homeDir: string = getHomeDir();
   const configDir: string = path.join(homeDir, `.${APP_NAME}`);
