@@ -33,16 +33,17 @@ export class FileHelper {
     fs.ensureDirSync(this.projectDir);
   }
 
-  public initConfigFile = async (gitRepo: string): Promise<void> => {
+  public initConfigFile = async (gitRepo: string): Promise<IConfigFile> => {
     const initial: IConfigFile = {
       created: Date.now(),
       gitRepo,
     };
 
-    return await this.saveConfigObject(initial);
+    await this.saveConfigObject(initial);
+
+    return initial;
   }
 
-  // TODO refactor to use only IProject
   public initProject = async (project: IProject): Promise<IProject> => {
     try {
       const projectPath: string = this.projectMetaToPath(project.meta);
@@ -82,17 +83,8 @@ export class FileHelper {
     }
   }
 
-  public saveConfigObject = async (config: IConfigFile): Promise<void> => {
-    try {
-      await fs.writeJson(this.configFilePath, config);
-      this.setConfigObject(config);
-    } catch (err) {
-      LogHelper.debug("Error writing config file", err);
-      throw new Error("Error writing config file");
-    }
-  }
-
-  public saveProjectObject = async (project: IProject /*, projectMeta: IProjectMeta*/): Promise<void> => {
+  // TODO should maybe be private
+  public saveProjectObject = async (project: IProject): Promise<void> => {
     try {
       const projectMetaString: string = this.projectMetaToPath(project.meta);
       const projectFilePath: string = path.join(projectMetaString, `${project.name}.json`);
@@ -113,8 +105,8 @@ export class FileHelper {
     try {
       await fs.writeFile(path.join(this.configDir, "README.md"), "# Initially generated gittt README.md file");
     } catch (err) {
-      LogHelper.error("Error initializing project file");
-      throw new Error("Error initializing project file");
+      LogHelper.debug("Error writing readme file", err);
+      throw new Error("Error initializing readme file");
     }
   }
 
@@ -191,5 +183,15 @@ export class FileHelper {
   private projectMetaToPath = (projectMeta: IProjectMeta): string => {
     const { host, port } = projectMeta;
     return path.join(this.projectDir, `${host.replace(/\./gi, "_")}_${port}`);
+  }
+
+  private saveConfigObject = async (config: IConfigFile): Promise<void> => {
+    try {
+      await fs.writeJson(this.configFilePath, config);
+      this.setConfigObject(config);
+    } catch (err) {
+      LogHelper.debug("Error writing config file", err);
+      throw new Error("Error writing config file");
+    }
   }
 }
