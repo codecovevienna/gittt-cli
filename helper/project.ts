@@ -52,6 +52,21 @@ export class ProjectHelper {
     this.fileHelper = fileHelper;
   }
 
+  public initProject = async (/*projectName: string, projectMeta: IProjectMeta*/): Promise<IProject> => {
+    try {
+      const project: IProject = this.getProjectFromGit();
+
+      await this.fileHelper.initProject(project);
+
+      await this.gitHelper.commitChanges(`Initialized project`);
+
+      return project;
+    } catch (err) {
+      LogHelper.debug("Error writing project file", err);
+      throw new Error("Error initializing project");
+    }
+  }
+
   public addRecordToProject = async (record: IRecord): Promise<void> => {
     let foundProject: IProject;
 
@@ -104,21 +119,6 @@ export class ProjectHelper {
         return prev;
       }
     }, 0);
-  }
-
-  public initProject = async (/*projectName: string, projectMeta: IProjectMeta*/): Promise<IProject> => {
-    try {
-      const project: IProject = this.getProjectFromGit();
-
-      await this.fileHelper.initProject(project);
-
-      await this.gitHelper.commitChanges(`Initialized project`);
-
-      return project;
-    } catch (err) {
-      LogHelper.debug("Error writing project file", err);
-      throw new Error("Error initializing project");
-    }
   }
 
   public getProjectFromGit = (): IProject => {

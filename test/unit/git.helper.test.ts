@@ -5,7 +5,6 @@ import path from "path";
 import sinon from "sinon";
 import proxyquire from "proxyquire";
 import { ListLogSummary, DefaultLogFields } from "simple-git/typings/response";
-import inquirer = require("inquirer");
 import { IOverrideAnswers } from "../../interfaces";
 import { StatusResult } from "simple-git/promise";
 
@@ -18,7 +17,7 @@ describe("GitHelper", () => {
   let fileHelper: FileHelper
   before(() => {
     LogHelper.silence = true;
-    fileHelper = fileHelper = new FileHelper(configDir, configFileName, projectsDir);
+    fileHelper = new FileHelper(configDir, configFileName, projectsDir);
   })
 
   beforeEach(async () => {
