@@ -12,6 +12,10 @@ const projectsDir: string = "projects";
 LogHelper.silence = true;
 
 describe("FileHelper", () => {
+  before(() => {
+    proxyquire.noCallThru();
+  });
+
   it("should create instance", async () => {
     const fileHelper: FileHelper = new FileHelper(configDir, configFileName, projectsDir);
     expect(fileHelper).to.be.instanceOf(FileHelper);

@@ -1,5 +1,4 @@
 import { assert, expect } from "chai";
-import fs from "fs-extra";
 import path from "path";
 import proxyquire from "proxyquire";
 import { StatusResult } from "simple-git/promise";
@@ -13,27 +12,33 @@ const configDir = path.join(sandboxDir, ".git-time-tracker");
 const configFileName = "config.json";
 const projectsDir = "projects";
 
-describe("GitHelper", () => {
-  let fileHelper: FileHelper;
-  before(() => {
-    LogHelper.silence = true;
-    fileHelper = new FileHelper(configDir, configFileName, projectsDir);
-  });
+LogHelper.silence = true;
 
-  beforeEach(async () => {
-    // Create config directory
-    await fs.ensureDir(configDir);
-  });
-  afterEach(async () => {
-    await fs.remove(sandboxDir);
+describe("GitHelper", () => {
+  before(() => {
+    proxyquire.noCallThru();
   });
 
   it("should create instance", async () => {
-    const gitHelper = new GitHelper(configDir, fileHelper);
-    assert.isTrue(gitHelper instanceof GitHelper);
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
+    const proxy = proxyquire("../../helper/git", {
+      "simple-git/promise": () => {
+        return {};
+      },
+    });
+
+    const gitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
+
+    // type of proxy object is not GitHelper, so just check for definition
+    assert.isDefined(gitHelper)
   });
 
   it("should log changes", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
     const proxy = proxyquire.noCallThru().load("../../helper/git", {
       "simple-git/promise": () => {
         return {
@@ -66,7 +71,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     const logs: ReadonlyArray<DefaultLogFields> = await instance.logChanges();
 
@@ -74,6 +79,9 @@ describe("GitHelper", () => {
   });
 
   it("should push changes", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
     const pullSpy = sinon.spy();
     const pushSpy = sinon.spy();
     const proxy = proxyquire.noCallThru().load("../../helper/git", {
@@ -85,7 +93,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.pushChanges();
 
@@ -94,6 +102,9 @@ describe("GitHelper", () => {
   });
 
   it("should commit changes", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
     const pullSpy = sinon.spy();
     const addSpy = sinon.spy();
     const commitSpy = sinon.spy();
@@ -107,7 +118,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.commitChanges();
 
@@ -117,6 +128,9 @@ describe("GitHelper", () => {
   });
 
   it("should commit changes with message", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
     const pullSpy = sinon.spy();
     const addSpy = sinon.spy();
     const commitSpy = sinon.spy();
@@ -130,7 +144,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.commitChanges("message");
 
@@ -140,6 +154,9 @@ describe("GitHelper", () => {
   });
 
   it("should init repo", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
     const initSpy = sinon.spy();
     const addRemoteSpy = sinon.spy();
     const proxy = proxyquire.noCallThru().load("../../helper/git", {
@@ -152,7 +169,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.initRepo("url");
 
@@ -161,6 +178,11 @@ describe("GitHelper", () => {
   });
 
   it("should pull repo [reset: default, override: 0]", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
+    const invalidateCacheSpy = sinon.spy(mockedFileHelper, "invalidateCache")
+
     const resetSpy = sinon.spy();
     const pullSpy = sinon.stub()
       .onCall(0).rejects(new Error("Mocked error"))
@@ -180,15 +202,22 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.pullRepo();
 
     assert.isTrue(resetSpy.calledWith(["--hard", "origin/master"]));
     expect(pullSpy.callCount).to.eq(2);
+
+    assert.isTrue(invalidateCacheSpy.calledOnce)
   });
 
   it("should pull repo [reset: default, override: 1]", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
+    const invalidateCacheSpy = sinon.spy(mockedFileHelper, "invalidateCache")
+
     const addSpy = sinon.spy();
     const commitSpy = sinon.spy();
     const rawSpy = sinon.spy();
@@ -209,16 +238,23 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.pullRepo();
 
     assert.isTrue(addSpy.calledWith("./*"));
     assert.isTrue(commitSpy.calledWith("Setup commit"));
     assert.isTrue(rawSpy.calledWith(["push", "origin", "master", "--force"]));
+
+    assert.isTrue(invalidateCacheSpy.calledOnce)
   });
 
   it("should pull repo [reset: true, override: 1]", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
+    const invalidateCacheSpy = sinon.spy(mockedFileHelper, "invalidateCache")
+
     const resetSpy = sinon.spy();
     const pullSpy = sinon.spy();
     const proxy = proxyquire.noCallThru().load("../../helper/git", {
@@ -235,15 +271,25 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.pullRepo(true);
 
     assert.isTrue(resetSpy.calledWith(["--hard", "origin/master"]));
     assert.isTrue(pullSpy.calledWith("origin", "master"));
+
+    // Nothing updated, so no need to invalidate config cache
+    assert.isTrue(invalidateCacheSpy.notCalled)
   });
 
   it("should pull repo [no master branch]", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
+    const invalidateCacheSpy = sinon.spy(mockedFileHelper, "invalidateCache")
+
+    sinon.stub(mockedFileHelper, "initReadme").resolves()
+
     const addSpy = sinon.spy();
     const commitSpy = sinon.spy();
     const rawSpy = sinon.spy();
@@ -263,7 +309,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.pullRepo();
 
@@ -271,9 +317,16 @@ describe("GitHelper", () => {
     assert.isTrue(addSpy.calledWith("./*"));
     assert.isTrue(commitSpy.calledWith("Setup commit"));
     assert.isTrue(rawSpy.calledWith(["push", "origin", "master", "--force"]));
+
+    assert.isTrue(invalidateCacheSpy.calledOnce)
   });
 
   it("should fail to pull repo [error in add]", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
+    sinon.stub(mockedFileHelper, "initReadme").resolves()
+
     const proxy = proxyquire.noCallThru().load("../../helper/git", {
       "simple-git/promise": () => {
         return {
@@ -285,7 +338,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     try {
       await instance.pullRepo();
@@ -295,6 +348,9 @@ describe("GitHelper", () => {
   });
 
   it("should exit by choice", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
     const exitStub = sinon.stub(process, "exit");
     const proxy = proxyquire.noCallThru().load("../../helper/git", {
       "simple-git/promise": () => {
@@ -309,7 +365,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     await instance.pullRepo();
 
@@ -317,6 +373,9 @@ describe("GitHelper", () => {
   });
 
   it("should fail to pull repo [unknown override option]", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+    const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+
     const proxy = proxyquire.noCallThru().load("../../helper/git", {
       "simple-git/promise": () => {
         return {
@@ -330,7 +389,7 @@ describe("GitHelper", () => {
       },
     });
 
-    const instance: GitHelper = new proxy.GitHelper(configDir, fileHelper);
+    const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     try {
       await instance.pullRepo();

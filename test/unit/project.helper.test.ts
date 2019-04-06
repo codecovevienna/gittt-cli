@@ -1,38 +1,21 @@
 import { assert, expect } from "chai";
-import fs from "fs-extra";
 import path from "path";
 import proxyquire from "proxyquire";
 import { ExecOutputReturnValue } from "shelljs";
-import { ShellString } from "shelljs";
-import { StatusResult } from "simple-git/promise";
-import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
-import sinon from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "../../helper/index";
-import { IOverrideAnswers, IProject } from "../../interfaces";
+import { IProject } from "../../interfaces";
 
 const sandboxDir = "./sandbox";
 const configDir = path.join(sandboxDir, ".git-time-tracker");
 const configFileName = "config.json";
 const projectsDir = "projects";
 
+LogHelper.silence = true;
+
 describe("ProjectHelper", () => {
-  // let fileHelper: FileHelper
 
   before(() => {
-    LogHelper.silence = true;
     proxyquire.noCallThru();
-    // fileHelper = new FileHelper(configDir, configFileName, projectsDir);
-    // fileHelper.createConfigDir()
-    // gitHelper = new GitHelper(configDir, fileHelper);
-  });
-
-  beforeEach(async () => {
-    // Create config directory
-    // await fs.ensureDir(configDir);
-    // fileHelper.createConfigDir()
-  });
-  afterEach(async () => {
-    // await fs.remove(sandboxDir)
   });
 
   it("should create instance", async () => {
