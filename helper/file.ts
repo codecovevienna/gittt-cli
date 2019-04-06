@@ -4,19 +4,6 @@ import { IConfigFile, IProject, IProjectMeta } from "../interfaces";
 import { LogHelper } from "./";
 
 export class FileHelper {
-  public static decodeDomainDirectory = (domainDirectory: string): IProjectMeta => {
-    const split: string[] = domainDirectory.split("_");
-    const port: number = parseInt(split[split.length - 1], 10);
-
-    const rawHost: string = domainDirectory.replace(`_${port}`, "");
-    const host: string = rawHost.replace(/\_/gi, ".");
-
-    return {
-      host,
-      port,
-    };
-  }
-
   private configFilePath: string;
   private configDir: string;
   private projectDir: string;

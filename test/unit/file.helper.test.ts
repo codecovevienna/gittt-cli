@@ -1,8 +1,7 @@
 import { assert, expect } from "chai";
-import fs from "fs-extra";
 import path from "path";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable, SinonStatic } from "sinon";
+import sinon, { SinonInspectable } from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
 import { IConfigFile, IProject, IProjectMeta } from "../../interfaces";
 
@@ -10,19 +9,9 @@ const configDir: string = path.join("mocked", ".git-time-tracker");
 const configFileName: string = "config.json";
 const projectsDir: string = "projects";
 
-describe.only("FileHelper", () => {
-  before(() => {
-    LogHelper.silence = true;
-  });
+LogHelper.silence = true;
 
-  // beforeEach(async () => {
-  //   // Create sandbox directory
-  //   await fs.ensureDir(sandboxDir);
-  // });
-  // afterEach(async () => {
-  //   await fs.remove(sandboxDir);
-  // });
-
+describe("FileHelper", () => {
   it("should create instance", async () => {
     const fileHelper: FileHelper = new FileHelper(configDir, configFileName, projectsDir);
     expect(fileHelper).to.be.instanceOf(FileHelper);
@@ -540,7 +529,7 @@ describe.only("FileHelper", () => {
     assert.isTrue(readJsonSpy.calledTwice);
   });
 
-  it.only("should get all projects", async () => {
+  it("should get all projects", async () => {
     const readdirSyncSpy: SinonInspectable = sinon.stub()
       .onCall(0).returns([
         "domain_one_1",
@@ -595,306 +584,64 @@ describe.only("FileHelper", () => {
     assert.isTrue(readJsonSpy.calledThrice);
   });
 
-  /*
-
-  it("should initialize config file", async () => {
-    const instance = new FileHelper(configDir, configFileName, projectsDir);
-    instance.createConfigDir();
-
-    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git";
-
-    await instance.initConfigFile(gitUrl);
-
-    const configFile: IConfigFile = await fs.readJson(path.join(configDir, configFileName));
-    expect(configFile.created).to.be.a("Number");
-    expect(configFile.gitRepo).to.eq(gitUrl);
-  });
-
-  it("should fail to initialize config file [dir does not exist]", async () => {
-    const instance = new FileHelper("./sandbox/none-existing", configFileName, projectsDir);
-    instance.createConfigDir();
-
-    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git";
-
-    await instance.initConfigFile(gitUrl);
-  });
-
-  // it("should get project object", async () => {
-  //   const instance = new FileHelper(configDir, configFileName, projectsDir);
-  //   instance.createConfigDir()
-
-  //   const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
-  //   await instance.initConfigFile(gitUrl)
-
-  //   const projectMeta: IProjectMeta = {
-  //     host: "github.com",
-  //     port: 22,
-  //     name: "TestProject",
-  //   }
-
-  //   await instance.initProject("TestProject", projectMeta)
-
-  //   const projectObject = await instance.getProjectObject(projectMeta)
-  //   assert.isDefined(projectObject)
-  // })
-
-  // it("should fail to get project object", async () => {
-  //   const proxy = proxyquire.noCallThru().load("../../helper/file", {
-  //     'fs-extra': {
-  //       writeJson: sinon.stub().resolves(),
-  //       ensureDirSync: sinon.stub().resolves(),
-  //       pathExists: sinon.stub().resolves(false)
-  //     },
-  //   });
-
-  //   const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
-  //   instance.createConfigDir()
-
-  //   const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
-  //   await instance.initConfigFile(gitUrl)
-
-  //   const projectMeta: IProjectMeta = {
-  //     host: "github.com",
-  //     port: 22,
-  //     name: "TestProject",
-  //   }
-
-  //   const projectObject = await instance.getProjectObject(projectMeta)
-  //   assert.isUndefined(projectObject)
-  // })
-
-  // it("should fail to get project object", async () => {
-  //   const proxy = proxyquire.noCallThru().load("../../helper/file", {
-  //     'fs-extra': {
-  //       writeJson: sinon.stub().resolves(),
-  //       ensureDirSync: sinon.stub().resolves(),
-  //       pathExists: sinon.stub()
-  //         .onCall(0).resolves(true)
-  //         .onCall(1).resolves(false)
-  //     },
-  //   });
-
-  //   const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
-  //   instance.createConfigDir()
-
-  //   const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
-  //   await instance.initConfigFile(gitUrl)
-
-  //   const projectMeta: IProjectMeta = {
-  //     host: "github.com",
-  //     port: 22,
-  //     name: "TestProject",
-  //   }
-
-  //   const projectObject = await instance.getProjectObject(projectMeta)
-  //   assert.isUndefined(projectObject)
-  // })
-
-  // it("should fail to get project object", async () => {
-  //   const proxy = proxyquire.noCallThru().load("../../helper/file", {
-  //     'fs-extra': {
-  //       writeJson: sinon.stub().resolves(),
-  //       ensureDirSync: sinon.stub().resolves(),
-  //       pathExists: sinon.stub().rejects()
-  //     },
-  //   });
-
-  //   const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
-  //   instance.createConfigDir()
-
-  //   const gitUrl = "ssh://git@test.com/test/git-time-tracker.git"
-  //   await instance.initConfigFile(gitUrl)
-
-  //   const projectMeta: IProjectMeta = {
-  //     host: "github.com",
-  //     port: 22,
-  //     name: "TestProject",
-  //   }
-
-  //   const projectObject = await instance.getProjectObject(projectMeta)
-  //   assert.isUndefined(projectObject)
-  // })
-
-  it("should save config file", async () => {
-    const instance = new FileHelper(configDir, configFileName, projectsDir);
-    instance.createConfigDir();
-
-    // await instance.saveConfigObject({
-    //   created: Date.now(),
-    //   gitRepo: "ssh://git@test.com/test/git-time-tracker.git",
-    // });
-
-    // TODO check?
-  });
-
-  it("should fail to save config file", async () => {
-    const proxy = proxyquire.noCallThru().load("../../helper/file", {
+  it("should get all projects of one domain", async () => {
+    const readdirSyncSpy: SinonInspectable = sinon.stub()
+      .onCall(0).returns([
+        "mock_project_1",
+        "mock_project_2",
+      ])
+    const readJsonSpy: SinonInspectable = sinon.stub()
+      .onCall(0).resolves({
+        meta: {
+          host: "domain.one",
+          port: 1,
+        },
+        name: "mock_project_1",
+        records: [],
+      } as IProject)
+      .onCall(1).resolves({
+        meta: {
+          host: "domain.one",
+          port: 1,
+        },
+        name: "mock_project_2",
+        records: [],
+      } as IProject)
+    const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
-        ensureDirSync: sinon.stub().resolves(),
-        writeJson: sinon.stub().rejects(),
+        pathExists: sinon.stub().resolves(true),
+        readJson: readJsonSpy,
+        readdirSync: readdirSyncSpy,
       },
     });
 
-    const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    try {
-      await instance.saveConfigObject({
-        created: Date.now(),
-        gitRepo: "ssh://git@test.com/test/git-time-tracker.git",
-      });
-    } catch (err) {
-      assert.isDefined(err);
-    }
+    const allProjects: IProject[] = await instance.findProjectsForDomain({
+      host: "domain.one",
+      port: 1,
+    });
+
+    expect(allProjects.length).to.eq(2);
+
+    assert.isTrue(readdirSyncSpy.calledOnce);
+    assert.isTrue(readJsonSpy.calledTwice);
   });
 
-  it("should get all projects", async () => {
-    const instance = new FileHelper(configDir, configFileName, projectsDir);
-    instance.createConfigDir();
-
-    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git";
-    await instance.initConfigFile(gitUrl);
-
-    await instance.initProject({
-      name: "TestProject0",
-      records: [],
-      meta: {
-        host: "github.com",
-        port: 22,
-      },
-    });
-
-    await instance.initProject({
-      name: "TestProject1",
-      records: [],
-      meta: {
-        host: "github.com",
-        port: 22,
-      },
-    });
-
-    const list = await instance.findAllProjects();
-    expect(list.length).to.eq(2);
-  });
-
-  it("should get all projects for one domain", async () => {
-    const instance = new FileHelper(configDir, configFileName, projectsDir);
-    instance.createConfigDir();
-
-    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git";
-    await instance.initConfigFile(gitUrl);
-
-    await instance.initProject({
-      name: "TestProject0",
-      records: [],
-      meta: {
-        host: "github.com",
-        port: 22,
-      },
-    });
-
-    await instance.initProject({
-      name: "TestProject1",
-      records: [],
-      meta: {
-        host: "github.com",
-        port: 22,
-      },
-    });
-
-    await instance.initProject({
-      name: "TestProject2",
-      records: [],
-      meta: {
-        host: "gitlab.com",
-        port: 33,
-      },
-    });
-
-    const listGithub = await instance.findProjectsForDomain({
-      host: "github.com",
-      port: 22,
-    });
-    expect(listGithub.length).to.eq(2);
-
-    const listGitlab = await instance.findProjectsForDomain({
-      host: "gitlab.com",
-      port: 33,
-    });
-    expect(listGitlab.length).to.eq(1);
-
-    const listNonExists = await instance.findProjectsForDomain({
-      host: "google.com",
-      port: 44,
-    });
-    expect(listNonExists.length).to.eq(0);
-  });
-
-  it("should fail to get non existing project by name", async () => {
-    const instance = new FileHelper(configDir, configFileName, projectsDir);
-    instance.createConfigDir();
-
-    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git";
-    await instance.initConfigFile(gitUrl);
-
-    const project = await instance.findProjectByName("TestProject1");
-    assert.isUndefined(project);
-  });
-
-  it("should initialize project file", async () => {
-    const instance = new FileHelper(configDir, configFileName, projectsDir);
-    instance.createConfigDir();
-
-    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git";
-    await instance.initConfigFile(gitUrl);
-
-    const initialProject = await instance.initProject({
-      name: "TestProject",
-      records: [],
-      meta: {
-        host: "github.com",
-        port: 22,
-      },
-    });
-
-    assert.isDefined(initialProject);
-
-    const configFile: IProject = await fs.readJson(path.join(configDir, projectsDir, "github_com_22", "TestProject.json"));
-    expect(configFile.name).to.eq("TestProject");
-    expect(configFile.records).to.be.an("Array");
-  });
-
-  it("should fail to initialize project file", async () => {
-    const proxy = proxyquire.noCallThru().load("../../helper/file", {
+  it("should get no project of one domain", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
-        writeJson: sinon.stub().resolves(),
-        ensureDirSync: sinon.stub().resolves(),
-        ensureDir: sinon.stub().rejects(),
+        pathExists: sinon.stub().resolves(false),
       },
     });
 
-    const instance = new proxy.FileHelper(configDir, configFileName, projectsDir);
-    instance.createConfigDir();
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const gitUrl = "ssh://git@test.com/test/git-time-tracker.git";
-    await instance.initConfigFile(gitUrl);
+    const allProjects: IProject[] = await instance.findProjectsForDomain({
+      host: "domain.one",
+      port: 1,
+    });
 
-    try {
-      await instance.initProject("TestProject", {
-        host: "github.com",
-        port: 22,
-        name: "TestProject",
-      });
-    } catch (err) {
-      assert.isDefined(err);
-    }
-
+    expect(allProjects.length).to.eq(0);
   });
-
-  it("should decode domain directory to IProjectMeta", async () => {
-    const projectMeta = await FileHelper.decodeDomainDirectory("test_github_at_22");
-
-    expect(projectMeta.host).to.eq("test.github.at");
-    expect(projectMeta.port).to.eq(22);
-  });
-  */
 });
