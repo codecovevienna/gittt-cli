@@ -8,6 +8,8 @@
     "coverage",
     "doc",
     "dist",
+    "interfaces",
+    "types",
     "**/*test.ts"
   ],
   "reporter": [
