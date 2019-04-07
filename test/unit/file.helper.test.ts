@@ -593,7 +593,7 @@ describe("FileHelper", () => {
       .onCall(0).returns([
         "mock_project_1",
         "mock_project_2",
-      ])
+      ]);
     const readJsonSpy: SinonInspectable = sinon.stub()
       .onCall(0).resolves({
         meta: {
@@ -610,7 +610,7 @@ describe("FileHelper", () => {
         },
         name: "mock_project_2",
         records: [],
-      } as IProject)
+      } as IProject);
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         pathExists: sinon.stub().resolves(true),

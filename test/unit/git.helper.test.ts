@@ -3,14 +3,14 @@ import path from "path";
 import proxyquire from "proxyquire";
 import { StatusResult } from "simple-git/promise";
 import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
-import sinon from "sinon";
+import sinon, { SinonInspectable } from "sinon";
 import { FileHelper, GitHelper, LogHelper } from "../../helper/index";
 import { IOverrideAnswers } from "../../interfaces";
 
-const sandboxDir = "./sandbox";
-const configDir = path.join(sandboxDir, ".git-time-tracker");
-const configFileName = "config.json";
-const projectsDir = "projects";
+const sandboxDir: string = "./sandbox";
+const configDir: string = path.join(sandboxDir, ".git-time-tracker");
+const configFileName: string = "config.json";
+const projectsDir: string = "projects";
 
 LogHelper.silence = true;
 
@@ -23,24 +23,24 @@ describe("GitHelper", () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const proxy = proxyquire("../../helper/git", {
-      "simple-git/promise": () => {
+    const proxy: any = proxyquire("../../helper/git", {
+      "simple-git/promise": (): any => {
         return {};
       },
     });
 
-    const gitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
+    const gitHelper: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
     // type of proxy object is not GitHelper, so just check for definition
-    assert.isDefined(gitHelper)
+    assert.isDefined(gitHelper);
   });
 
   it("should log changes", async () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
+    const proxy: any = proxyquire("../../helper/git", {
+      "simple-git/promise": (): any => {
         return {
           log: (): ListLogSummary => {
             return {
@@ -55,7 +55,6 @@ describe("GitHelper", () => {
                   refs: "mockedRefs",
                 },
               ],
-              total: 0,
               latest: {
                 author_email: "mock@mail.com",
                 author_name: "mockAuthor",
@@ -65,6 +64,7 @@ describe("GitHelper", () => {
                 message: "mockMessage",
                 refs: "mockedRefs",
               },
+              total: 0,
             };
           },
         };
@@ -82,10 +82,10 @@ describe("GitHelper", () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const pullSpy = sinon.spy();
-    const pushSpy = sinon.spy();
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
+    const pullSpy: SinonInspectable = sinon.spy();
+    const pushSpy: SinonInspectable = sinon.spy();
+    const proxy: any = proxyquire("../../helper/git", {
+      "simple-git/promise": (): any => {
         return {
           pull: pullSpy,
           push: pushSpy,
@@ -105,15 +105,15 @@ describe("GitHelper", () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const pullSpy = sinon.spy();
-    const addSpy = sinon.spy();
-    const commitSpy = sinon.spy();
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
+    const pullSpy: SinonInspectable = sinon.spy();
+    const addSpy: SinonInspectable = sinon.spy();
+    const commitSpy: SinonInspectable = sinon.spy();
+    const proxy: any = proxyquire("../../helper/git", {
+      "simple-git/promise": (): any => {
         return {
-          pull: pullSpy,
           add: addSpy,
           commit: commitSpy,
+          pull: pullSpy,
         };
       },
     });
@@ -131,15 +131,15 @@ describe("GitHelper", () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const pullSpy = sinon.spy();
-    const addSpy = sinon.spy();
-    const commitSpy = sinon.spy();
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
+    const pullSpy: SinonInspectable = sinon.spy();
+    const addSpy: SinonInspectable = sinon.spy();
+    const commitSpy: SinonInspectable = sinon.spy();
+    const proxy: any = proxyquire("../../helper/git", {
+      "simple-git/promise": (): any => {
         return {
-          pull: pullSpy,
           add: addSpy,
           commit: commitSpy,
+          pull: pullSpy,
         };
       },
     });
@@ -157,14 +157,14 @@ describe("GitHelper", () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const initSpy = sinon.spy();
-    const addRemoteSpy = sinon.spy();
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
+    const initSpy: SinonInspectable = sinon.spy();
+    const addRemoteSpy: SinonInspectable = sinon.spy();
+    const proxy: any = proxyquire("../../helper/git", {
+      "simple-git/promise": (): any => {
         return {
+          addRemote: addRemoteSpy,
           checkIsRepo: sinon.stub().resolves(false),
           init: initSpy,
-          addRemote: addRemoteSpy,
         };
       },
     });
@@ -181,24 +181,24 @@ describe("GitHelper", () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const invalidateCacheSpy = sinon.spy(mockedFileHelper, "invalidateCache")
+    const invalidateCacheSpy: SinonInspectable = sinon.spy(mockedFileHelper, "invalidateCache");
 
-    const resetSpy = sinon.spy();
-    const pullSpy = sinon.stub()
+    const resetSpy: SinonInspectable = sinon.spy();
+    const pullSpy: SinonInspectable = sinon.stub()
       .onCall(0).rejects(new Error("Mocked error"))
       .onCall(1).resolves();
 
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
-        return {
-          reset: resetSpy,
-          pull: pullSpy,
-        };
-      },
+    const proxy: any = proxyquire("../../helper/git", {
       "inquirer": {
         prompt: sinon.stub().resolves({
           override: 0,
         } as IOverrideAnswers),
+      },
+      "simple-git/promise": (): any => {
+        return {
+          pull: pullSpy,
+          reset: resetSpy,
+        };
       },
     });
 
@@ -209,32 +209,32 @@ describe("GitHelper", () => {
     assert.isTrue(resetSpy.calledWith(["--hard", "origin/master"]));
     expect(pullSpy.callCount).to.eq(2);
 
-    assert.isTrue(invalidateCacheSpy.calledOnce)
+    assert.isTrue(invalidateCacheSpy.calledOnce);
   });
 
   it("should pull repo [reset: default, override: 1]", async () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const invalidateCacheSpy = sinon.spy(mockedFileHelper, "invalidateCache")
+    const invalidateCacheSpy: SinonInspectable = sinon.spy(mockedFileHelper, "invalidateCache");
 
-    const addSpy = sinon.spy();
-    const commitSpy = sinon.spy();
-    const rawSpy = sinon.spy();
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
-        return {
-          add: addSpy,
-          commit: commitSpy,
-          raw: rawSpy,
-          pull: sinon.stub().rejects(new Error("Mocked error")),
-          status: sinon.stub().resolves({} as StatusResult),
-        };
-      },
+    const addSpy: SinonInspectable = sinon.spy();
+    const commitSpy: SinonInspectable = sinon.spy();
+    const rawSpy: SinonInspectable = sinon.spy();
+    const proxy: any = proxyquire("../../helper/git", {
       "inquirer": {
         prompt: sinon.stub().resolves({
           override: 1,
         } as IOverrideAnswers),
+      },
+      "simple-git/promise": (): any => {
+        return {
+          add: addSpy,
+          commit: commitSpy,
+          pull: sinon.stub().rejects(new Error("Mocked error")),
+          raw: rawSpy,
+          status: sinon.stub().resolves({} as StatusResult),
+        };
       },
     });
 
@@ -246,28 +246,28 @@ describe("GitHelper", () => {
     assert.isTrue(commitSpy.calledWith("Setup commit"));
     assert.isTrue(rawSpy.calledWith(["push", "origin", "master", "--force"]));
 
-    assert.isTrue(invalidateCacheSpy.calledOnce)
+    assert.isTrue(invalidateCacheSpy.calledOnce);
   });
 
   it("should pull repo [reset: true, override: 1]", async () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const invalidateCacheSpy = sinon.spy(mockedFileHelper, "invalidateCache")
+    const invalidateCacheSpy: SinonInspectable = sinon.spy(mockedFileHelper, "invalidateCache");
 
-    const resetSpy = sinon.spy();
-    const pullSpy = sinon.spy();
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
-        return {
-          reset: resetSpy,
-          pull: pullSpy,
-        };
-      },
+    const resetSpy: SinonInspectable = sinon.spy();
+    const pullSpy: SinonInspectable = sinon.spy();
+    const proxy: any = proxyquire("../../helper/git", {
       "inquirer": {
         prompt: sinon.stub().resolves({
           override: 1,
         } as IOverrideAnswers),
+      },
+      "simple-git/promise": (): any => {
+        return {
+          pull: pullSpy,
+          reset: resetSpy,
+        };
       },
     });
 
@@ -279,30 +279,30 @@ describe("GitHelper", () => {
     assert.isTrue(pullSpy.calledWith("origin", "master"));
 
     // Nothing updated, so no need to invalidate config cache
-    assert.isTrue(invalidateCacheSpy.notCalled)
+    assert.isTrue(invalidateCacheSpy.notCalled);
   });
 
   it("should pull repo [no master branch]", async () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const invalidateCacheSpy = sinon.spy(mockedFileHelper, "invalidateCache")
+    const invalidateCacheSpy: SinonInspectable = sinon.spy(mockedFileHelper, "invalidateCache");
 
-    sinon.stub(mockedFileHelper, "initReadme").resolves()
+    sinon.stub(mockedFileHelper, "initReadme").resolves();
 
-    const addSpy = sinon.spy();
-    const commitSpy = sinon.spy();
-    const rawSpy = sinon.spy();
-    const pullSpy = sinon.stub()
+    const addSpy: SinonInspectable = sinon.spy();
+    const commitSpy: SinonInspectable = sinon.spy();
+    const rawSpy: SinonInspectable = sinon.spy();
+    const pullSpy: SinonInspectable = sinon.stub()
       .onCall(0).rejects(new Error("fatal: couldn't find remote ref master\n"))
       .onCall(1).resolves();
 
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
+    const proxy: any = proxyquire("../../helper/git", {
+      "simple-git/promise": (): any => {
         return {
-          pull: pullSpy,
           add: addSpy,
           commit: commitSpy,
+          pull: pullSpy,
           raw: rawSpy,
           status: sinon.stub().resolves({} as StatusResult),
         };
@@ -318,21 +318,21 @@ describe("GitHelper", () => {
     assert.isTrue(commitSpy.calledWith("Setup commit"));
     assert.isTrue(rawSpy.calledWith(["push", "origin", "master", "--force"]));
 
-    assert.isTrue(invalidateCacheSpy.calledOnce)
+    assert.isTrue(invalidateCacheSpy.calledOnce);
   });
 
   it("should fail to pull repo [error in add]", async () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    sinon.stub(mockedFileHelper, "initReadme").resolves()
+    sinon.stub(mockedFileHelper, "initReadme").resolves();
 
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
+    const proxy: any = proxyquire("../../helper/git", {
+      "simple-git/promise": (): any => {
         return {
           // rejecting pull is the fastest way to get to the error
-          pull: sinon.stub().rejects(new Error("fatal: couldn't find remote ref master\n")),
           add: sinon.stub().rejects(new Error("Mocked error")),
+          pull: sinon.stub().rejects(new Error("fatal: couldn't find remote ref master\n")),
           status: sinon.stub().resolves({} as StatusResult),
         };
       },
@@ -351,17 +351,17 @@ describe("GitHelper", () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const exitStub = sinon.stub(process, "exit");
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
-        return {
-          pull: sinon.stub().rejects(new Error("Mocked error")),
-        };
-      },
+    const exitStub: SinonInspectable = sinon.stub(process, "exit");
+    const proxy: any = proxyquire("../../helper/git", {
       "inquirer": {
         prompt: sinon.stub().resolves({
           override: 2,
         } as IOverrideAnswers),
+      },
+      "simple-git/promise": (): any => {
+        return {
+          pull: sinon.stub().rejects(new Error("Mocked error")),
+        };
       },
     });
 
@@ -370,22 +370,23 @@ describe("GitHelper", () => {
     await instance.pullRepo();
 
     assert.isTrue(exitStub.called);
+    exitStub.restore();
   });
 
   it("should fail to pull repo [unknown override option]", async () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
 
-    const proxy = proxyquire.noCallThru().load("../../helper/git", {
-      "simple-git/promise": () => {
-        return {
-          pull: sinon.stub().rejects(new Error("Mocked error")),
-        };
-      },
+    const proxy: any = proxyquire("../../helper/git", {
       "inquirer": {
         prompt: sinon.stub().resolves({
           override: 1337,
         } as IOverrideAnswers),
+      },
+      "simple-git/promise": (): any => {
+        return {
+          pull: sinon.stub().rejects(new Error("Mocked error")),
+        };
       },
     });
 

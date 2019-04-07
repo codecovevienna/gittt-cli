@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "./node_modules/.bin/ts-node index.ts",
-    "test": "./node_modules/.bin/mocha --require ts-node/register --require source-map-support/register --recursive --exit test ./test/**/*.test.ts",
+    "test": "./node_modules/.bin/mocha test ./test/**/*.test.ts",
     "test:ci": "./node_modules/.bin/nyc npm run test",
     "lint": "./node_modules/.bin/tslint --fix --project ./tsconfig.json"
   },

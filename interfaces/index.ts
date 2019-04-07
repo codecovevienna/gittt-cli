@@ -5,7 +5,7 @@ export * from "./answers";
 export interface IRecord {
   created: number;
   amount: number;
-  message: string;
+  message?: string;
   type: RECORD_TYPES;
 }
 

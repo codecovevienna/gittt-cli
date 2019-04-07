@@ -52,7 +52,7 @@ export class ProjectHelper {
     this.fileHelper = fileHelper;
   }
 
-  public initProject = async (/*projectName: string, projectMeta: IProjectMeta*/): Promise<IProject> => {
+  public initProject = async (): Promise<IProject> => {
     try {
       const project: IProject = this.getProjectFromGit();
 
@@ -106,6 +106,7 @@ export class ProjectHelper {
     }
   }
 
+  // TODO projectName optional? find it by .git folder
   public getTotalHours = async (projectName: string): Promise<number> => {
     const project: IProject | undefined = await this.fileHelper.findProjectByName(projectName);
     if (!project) {
