@@ -12,6 +12,7 @@ const configDir: string = path.join(sandboxDir, ".git-time-tracker");
 const configFileName: string = "config.json";
 const projectsDir: string = "projects";
 
+LogHelper.DEBUG = false;
 LogHelper.silence = true;
 
 describe("GitHelper", () => {
