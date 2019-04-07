@@ -284,7 +284,7 @@ describe("ProjectHelper", () => {
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -305,11 +305,13 @@ describe("ProjectHelper", () => {
     assert.isTrue(findProjectByNameStub.calledOnce);
     assert.isTrue(initProjectStub.calledOnce);
     assert.isTrue(saveProjectObjectStub.calledOnce);
+    assert.isTrue(getProjectFromGitStub.calledTwice);
 
     findProjectByNameStub.restore();
     initProjectStub.restore();
     commitChangesStub.restore();
     saveProjectObjectStub.restore();
+    getProjectFromGitStub.restore();
   });
 
   it("should fail to add record to non existing project", async () => {
@@ -323,6 +325,15 @@ describe("ProjectHelper", () => {
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
+    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "test_mocked",
+      records: [],
+    } as IProject);
+
     await instance.addRecordToProject({
       amount: 1337,
       created: 69,
@@ -334,8 +345,10 @@ describe("ProjectHelper", () => {
 
     assert.isTrue(findProjectByNameStub.calledOnce);
     assert.isTrue(initProjectStub.calledOnce);
+    assert.isTrue(getProjectFromGitStub.calledTwice);
 
     findProjectByNameStub.restore();
+    getProjectFromGitStub.restore();
     initProjectStub.restore();
     exitStub.restore();
   });
