@@ -10,6 +10,7 @@
     "dist",
     "interfaces",
     "types",
+    "index.ts",
     "**/*test.ts"
   ],
   "reporter": [
