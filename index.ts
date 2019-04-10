@@ -213,11 +213,12 @@ const APP_VERSION: string = packageJson.version;
       .command("stop")
       .description("Stop the timer and commit to a project")
       .option("-k, --kill", "Kill the timer for a project")
+      .option("-m, --message <message>", "Commit message for the project")
       .action(async (cmd: any): Promise<void> => {
         if (cmd.kill) {
           await timerHelper.killTimer();
         } else {
-          await timerHelper.stopTimer();
+          await timerHelper.stopTimer(cmd.message);
         }
       });
 

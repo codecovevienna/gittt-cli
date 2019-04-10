@@ -2,6 +2,7 @@ import inquirer from "inquirer";
 import { IGitCommitMessageAnswers } from "../interfaces";
 import { FileHelper, LogHelper } from "./index";
 import { ProjectHelper } from "./project";
+import { isString } from "util";
 
 export class TimerHelper {
   private fileHelper: FileHelper;
@@ -44,14 +45,16 @@ export class TimerHelper {
     }
   }
 
-  public stopTimer = async (): Promise<void> => {
+  public stopTimer = async (gitCommitMessage: string): Promise<void> => {
     const now = Date.now();
     if (await this.isTimerRunning(now)) {
       const timer = await this.fileHelper.getTimerObject();
       const diff = now - timer.start;
 
-      //ask for message
-      const gitCommitMessage: string = await this.askGitCommitMessage();
+      if(!isString(gitCommitMessage)){
+        //ask for message
+        gitCommitMessage = await this.askGitCommitMessage();
+      }
 
       await this.projectHelper.addRecordToProject({
         amount: this.hh(diff),
