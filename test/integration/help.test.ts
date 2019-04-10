@@ -2,7 +2,7 @@ import proxyquire from "proxyquire"
 import sinon from "sinon"
 import commander from "commander";
 import { assert } from "chai";
-import App from "../../app";
+import { App } from "../../app";
 
 describe("Help test", () => {
   it("should show help", async () => {
@@ -25,7 +25,7 @@ describe("Help test", () => {
       },
       commander: mockedCommander
     })
-    const mockedApp: App = new proxy.default();
+    const mockedApp: App = new proxy.App();
     await mockedApp.setup()
 
     process.argv = ["mocked", "unknownOption"];

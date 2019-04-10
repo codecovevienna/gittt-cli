@@ -11,7 +11,7 @@ const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
 
-export default class App {
+export class App {
   private homeDir: string;
   private configDir: string;
   private fileHelper: FileHelper;
