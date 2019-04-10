@@ -8,8 +8,8 @@ export class GitHelper {
   private git: SimpleGit;
   private fileHelper: FileHelper;
   constructor(configDir: string, fileHelper: FileHelper) {
-     this.git = simplegit(configDir);
-     this.fileHelper = fileHelper;
+    this.git = simplegit(configDir);
+    this.fileHelper = fileHelper;
   }
 
   public logChanges = async (): Promise<ReadonlyArray<DefaultLogFields>> => {
@@ -33,7 +33,7 @@ export class GitHelper {
   }
 
   public initRepo = async (gitUrl: string): Promise<void> => {
-    const repoInitialized = await this.git.checkIsRepo();
+    const repoInitialized: boolean = await this.git.checkIsRepo();
     if (!repoInitialized) {
       LogHelper.debug("Initializing repo");
       await this.git.init();
@@ -47,24 +47,31 @@ export class GitHelper {
         LogHelper.debug("Resetting to origin/master");
         await this.git.reset(["--hard", "origin/master"]);
       }
-      console.log(this.git)
       await this.git.pull("origin", "master");
       LogHelper.info("Pulled repo successfully");
     } catch (err) {
-      const overrideLocalAnswers: IOverrideAnswers = await inquirer.prompt([
-        {
-          choices: [
-            {name: "Override local config file", value: 0},
-            {name: "Override remote config file", value: 1},
-            {name: "Exit", value: 2},
-          ],
-          message: `Remote repo is not empty, override local changes?`,
-          name: "override",
-          type: "list",
-        },
-      ]) as IOverrideAnswers;
 
-      const { override } = overrideLocalAnswers;
+      let override: number = 255;
+
+      if (err.message === "fatal: couldn't find remote ref master\n") {
+        await this.fileHelper.initReadme();
+        override = 1;
+      } else {
+        const overrideLocalAnswers: IOverrideAnswers = await inquirer.prompt([
+          {
+            choices: [
+              { name: "Override local config file", value: 0 },
+              { name: "Override remote config file", value: 1 },
+              { name: "Exit", value: 2 },
+            ],
+            message: `Remote repo is not empty, override local changes?`,
+            name: "override",
+            type: "list",
+          },
+        ]) as IOverrideAnswers;
+
+        override = overrideLocalAnswers.override;
+      }
 
       switch (override) {
         case 0:
@@ -80,18 +87,19 @@ export class GitHelper {
             await this.git.raw(["push", "origin", "master", "--force"]);
             LogHelper.info("Pushed to repo");
             const status: StatusResult = await this.git.status();
-            console.log(status);
+            LogHelper.debug(status);
           } catch (err) {
-            LogHelper.warn("Unable to fetch repo");
+            LogHelper.debug("Unable to fetch repo", err);
+            throw new Error("Initialize repo failed");
           }
           break;
         case 2:
-        // TODO helper?
-          // exit("Bye!", 0);
+          // TODO helper?
+          process.exit(0);
           break;
 
         default:
-          break;
+          throw new Error(`Unknown option ${override}`);
       }
 
       // Force fileHelper to load config file from disk

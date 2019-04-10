@@ -1,28 +1,29 @@
-export * from "./ansers";
+import { RECORD_TYPES } from "../types";
 
-export interface IHour {
+export * from "./answers";
+
+export interface IRecord {
   created: number;
-  count: number;
-  message: string;
+  amount: number;
+  message?: string;
+  type: RECORD_TYPES;
 }
 
 export interface IProject {
-  guid: string;
+  meta: IProjectMeta;
   name: string;
-  hours: IHour[];
+  records: IRecord[];
 }
 
-export interface IProjectLink {
-  file: string;
-  guid: string;
-  name: string;
-  created: number;
-}
-
-export interface  IConfigFile {
+export interface IConfigFile {
   created: number;
   gitRepo: string;
-  projects: IProjectLink[];
+}
+
+export interface IProjectMeta {
+  host: string;
+  port: number;
+  raw?: string;
 }
 
 export interface ITimerFile {

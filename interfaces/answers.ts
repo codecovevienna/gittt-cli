@@ -14,3 +14,7 @@ export interface IProjectNameAnswers {
 export interface IGitRepoAnswers {
   gitRepo: string;
 }
+
+export interface IInitProjectAnswers {
+  confirm: boolean;
+}
