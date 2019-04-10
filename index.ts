@@ -216,10 +216,8 @@ const APP_VERSION: string = packageJson.version;
       .action(async (cmd: any): Promise<void> => {
         if (cmd.kill) {
           await timerHelper.killTimer();
-          LogHelper.info("Killing timer ...");
         } else {
           await timerHelper.stopTimer();
-          LogHelper.info("Stopping timer ...");
         }
       });
 

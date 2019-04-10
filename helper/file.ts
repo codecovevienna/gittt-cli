@@ -88,7 +88,7 @@ export class FileHelper {
     try {
       return fs.existsSync(this.timerFilePath);
     } catch (err) {
-      LogHelper.error("Error checking config file existence");
+      LogHelper.error("Error checking timer file existence");
       return false;
     }
   }
