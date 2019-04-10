@@ -56,7 +56,7 @@ export class FileHelper {
       };
       await fs.writeJson(this.timerFilePath, initial);
     } catch (err) {
-      LogHelper.error("Error initializing project file");
+      LogHelper.error("Error initializing timer file");
     }
   }
 
@@ -112,7 +112,13 @@ export class FileHelper {
   }
 
   public getTimerObject = async (): Promise<ITimerFile> => {
-    return fs.readJson(this.timerFilePath);
+    try {
+      const timerObj: ITimerFile = await fs.readJson(this.timerFilePath);
+      return timerObj;
+    } catch(err){
+      LogHelper.debug("Error reading timer object");
+      throw new Error("Error getting timer object");
+    }
   }
 
   public initReadme = async (): Promise<void> => {

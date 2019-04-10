@@ -17,7 +17,7 @@ export class TimerHelper {
 
     const now = Date.now();
 
-    if (await !this.fileHelper.timerFileExists()) {
+    if (!this.fileHelper.timerFileExists()) {
 
       // file does not exist just init with start time now
 
@@ -45,7 +45,7 @@ export class TimerHelper {
     }
   }
 
-  public stopTimer = async (gitCommitMessage: string): Promise<void> => {
+  public stopTimer = async (gitCommitMessage?: string): Promise<void> => {
     const now = Date.now();
     if (await this.isTimerRunning(now)) {
       const timer = await this.fileHelper.getTimerObject();
@@ -53,7 +53,14 @@ export class TimerHelper {
 
       if(!isString(gitCommitMessage)){
         //ask for message
-        gitCommitMessage = await this.askGitCommitMessage();
+        const gitCommitMessageAnswer: IGitCommitMessageAnswers = await inquirer.prompt([
+          {
+            message: "Git Commit Message:",
+            name: "gitCommitMessage",
+            type: "input",
+          },
+        ]);
+        gitCommitMessage = gitCommitMessageAnswer.gitCommitMessage;
       }
 
       await this.projectHelper.addRecordToProject({
@@ -83,7 +90,7 @@ export class TimerHelper {
     }
   }
 
-  private isTimerRunning = async (now: number): Promise<boolean> => {
+  public isTimerRunning = async (now: number): Promise<boolean> => {
     if (this.fileHelper.timerFileExists()) {
       const timer = await this.fileHelper.getTimerObject();
       if ((timer.start > 0 && timer.start < now && timer.stop === 0))
@@ -116,19 +123,5 @@ export class TimerHelper {
   private hh = (msec_num: number): number => {
     return msec_num / 360000;
   }
-
-  private askGitCommitMessage = async () : Promise<string> => {
-    const gitCommitMessageAnswer: IGitCommitMessageAnswers = await inquirer.prompt([
-      {
-        message: "Git Commit Message:",
-        name: "gitCommitMessage",
-        type: "input",
-      },
-    ]);
-
-    return gitCommitMessageAnswer.gitCommitMessage;
-  }
-
-  // private readTimerFile = async(): Promise<
 
 }
