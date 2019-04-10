@@ -1,11 +1,15 @@
 import inquirer from "inquirer";
-import { ITimerFile } from "../interfaces";
+import { IGitCommitMessageAnswers } from "../interfaces";
 import { FileHelper, LogHelper } from "./index";
+import { ProjectHelper } from "./project";
 
 export class TimerHelper {
   private fileHelper: FileHelper;
-  constructor(fileHelper: FileHelper) {
+  private projectHelper : ProjectHelper;
+
+  constructor(fileHelper: FileHelper, projectHelper: ProjectHelper) {
     this.fileHelper = fileHelper;
+    this.projectHelper = projectHelper;
   }
 
   public startTimer = async (): Promise<void> => {
@@ -46,10 +50,17 @@ export class TimerHelper {
       const timer = await this.fileHelper.getTimerObject();
       const diff = now - timer.start;
 
+      //ask for message
+      const gitCommitMessage: string = await this.askGitCommitMessage();
+
+      await this.projectHelper.addRecordToProject({
+        amount: this.hh(diff),
+        created: now,
+        message: gitCommitMessage,
+        type: "Time",
+      });
+
       timer.stop = now;
-
-      //TODO commit something
-
       await this.fileHelper.saveTimerObject(timer);
 
       //TODO change representation of time in hh:mm:ss
@@ -97,6 +108,22 @@ export class TimerHelper {
     if (seconds < 10) { str_seconds = "0" + seconds; }
 
     return str_hours + ':' + str_minutes + ':' + str_seconds;
+  }
+
+  private hh = (msec_num: number): number => {
+    return msec_num / 360000;
+  }
+
+  private askGitCommitMessage = async () : Promise<string> => {
+    const gitCommitMessageAnswer: IGitCommitMessageAnswers = await inquirer.prompt([
+      {
+        message: "Git Commit Message:",
+        name: "gitCommitMessage",
+        type: "input",
+      },
+    ]);
+
+    return gitCommitMessageAnswer.gitCommitMessage;
   }
 
   // private readTimerFile = async(): Promise<

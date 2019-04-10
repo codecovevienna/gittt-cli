@@ -15,6 +15,10 @@ export interface IGitRepoAnswers {
   gitRepo: string;
 }
 
+export interface IGitCommitMessageAnswers {
+  gitCommitMessage: string;
+}
+
 export interface IInitProjectAnswers {
   confirm: boolean;
 }

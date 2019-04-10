@@ -244,8 +244,7 @@ const APP_VERSION: string = packageJson.version;
   const homeDir = getHomeDir();
   const configDir = path.join(homeDir, `.${APP_NAME}`);
   const fileHelper: FileHelper = new FileHelper(configDir, "config.json", "timer.json", "projects");
-  let gitHelper: GitHelper;
-  const timerHelper: TimerHelper = new TimerHelper(fileHelper);
+  let gitHelper: GitHelper; 
 
   if (!(await fileHelper.configDirExists()) || !isConfigFileValid()) {
     const initAnswers: IInitAnswers = await inquirer.prompt([
@@ -266,6 +265,7 @@ const APP_VERSION: string = packageJson.version;
 
   gitHelper = new GitHelper(configDir, fileHelper);
   const projectHelper: ProjectHelper = new ProjectHelper(gitHelper, fileHelper);
+  const timerHelper: TimerHelper = new TimerHelper(fileHelper, projectHelper);
 
   initCommander();
 
