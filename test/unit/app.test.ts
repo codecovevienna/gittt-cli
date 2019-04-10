@@ -336,4 +336,93 @@ describe("App", () => {
     assert.isTrue(exitStub.calledWith(1))
     exitStub.restore();
   })
+
+  it("should initialize config directory from scratch", async () => {
+    const initRepoStub: SinonInspectable = sinon.stub().resolves();
+    const pullRepoStub: SinonInspectable = sinon.stub().resolves();
+    const createDirStub: SinonInspectable = sinon.stub().resolves();
+    const initConfigFileStub: SinonInspectable = sinon.stub().resolves();
+    const commitChangesStub: SinonInspectable = sinon.stub().resolves();
+    const pushChangesStub: SinonInspectable = sinon.stub().resolves();
+    const proxy = proxyquire("../../app", {
+      "./helper": {
+        FileHelper: function FileHelper() {
+          return {
+            // TODO remove this hack to get over setup()
+            configDirExists: sinon.stub().onCall(0)
+              .resolves(true)
+              .resolves(false),
+            createConfigDir: createDirStub,
+            initConfigFile: initConfigFileStub,
+          }
+        },
+        GitHelper: function GitHelper() {
+          return {
+            initRepo: initRepoStub,
+            pullRepo: pullRepoStub,
+            commitChanges: commitChangesStub,
+            pushChanges: pushChangesStub,
+          }
+        },
+        ProjectHelper: function ProjectHelper() {
+          return {}
+        },
+        LogHelper: LogHelper
+      },
+    })
+
+    const app: App = new proxy.App();
+
+    sinon.stub(app, "isConfigFileValid").resolves(false)
+    sinon.stub(app, "askGitUrl").resolves("ssh://git@mocked.git.com/mock/test.git")
+
+    // Has to be called to have all helper instantiated
+    await app.setup()
+    await app.initConfigDir()
+
+    assert.isTrue(createDirStub.calledOnce)
+    assert.isTrue(initRepoStub.calledOnce)
+    assert.isTrue(pullRepoStub.calledOnce)
+    assert.isTrue(initConfigFileStub.calledOnce)
+    assert.isTrue(commitChangesStub.calledOnce)
+    assert.isTrue(pushChangesStub.calledOnce)
+  })
+
+  it("should initialize config directory and pull", async () => {
+    const pullStub: SinonInspectable = sinon.stub().resolves();
+    const createDirStub: SinonInspectable = sinon.stub().resolves();
+    const proxy = proxyquire("../../app", {
+      "./helper": {
+        FileHelper: function FileHelper() {
+          return {
+            // TODO remove this hack to get over setup()
+            configDirExists: sinon.stub().onCall(0)
+              .resolves(true)
+              .resolves(false),
+            createConfigDir: createDirStub
+          }
+        },
+        GitHelper: function GitHelper() {
+          return {
+            pullRepo: pullStub
+          }
+        },
+        ProjectHelper: function ProjectHelper() {
+          return {}
+        },
+        LogHelper: LogHelper
+      },
+    })
+
+    const app: App = new proxy.App();
+
+    sinon.stub(app, "isConfigFileValid").resolves(true)
+
+    // Has to be called to have all helper instantiated
+    await app.setup()
+    await app.initConfigDir()
+
+    assert.isTrue(createDirStub.calledOnce)
+    assert.isTrue(pullStub.calledOnce)
+  })
 });

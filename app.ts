@@ -53,6 +53,7 @@ export class App {
     this.configDir = path.join(this.homeDir, `.${APP_NAME}`);
     this.fileHelper = new FileHelper(this.configDir, "config.json", "projects");
 
+    // TODO correct place to ask this?
     if (!(await this.fileHelper.configDirExists()) || !this.isConfigFileValid()) {
       const initAnswers: IInitAnswers = await inquirer.prompt([
         {
