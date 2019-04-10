@@ -206,8 +206,7 @@ const APP_VERSION: string = packageJson.version;
       .command("start")
       .description("Start the timer")
       .action(async () => {
-        await TimerHelper.startTimer();
-        LogHelper.info("Started timer ...");
+        await timerHelper.startTimer();
       });
 
     commander
@@ -216,10 +215,10 @@ const APP_VERSION: string = packageJson.version;
       .option("-k, --kill", "Kill the timer for a project")
       .action(async (cmd: any): Promise<void> => {
         if (cmd.kill) {
-          await TimerHelper.killTimer();
+          await timerHelper.killTimer();
           LogHelper.info("Killing timer ...");
         } else {
-          await TimerHelper.stopTimer();
+          await timerHelper.stopTimer();
           LogHelper.info("Stopping timer ...");
         }
       });
@@ -248,6 +247,7 @@ const APP_VERSION: string = packageJson.version;
   const configDir = path.join(homeDir, `.${APP_NAME}`);
   const fileHelper: FileHelper = new FileHelper(configDir, "config.json", "timer.json", "projects");
   let gitHelper: GitHelper;
+  const timerHelper: TimerHelper = new TimerHelper(fileHelper);
 
   if (!(await fileHelper.configDirExists()) || !isConfigFileValid()) {
     const initAnswers: IInitAnswers = await inquirer.prompt([

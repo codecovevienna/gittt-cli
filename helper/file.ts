@@ -48,7 +48,7 @@ export class FileHelper {
     }
   }
 
-  public initTimerFile = async (start: Date): Promise<void> => {
+  public initTimerFile = async (): Promise<void> => {
     try {
       const initial: ITimerFile = {
         start: 0,
@@ -111,8 +111,8 @@ export class FileHelper {
     this.configObject = undefined;
   }
 
-  public getTimerObject = (): ITimerFile => {
-    return fs.readJSONSync(this.timerFilePath);
+  public getTimerObject = async (): Promise<ITimerFile> => {
+    return fs.readJson(this.timerFilePath);
   }
 
   public initReadme = async (): Promise<void> => {
@@ -165,11 +165,11 @@ export class FileHelper {
 
   public saveTimerObject = async (timer: ITimerFile): Promise<boolean> => {
     try {
-      fs.writeJSONSync(this.configFilePath, timer);
+      await fs.writeJson(this.timerFilePath, timer);
       return true;
     } catch (err) {
-      LogHelper.error("Error writing config file");
-      return false;
+      LogHelper.error("Error writing timer file");
+      throw new Error("Error writing timer file");
     }
   }
 
