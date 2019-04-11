@@ -23,7 +23,14 @@
     ],
     "await-promise": true,
     "no-unused-expression": true,
-    "import-spacing": true
+    "import-spacing": true,
+    "no-shadowed-variable": [
+      true,
+      {
+        // Needed for mocked helpers
+        "function": false
+      }
+    ]
   },
   "rulesDirectory": []
 }

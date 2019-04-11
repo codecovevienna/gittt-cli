@@ -56,7 +56,7 @@ describe("ProjectHelper", () => {
     expect(project.meta.raw).to.eq("ssh://git@github.com:443/mocked.git");
   });
 
-  it("should parse git url [with subdomain]", () => {
+  it("should parse git url [with sub domain]", () => {
     const project: IProject = ProjectHelper.parseProjectNameFromGitUrl("ssh://git@mock.github.com:443/test/mocked.git");
     assert.isArray(project.records);
     expect(project.name).to.eq("test_mocked");

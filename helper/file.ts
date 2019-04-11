@@ -52,11 +52,12 @@ export class FileHelper {
     try {
       const initial: ITimerFile = {
         start: 0,
-        stop: 0
+        stop: 0,
       };
       await fs.writeJson(this.timerFilePath, initial);
     } catch (err) {
-      LogHelper.error("Error initializing timer file");
+      LogHelper.debug("Error initializing timer file", err);
+      throw new Error("Error initializing timer file");
     }
   }
 
@@ -115,8 +116,8 @@ export class FileHelper {
     try {
       const timerObj: ITimerFile = await fs.readJson(this.timerFilePath);
       return timerObj;
-    } catch(err){
-      LogHelper.debug("Error reading timer object");
+    } catch (err) {
+      LogHelper.debug("Error reading timer object", err);
       throw new Error("Error getting timer object");
     }
   }
@@ -169,12 +170,11 @@ export class FileHelper {
 
   }
 
-  public saveTimerObject = async (timer: ITimerFile): Promise<boolean> => {
+  public saveTimerObject = async (timer: ITimerFile): Promise<void> => {
     try {
       await fs.writeJson(this.timerFilePath, timer);
-      return true;
     } catch (err) {
-      LogHelper.error("Error writing timer file");
+      LogHelper.debug("Error writing timer file", err);
       throw new Error("Error writing timer file");
     }
   }

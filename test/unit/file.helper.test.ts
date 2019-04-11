@@ -3,7 +3,7 @@ import path from "path";
 import proxyquire from "proxyquire";
 import sinon, { SinonInspectable } from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
-import { IConfigFile, IProject, IProjectMeta } from "../../interfaces";
+import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
 
 const configDir: string = path.join("mocked", ".git-time-tracker");
 const configFileName: string = "config.json";
@@ -132,6 +132,40 @@ describe("FileHelper", () => {
     assert.isTrue(ensureDirSpy.calledOnce);
   });
 
+  it("should init timer file", async () => {
+    const writeJsonStub: SinonInspectable = sinon.stub().resolves(true);
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    await instance.initTimerFile();
+
+    assert.isTrue(writeJsonStub.calledOnce);
+  });
+
+  it("should fail to init timer file", async () => {
+    const writeJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    try {
+      await instance.initTimerFile();
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(writeJsonStub.calledOnce);
+  });
+
   it("should check existence of config file", async () => {
     const pathExistsSpy: SinonInspectable = sinon.stub().resolves(true);
     const fileProxy: any = proxyquire("../../helper/file", {
@@ -225,6 +259,57 @@ describe("FileHelper", () => {
     }
 
     assert.isTrue(readJsonSpy.calledOnce);
+  });
+
+  it("should check if timer file exists [true]", async () => {
+    const existsSyncStub: SinonInspectable = sinon.stub().returns(true);
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        existsSync: existsSyncStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const exists: boolean = instance.timerFileExists();
+
+    assert.isTrue(exists);
+    assert.isTrue(existsSyncStub.calledOnce);
+  });
+
+  it("should check if timer file exists [false]", async () => {
+    const existsSyncStub: SinonInspectable = sinon.stub().returns(false);
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        existsSync: existsSyncStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const exists: boolean = instance.timerFileExists();
+
+    assert.isFalse(exists);
+    assert.isTrue(existsSyncStub.calledOnce);
+  });
+
+  it("should fail to check if timer file exists", async () => {
+    const existsSyncStub: SinonInspectable = sinon.stub().throws(new Error("Mocked error"));
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        existsSync: existsSyncStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    try {
+      instance.timerFileExists();
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(existsSyncStub.calledOnce);
   });
 
   it("should save project object", async () => {
@@ -326,6 +411,46 @@ describe("FileHelper", () => {
 
     // After invalidating cache the config file has to be read from disk
     assert.isTrue(readJsonSpy.calledOnce);
+  });
+
+  it("should get timer object", async () => {
+    const mockedTimerFile: ITimerFile = {
+      start: 6,
+      stop: 9,
+    };
+
+    const readJsonStub: SinonInspectable = sinon.stub().resolves(mockedTimerFile);
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        readJson: readJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const timerFile: ITimerFile = await instance.getTimerObject();
+
+    expect(timerFile).to.deep.eq(mockedTimerFile);
+    assert.isTrue(readJsonStub.calledOnce);
+  });
+
+  it("should fail to get timer object", async () => {
+    const readJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        readJson: readJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    try {
+      await instance.getTimerObject();
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(readJsonStub.calledOnce);
   });
 
   it("should initialize readme", async () => {
@@ -533,6 +658,46 @@ describe("FileHelper", () => {
 
     assert.isTrue(readdirSyncSpy.calledTwice);
     assert.isTrue(readJsonSpy.calledTwice);
+  });
+
+  it("should save timer object", async () => {
+    const writeJsonStub: SinonInspectable = sinon.stub().resolves();
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    await instance.saveTimerObject({
+      start: 6,
+      stop: 9,
+    });
+
+    assert.isTrue(writeJsonStub.calledOnce);
+  });
+
+  it("should fail to save timer object", async () => {
+    const writeJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    try {
+      await instance.saveTimerObject({
+        start: 6,
+        stop: 9,
+      });
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(writeJsonStub.calledOnce);
   });
 
   it("should get all projects", async () => {

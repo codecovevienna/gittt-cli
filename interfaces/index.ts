@@ -29,5 +29,5 @@ export interface IProjectMeta {
 export interface ITimerFile {
   start: number;
   stop: number;
-  //TODO add projects as structure
+  // TODO add projects as structure
 }
