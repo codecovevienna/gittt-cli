@@ -1,8 +1,8 @@
 
-import { App } from "./app"
+import { App } from "./app";
 
 (async (): Promise<void> => {
   const app: App = new App();
   await app.setup();
-  await app.start();
+  app.start();
 })();

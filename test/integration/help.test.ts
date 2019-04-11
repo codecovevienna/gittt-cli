@@ -1,36 +1,36 @@
-import proxyquire from "proxyquire"
-import sinon from "sinon"
-import commander from "commander";
 import { assert } from "chai";
+import commander, { CommanderStatic } from "commander";
+import proxyquire from "proxyquire";
+import sinon, { SinonInspectable } from "sinon";
 import { App } from "../../app";
 
 describe("Help test", () => {
   it("should show help", async () => {
-    const mockedCommander = commander;
-    const helpStub = sinon.stub(mockedCommander, "help")
+    const mockedCommander: CommanderStatic = commander;
+    const helpStub: SinonInspectable = sinon.stub(mockedCommander, "help");
 
-    const proxy = proxyquire("../../app", {
-      os: {
-        homedir: sinon.stub().returns("/home/test")
-      },
+    const proxy: any = proxyquire("../../app", {
       "./helper": {
-        FileHelper: function FileHelper() {
+        FileHelper: function FileHelper(): any {
           return {
-            configDirExists: sinon.stub().resolves(true)
-          }
+            configDirExists: sinon.stub().resolves(true),
+          };
         },
-        GitHelper: function GitHelper() {
-          return {}
-        }
+        GitHelper: function GitHelper(): any {
+          return {};
+        },
       },
-      commander: mockedCommander
-    })
+      "commander": mockedCommander,
+      "os": {
+        homedir: sinon.stub().returns("/home/test"),
+      },
+    });
     const mockedApp: App = new proxy.App();
-    await mockedApp.setup()
+    await mockedApp.setup();
 
     process.argv = ["mocked", "unknownOption"];
-    await mockedApp.start()
+    mockedApp.start();
 
-    assert.isTrue(helpStub.called)
-  })
-})
+    assert.isTrue(helpStub.called);
+  });
+});

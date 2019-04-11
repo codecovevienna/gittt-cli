@@ -1,18 +1,20 @@
 import fs from "fs-extra";
 import path from "path";
-import { IConfigFile, IProject, IProjectMeta } from "../interfaces";
+import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../interfaces";
 import { LogHelper } from "./";
 
 export class FileHelper {
   private configFilePath: string;
+  private timerFilePath: string;
   private configDir: string;
   private projectDir: string;
   private configObject: IConfigFile | undefined; // Cache
 
-  constructor(configDir: string, configFileName: string, projectDir: string) {
+  constructor(configDir: string, configFileName: string, timerFileName: string, projectDir: string) {
     this.configDir = configDir;
     this.projectDir = path.join(configDir, projectDir);
     this.configFilePath = path.join(configDir, configFileName);
+    this.timerFilePath = path.join(configDir, timerFileName);
   }
 
   public createConfigDir = (): void => {
@@ -46,6 +48,19 @@ export class FileHelper {
     }
   }
 
+  public initTimerFile = async (): Promise<void> => {
+    try {
+      const initial: ITimerFile = {
+        start: 0,
+        stop: 0,
+      };
+      await fs.writeJson(this.timerFilePath, initial);
+    } catch (err) {
+      LogHelper.debug("Error initializing timer file", err);
+      throw new Error("Error initializing timer file");
+    }
+  }
+
   public configDirExists = async (): Promise<boolean> => {
     try {
       return await fs.pathExists(this.configFilePath);
@@ -70,6 +85,15 @@ export class FileHelper {
     }
   }
 
+  public timerFileExists = (): boolean => {
+    try {
+      return fs.existsSync(this.timerFilePath);
+    } catch (err) {
+      LogHelper.error("Error checking timer file existence");
+      return false;
+    }
+  }
+
   // TODO should maybe be private
   public saveProjectObject = async (project: IProject): Promise<void> => {
     try {
@@ -86,6 +110,16 @@ export class FileHelper {
 
   public invalidateCache = (): void => {
     this.configObject = undefined;
+  }
+
+  public getTimerObject = async (): Promise<ITimerFile> => {
+    try {
+      const timerObj: ITimerFile = await fs.readJson(this.timerFilePath);
+      return timerObj;
+    } catch (err) {
+      LogHelper.debug("Error reading timer object", err);
+      throw new Error("Error getting timer object");
+    }
   }
 
   public initReadme = async (): Promise<void> => {
@@ -134,6 +168,15 @@ export class FileHelper {
         throw new Error(`Found more than 1 project named "${projectName}"`);
     }
 
+  }
+
+  public saveTimerObject = async (timer: ITimerFile): Promise<void> => {
+    try {
+      await fs.writeJson(this.timerFilePath, timer);
+    } catch (err) {
+      LogHelper.debug("Error writing timer file", err);
+      throw new Error("Error writing timer file");
+    }
   }
 
   public findAllProjects = async (): Promise<IProject[]> => {

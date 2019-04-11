@@ -9,6 +9,7 @@ import { IProject } from "../../interfaces";
 const sandboxDir: string = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
 const configFileName: string = "config.json";
+const timerFileName: string = "timer.json";
 const projectsDir: string = "projects";
 
 LogHelper.DEBUG = false;
@@ -28,7 +29,7 @@ describe("ProjectHelper", () => {
       },
     });
 
-    mockedFileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    mockedFileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
     mockedGitHelper = new gitProxy.GitHelper(configDir, mockedFileHelper);
   });
 
@@ -55,7 +56,7 @@ describe("ProjectHelper", () => {
     expect(project.meta.raw).to.eq("ssh://git@github.com:443/mocked.git");
   });
 
-  it("should parse git url [with subdomain]", () => {
+  it("should parse git url [with sub domain]", () => {
     const project: IProject = ProjectHelper.parseProjectNameFromGitUrl("ssh://git@mock.github.com:443/test/mocked.git");
     assert.isArray(project.records);
     expect(project.name).to.eq("test_mocked");

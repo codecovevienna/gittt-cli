@@ -1,12 +1,22 @@
 image: node:10.14.1
 
 stages:
+  - lint
   - test
   - build
   
 cache:
   paths:
     - node_modules
+  
+lint:
+  tags:
+    - docker
+    - codecove
+  stage: lint
+  script:
+    - npm install
+    - npm run lint
   
 test:
   tags:

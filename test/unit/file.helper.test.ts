@@ -3,11 +3,12 @@ import path from "path";
 import proxyquire from "proxyquire";
 import sinon, { SinonInspectable } from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
-import { IConfigFile, IProject, IProjectMeta } from "../../interfaces";
+import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
 
 const configDir: string = path.join("mocked", ".git-time-tracker");
 const configFileName: string = "config.json";
 const projectsDir: string = "projects";
+const timerFileName: string = "timer.json";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
@@ -18,7 +19,7 @@ describe("FileHelper", () => {
   });
 
   it("should create instance", async () => {
-    const fileHelper: FileHelper = new FileHelper(configDir, configFileName, projectsDir);
+    const fileHelper: FileHelper = new FileHelper(configDir, configFileName, timerFileName, projectsDir);
     expect(fileHelper).to.be.instanceOf(FileHelper);
   });
 
@@ -30,7 +31,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     instance.createConfigDir();
 
@@ -46,7 +47,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const gitUrl: string = "ssh://git@test.com/test/git-time-tracker.git";
 
@@ -63,7 +64,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const gitUrl: string = "ssh://git@test.com/test/git-time-tracker.git";
 
@@ -86,7 +87,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const project: IProject = {
       meta: {
@@ -111,7 +112,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const project: IProject = {
       meta: {
@@ -131,6 +132,40 @@ describe("FileHelper", () => {
     assert.isTrue(ensureDirSpy.calledOnce);
   });
 
+  it("should init timer file", async () => {
+    const writeJsonStub: SinonInspectable = sinon.stub().resolves(true);
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    await instance.initTimerFile();
+
+    assert.isTrue(writeJsonStub.calledOnce);
+  });
+
+  it("should fail to init timer file", async () => {
+    const writeJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    try {
+      await instance.initTimerFile();
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(writeJsonStub.calledOnce);
+  });
+
   it("should check existence of config file", async () => {
     const pathExistsSpy: SinonInspectable = sinon.stub().resolves(true);
     const fileProxy: any = proxyquire("../../helper/file", {
@@ -139,7 +174,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const exists: boolean = await instance.configDirExists();
 
@@ -155,7 +190,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const exists: boolean = await instance.configDirExists();
 
@@ -176,7 +211,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const config: IConfigFile = await instance.getConfigObject(true);
 
@@ -193,7 +228,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     // Populate cache by initializing the config file
     const mockedConfig: IConfigFile = await instance.initConfigFile("ssh://git@mock.test.com:443/mocked/test.git");
@@ -215,7 +250,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     try {
       await instance.getConfigObject(true);
@@ -226,6 +261,57 @@ describe("FileHelper", () => {
     assert.isTrue(readJsonSpy.calledOnce);
   });
 
+  it("should check if timer file exists [true]", async () => {
+    const existsSyncStub: SinonInspectable = sinon.stub().returns(true);
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        existsSync: existsSyncStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const exists: boolean = instance.timerFileExists();
+
+    assert.isTrue(exists);
+    assert.isTrue(existsSyncStub.calledOnce);
+  });
+
+  it("should check if timer file exists [false]", async () => {
+    const existsSyncStub: SinonInspectable = sinon.stub().returns(false);
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        existsSync: existsSyncStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const exists: boolean = instance.timerFileExists();
+
+    assert.isFalse(exists);
+    assert.isTrue(existsSyncStub.calledOnce);
+  });
+
+  it("should fail to check if timer file exists", async () => {
+    const existsSyncStub: SinonInspectable = sinon.stub().throws(new Error("Mocked error"));
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        existsSync: existsSyncStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    try {
+      instance.timerFileExists();
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(existsSyncStub.calledOnce);
+  });
+
   it("should save project object", async () => {
     const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
@@ -234,7 +320,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const projectMeta: IProjectMeta = {
       host: "github.com",
@@ -267,7 +353,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const projectMeta: IProjectMeta = {
       host: "github.com",
@@ -306,7 +392,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     // Populate cache by initializing the config file
     const mockedConfig: IConfigFile = await instance.initConfigFile("ssh://git@mock.test.com:443/mocked/test.git");
@@ -327,6 +413,46 @@ describe("FileHelper", () => {
     assert.isTrue(readJsonSpy.calledOnce);
   });
 
+  it("should get timer object", async () => {
+    const mockedTimerFile: ITimerFile = {
+      start: 6,
+      stop: 9,
+    };
+
+    const readJsonStub: SinonInspectable = sinon.stub().resolves(mockedTimerFile);
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        readJson: readJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const timerFile: ITimerFile = await instance.getTimerObject();
+
+    expect(timerFile).to.deep.eq(mockedTimerFile);
+    assert.isTrue(readJsonStub.calledOnce);
+  });
+
+  it("should fail to get timer object", async () => {
+    const readJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        readJson: readJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    try {
+      await instance.getTimerObject();
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(readJsonStub.calledOnce);
+  });
+
   it("should initialize readme", async () => {
     const writeFileSpy: SinonInspectable = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
@@ -335,7 +461,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     await instance.initReadme();
 
@@ -350,7 +476,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     try {
       await instance.initReadme();
@@ -407,7 +533,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const foundProject: IProject | undefined = await instance.findProjectByName("mock_project_3");
 
@@ -441,7 +567,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const foundProject: IProject | undefined = await instance.findProjectByName("mock_project_3", {
       host: "domain_one_2",
@@ -479,7 +605,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const foundProject: IProject | undefined = await instance.findProjectByName("mock_project_0");
 
@@ -522,7 +648,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     try {
       await instance.findProjectByName("mock_project_1");
@@ -532,6 +658,46 @@ describe("FileHelper", () => {
 
     assert.isTrue(readdirSyncSpy.calledTwice);
     assert.isTrue(readJsonSpy.calledTwice);
+  });
+
+  it("should save timer object", async () => {
+    const writeJsonStub: SinonInspectable = sinon.stub().resolves();
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    await instance.saveTimerObject({
+      start: 6,
+      stop: 9,
+    });
+
+    assert.isTrue(writeJsonStub.calledOnce);
+  });
+
+  it("should fail to save timer object", async () => {
+    const writeJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    try {
+      await instance.saveTimerObject({
+        start: 6,
+        stop: 9,
+      });
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(writeJsonStub.calledOnce);
   });
 
   it("should get all projects", async () => {
@@ -579,7 +745,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const allProjects: IProject[] = await instance.findAllProjects();
 
@@ -620,7 +786,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const allProjects: IProject[] = await instance.findProjectsForDomain({
       host: "domain.one",
@@ -640,7 +806,7 @@ describe("FileHelper", () => {
       },
     });
 
-    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, projectsDir);
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const allProjects: IProject[] = await instance.findProjectsForDomain({
       host: "domain.one",

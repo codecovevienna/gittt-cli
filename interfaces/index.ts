@@ -25,3 +25,9 @@ export interface IProjectMeta {
   port: number;
   raw?: string;
 }
+
+export interface ITimerFile {
+  start: number;
+  stop: number;
+  // TODO add projects as structure
+}

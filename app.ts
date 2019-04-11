@@ -3,7 +3,7 @@ import commander, { CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
-import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "./helper";
+import { FileHelper, GitHelper, LogHelper, ProjectHelper, TimerHelper } from "./helper";
 import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
@@ -15,10 +15,11 @@ export class App {
   private homeDir: string;
   private configDir: string;
   private fileHelper: FileHelper;
+  private timerHelper: TimerHelper;
   private gitHelper: GitHelper;
   private projectHelper: ProjectHelper;
 
-  start(): void {
+  public start(): void {
     if (process.argv.length === 2) {
       commander.help();
     } else {
@@ -26,7 +27,7 @@ export class App {
     }
   }
 
-  exit(msg: string, code: number): void {
+  public exit(msg: string, code: number): void {
     if (code === 0) {
       LogHelper.warn(msg);
     } else {
@@ -35,7 +36,7 @@ export class App {
     process.exit(code);
   }
 
-  getHomeDir(): string {
+  public getHomeDir(): string {
     const home: string | null = require("os").homedir()
       || process.env.HOME
       || process.env.HOMEPATH
@@ -48,10 +49,10 @@ export class App {
     return home;
   }
 
-  async setup() {
+  public async setup(): Promise<void> {
     this.homeDir = this.getHomeDir();
     this.configDir = path.join(this.homeDir, `.${APP_NAME}`);
-    this.fileHelper = new FileHelper(this.configDir, "config.json", "projects");
+    this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
 
     // TODO correct place to ask this?
     if (!(await this.fileHelper.configDirExists()) || !this.isConfigFileValid()) {
@@ -73,11 +74,12 @@ export class App {
 
     this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
     this.projectHelper = new ProjectHelper(this.gitHelper, this.fileHelper);
+    this.timerHelper = new TimerHelper(this.fileHelper, this.projectHelper);
 
     this.initCommander();
   }
 
-  async initConfigDir(): Promise<void> {
+  public async initConfigDir(): Promise<void> {
     if (!(await this.fileHelper.configDirExists())) {
       this.fileHelper.createConfigDir();
       this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
@@ -116,7 +118,7 @@ export class App {
     }
   }
 
-  initCommander(): CommanderStatic {
+  public initCommander(): CommanderStatic {
     commander
       .version(APP_VERSION);
 
@@ -202,6 +204,26 @@ export class App {
       });
 
     commander
+      .command("start")
+      .description("Start the timer")
+      .action(async () => {
+        await this.timerHelper.startTimer();
+      });
+
+    commander
+      .command("stop")
+      .description("Stop the timer and commit to a project")
+      .option("-k, --kill", "Kill the timer for a project")
+      .option("-m, --message <message>", "Commit message for the project")
+      .action(async (cmd: any): Promise<void> => {
+        if (cmd.kill) {
+          await this.timerHelper.killTimer();
+        } else {
+          await this.timerHelper.stopTimer(cmd.message);
+        }
+      });
+
+    commander
       .command("init")
       .description("Initializes the project in current git directory")
       .action(async () => {
@@ -221,7 +243,7 @@ export class App {
     return commander;
   }
 
-  async isConfigFileValid(): Promise<boolean> {
+  public async isConfigFileValid(): Promise<boolean> {
     let config: IConfigFile | undefined;
 
     try {
@@ -244,7 +266,7 @@ export class App {
     }
   }
 
-  async askGitUrl(): Promise<string> {
+  public async askGitUrl(): Promise<string> {
     const gitRepoAnswers: IGitRepoAnswers = await inquirer.prompt([
       {
         message: "Git Repository URL:",
