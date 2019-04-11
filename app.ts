@@ -1,9 +1,8 @@
-import { assert } from "chai";
 import commander, { CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
-import { FileHelper, GitHelper, LogHelper, ProjectHelper, TimerHelper } from "./helper";
+import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
 import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
@@ -55,7 +54,7 @@ export class App {
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
 
     // TODO correct place to ask this?
-    if (!(await this.fileHelper.configDirExists()) || !this.isConfigFileValid()) {
+    if (!(await this.fileHelper.configDirExists()) || !(await this.isConfigFileValid())) {
       const initAnswers: IInitAnswers = await inquirer.prompt([
         {
           message: `Looks like you never used ${APP_NAME}, should it be set up?`,
@@ -129,7 +128,7 @@ export class App {
       .action(async (cmd: string, options: any): Promise<void> => {
         const hours: number = parseFloat(cmd);
         if (isNaN(hours)) {
-          this.exit("Unable to parse hours", 1);
+          return this.exit("Unable to parse hours", 1);
         }
 
         await this.projectHelper.addRecordToProject({
@@ -248,17 +247,13 @@ export class App {
 
     try {
       config = await this.fileHelper.getConfigObject(true);
-
-      // TODO use some kind of generic interface-json-schema-validator
-      assert.isDefined(config.created, "created has to be defined");
-      assert.isDefined(config.gitRepo, "gitRepo has to be defined");
     } catch (err) {
       LogHelper.debug(`Unable to parse config file: ${err.message}`);
       return false;
     }
 
     try {
-      ProjectHelper.parseProjectNameFromGitUrl(config.gitRepo);
+      parseProjectNameFromGitUrl(config.gitRepo);
       return true;
     } catch (err) {
       LogHelper.debug("Unable to get project name", err);
@@ -275,7 +270,7 @@ export class App {
         validate(input: any): boolean | string | Promise<boolean | string> {
           try {
             // Will throw if parsing fails
-            ProjectHelper.parseProjectNameFromGitUrl(input);
+            parseProjectNameFromGitUrl(input);
             return true;
           } catch (err) {
             return "The url has to look like ssh://git@github.com:eiabea/awesomeProject.git";

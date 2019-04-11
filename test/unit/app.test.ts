@@ -1,15 +1,9 @@
 import { assert, expect } from "chai";
-import { CommanderStatic } from "commander";
-import path from "path";
 import proxyquire from "proxyquire";
 import sinon, { SinonInspectable } from "sinon";
 import { App } from "../../app";
-import { FileHelper, LogHelper } from "../../helper/index";
-import { IConfigFile, IInitAnswers, IProject, IProjectMeta } from "../../interfaces";
-
-const configDir: string = path.join("mocked", ".git-time-tracker");
-const configFileName: string = "config.json";
-const projectsDir: string = "projects";
+import { LogHelper } from "../../helper/index";
+import { IGitRepoAnswers, IInitAnswers } from "../../interfaces";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
@@ -325,7 +319,9 @@ describe("App", () => {
       "./helper": {
         FileHelper: function FileHelper(): any {
           return {
-            configDirExists: sinon.stub().resolves(true),
+            configDirExists: sinon.stub()
+              .onCall(0).resolves(true)
+              .onCall(1).resolves(true),
           };
         },
         GitHelper: function GitHelper(): any {
@@ -343,7 +339,11 @@ describe("App", () => {
 
     const app: App = new proxy.App();
 
-    sinon.stub(app, "isConfigFileValid").resolves(false);
+    sinon.stub(app, "getHomeDir").returns("/home/test");
+    // Hack to overcome setup call
+    sinon.stub(app, "isConfigFileValid")
+      .onCall(0).resolves(true)
+      .onCall(1).resolves(false);
 
     // Has to be called to have all helper instantiated
     await app.setup();
@@ -365,9 +365,9 @@ describe("App", () => {
         FileHelper: function FileHelper(): any {
           return {
             // TODO remove this hack to get over setup()
-            configDirExists: sinon.stub().onCall(0)
-              .resolves(true)
-              .resolves(false),
+            configDirExists: sinon.stub()
+              .onCall(0).resolves(true)
+              .onCall(1).resolves(false),
             createConfigDir: createDirStub,
             initConfigFile: initConfigFileStub,
           };
@@ -392,7 +392,12 @@ describe("App", () => {
 
     const app: App = new proxy.App();
 
-    sinon.stub(app, "isConfigFileValid").resolves(false);
+    sinon.stub(app, "getHomeDir").returns("/home/test");
+    // Hack to overcome setup call
+    sinon.stub(app, "isConfigFileValid")
+      .onCall(0).resolves(true)
+      .onCall(1).resolves(false);
+
     sinon.stub(app, "askGitUrl").resolves("ssh://git@mocked.git.com/mock/test.git");
 
     // Has to be called to have all helper instantiated
@@ -446,5 +451,22 @@ describe("App", () => {
 
     assert.isTrue(createDirStub.calledOnce);
     assert.isTrue(pullStub.calledOnce);
+  });
+
+  it("should ask for git url", async () => {
+    const proxy: any = proxyquire("../../app", {
+      inquirer: {
+        prompt: sinon.stub().resolves({
+          gitRepo: "ssh://git@mock.git.com/mock/test.git",
+        } as IGitRepoAnswers),
+      },
+    });
+
+    const app: App = new proxy.App();
+
+    const repo: string = await app.askGitUrl();
+
+    // TODO should test inquirer validation
+    expect(repo).to.eq("ssh://git@mock.git.com/mock/test.git");
   });
 });

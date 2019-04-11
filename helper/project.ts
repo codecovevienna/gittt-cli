@@ -1,49 +1,8 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import { IProject, IRecord } from "../interfaces";
-import { FileHelper, GitHelper, LogHelper } from "./index";
+import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 
 export class ProjectHelper {
-  public static parseProjectNameFromGitUrl = (input: string): IProject => {
-    const split: RegExpMatchArray | null = input
-      .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
-
-    if (!split || split.length !== 6) {
-      throw new Error("Unable to get project information from repo URL");
-    }
-
-    const [,
-      /*schema*/,
-      /*user*/,
-      host,
-      port,
-      name] = split;
-
-    const nameSplit: string[] = name.split("/");
-
-    let parsedName: string;
-
-    if (nameSplit.length === 2) {
-      // Assuming namespace/project-name
-      const [
-        namespace,
-        projectName,
-      ] = nameSplit;
-      parsedName = `${namespace}_${projectName}`;
-    } else {
-      // No slash found, using raw name
-      parsedName = name;
-    }
-
-    return {
-      meta: {
-        host,
-        port: parseInt(port.replace(":", ""), 10),
-        raw: input,
-      },
-      name: parsedName,
-      records: [],
-    };
-  }
   private fileHelper: FileHelper;
   private gitHelper: GitHelper;
 
@@ -135,6 +94,6 @@ export class ProjectHelper {
 
     const originUrl: string = gitConfigExec.stdout.trim();
 
-    return ProjectHelper.parseProjectNameFromGitUrl(originUrl);
+    return parseProjectNameFromGitUrl(originUrl);
   }
 }
