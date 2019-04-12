@@ -239,6 +239,13 @@ export class App {
         }
       });
 
+    commander
+      .command("link")
+      .description("Initializes link to third party applications")
+      .action(async () => {
+        LogHelper.debug("TODO implement");
+      });
+
     return commander;
   }
 
