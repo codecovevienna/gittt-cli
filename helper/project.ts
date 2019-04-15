@@ -1,4 +1,5 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
+import uuid from "uuid/v1";
 import { IProject, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 
@@ -52,6 +53,15 @@ export class ProjectHelper {
     }
 
     LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}) to ${foundProject.name}`);
+
+    // Add unique identifier to each record
+    if (!record.guid) {
+      record.guid = uuid();
+    }
+
+    if (!record.created) {
+      record.created = Date.now();
+    }
 
     foundProject.records.push(record);
     await this.fileHelper.saveProjectObject(foundProject);

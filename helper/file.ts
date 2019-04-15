@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
-import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../interfaces";
+import { IConfigFile, IProject, IProjectMeta, IRecord, ITimerFile } from "../interfaces";
 import { LogHelper } from "./";
 
 export class FileHelper {

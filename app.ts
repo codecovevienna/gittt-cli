@@ -1,9 +1,12 @@
 import commander, { CommanderStatic } from "commander";
 import inquirer from "inquirer";
+import _ from "lodash";
+import moment from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
+import { runInContext } from "vm";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
-import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject } from "./interfaces";
+import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject, IRecord } from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
@@ -133,7 +136,6 @@ export class App {
 
         await this.projectHelper.addRecordToProject({
           amount: hours,
-          created: Date.now(),
           message: options.message,
           type: "Time",
         });
@@ -237,6 +239,140 @@ export class App {
         if (initProjectAnswers.confirm) {
           await this.projectHelper.initProject();
         }
+      });
+
+    commander
+      .command("edit")
+      .description("Edit record of current project")
+      .action(async () => {
+        let projectFromGit: IProject;
+        try {
+          projectFromGit = this.projectHelper.getProjectFromGit();
+        } catch (err) {
+          LogHelper.debug("Unable to get project name from git folder", err);
+          return this.exit("Unable to get project name from git folder", 1);
+        }
+
+        const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
+        if (!projectWithRecords) {
+          return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
+        }
+
+        if (projectWithRecords.records.length === 0) {
+          return this.exit(`No records found for "${projectFromGit.name}"`, 1);
+        }
+
+        console.log(projectWithRecords);
+
+        const { records } = projectWithRecords;
+        let recordsToEdit: IRecord[];
+
+        // Check for years
+        const allYears: string[] = [];
+
+        for (const rc of projectWithRecords.records) {
+          const currentYear: string = moment(rc.created).format("YYYY");
+          if (allYears.indexOf(currentYear) === -1) {
+            allYears.push(currentYear);
+          }
+        }
+
+        // Check if records spanning over more than one year
+        if (allYears.length > 1) {
+          const choiceYear: any = await inquirer.prompt([
+            {
+              choices: allYears,
+              message: "List of years",
+              name: "year",
+              type: "list",
+            },
+          ]);
+
+          recordsToEdit = records.filter((rc: IRecord) => {
+            const currentYear: string = moment(rc.created).format("YYYY");
+            return currentYear === choiceYear.year;
+          });
+
+        } else {
+          recordsToEdit = records;
+        }
+
+        // Check for month
+        const allMonth: string[] = [];
+
+        for (const rc of recordsToEdit) {
+          const currentMonth: string = moment(rc.created).format("MMMM");
+          if (allMonth.indexOf(currentMonth) === -1) {
+            allMonth.push(currentMonth);
+          }
+        }
+
+        // Check if records spanning over more than one month
+        if (allMonth.length > 1) {
+          const choiceMonth: any = await inquirer.prompt([
+            {
+              choices: allMonth,
+              message: "List of Month",
+              name: "month",
+              type: "list",
+            },
+          ]);
+
+          recordsToEdit = recordsToEdit.filter((rc: IRecord) => {
+            const currentMonth: string = moment(rc.created).format("MMMM");
+            return currentMonth === choiceMonth.month;
+          });
+
+        } else {
+          recordsToEdit = recordsToEdit;
+        }
+
+        // Check for days
+        const allDays: string[] = [];
+
+        for (const rc of recordsToEdit) {
+          const currentDay: string = moment(rc.created).format("DD");
+          if (allDays.indexOf(currentDay) === -1) {
+            allDays.push(currentDay);
+          }
+        }
+
+        // Check if records spanning over more than one day
+        if (allDays.length > 1) {
+          const choiceDay: any = await inquirer.prompt([
+            {
+              choices: allDays,
+              message: "List of Days",
+              name: "day",
+              type: "list",
+            },
+          ]);
+
+          recordsToEdit = recordsToEdit.filter((rc: IRecord) => {
+            const currentDay: string = moment(rc.created).format("DD");
+            return currentDay === choiceDay.day;
+          });
+
+        } else {
+          recordsToEdit = recordsToEdit;
+        }
+
+        const choice: any = await inquirer.prompt([
+          {
+            choices: recordsToEdit.map((rc: IRecord) => {
+              return {
+                name: `${moment(rc.created).format("dd.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} - "${_.
+                  truncate(rc.message)}"`,
+                value: rc.guid,
+              };
+            }),
+            message: "List of records",
+            name: "choice",
+            type: "list",
+          },
+        ]);
+
+        console.log(choice);
       });
 
     return commander;
