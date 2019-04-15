@@ -15,9 +15,22 @@ export interface IProject {
   records: IRecord[];
 }
 
+export interface IIntegrationLink {
+  project: string;
+}
+
+export interface IJiraLink extends IIntegrationLink {
+  host: string;
+  port: string;
+  username: string;
+  password: string;
+  endpoint: string;
+}
+
 export interface IConfigFile {
   created: number;
   gitRepo: string;
+  links: IIntegrationLink[];
 }
 
 export interface IProjectMeta {

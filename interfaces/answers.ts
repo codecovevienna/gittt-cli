@@ -6,11 +6,6 @@ export interface IOverrideAnswers {
   override: number;
 }
 
-export interface IProjectNameAnswers {
-  userProjectNamespace: string;
-  userProjectName: string;
-}
-
 export interface IGitRepoAnswers {
   gitRepo: string;
 }
@@ -21,4 +16,15 @@ export interface IGitCommitMessageAnswers {
 
 export interface IInitProjectAnswers {
   confirm: boolean;
+}
+
+export interface IIntegrationAnswers {
+  integration: string;
+}
+
+export interface IJiraIntegrationAnswers {
+  host: string;
+  port: string;
+  username: string;
+  password: string;
 }

@@ -1,9 +1,18 @@
+import { assert } from "chai";
 import commander, { CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
-import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject } from "./interfaces";
+import {
+  IConfigFile,
+  IGitRepoAnswers,
+  IInitAnswers,
+  IInitProjectAnswers,
+  IIntegrationAnswers,
+  IJiraIntegrationAnswers,
+  IProject,
+} from "./interfaces";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
@@ -243,7 +252,62 @@ export class App {
       .command("link")
       .description("Initializes link to third party applications")
       .action(async () => {
-        LogHelper.debug("TODO implement");
+        const integrationAnswers: IIntegrationAnswers = await inquirer.prompt([
+          {
+            choices: [
+              "Jira",
+            ],
+            message: "Link project to what integration?",
+            name: "integration",
+            type: "list",
+          },
+        ]);
+        const { integration } = integrationAnswers;
+        LogHelper.debug("TODO implement" + integration);
+
+        switch (integration) {
+          case "Jira":
+            const jiraAnswers: IJiraIntegrationAnswers = await inquirer.prompt([
+              {
+                message: "Jira host",
+                name: "host",
+                type: "input",
+                // TODO validate
+              },
+              {
+                message: "Jira port",
+                name: "port",
+                type: "input",
+                validate(input: any): boolean | string | Promise<boolean | string> {
+                  if (isNaN(parseInt(input, 10))) {
+                    return "The port has to be a number";
+                  } else {
+                    return true;
+                  }
+                },
+                filter(input: string): any {
+                  return parseInt(input, 10);
+                },
+              },
+              {
+                message: "Jira username",
+                name: "username",
+                type: "input",
+                // TODO validate
+              },
+              {
+                message: "Jira password",
+                name: "password",
+                type: "password",
+                // TODO validate
+              },
+            ]);
+            console.log(jiraAnswers);
+            break;
+
+          default:
+            break;
+        }
       });
 
     return commander;
