@@ -3,6 +3,7 @@ import inquirer from "inquirer";
 import _ from "lodash";
 import moment from "moment";
 import path from "path";
+import { async } from "rxjs/internal/scheduler/async";
 import { DefaultLogFields } from "simple-git/typings/response";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
 import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject, IRecord } from "./interfaces";
@@ -118,6 +119,169 @@ export class App {
         // TODO reinitialize?
       }
     }
+  }
+
+  public async filterRecordsByYear(records: IRecord[]): Promise<IRecord[]> {
+    const allYears: string[] = [];
+
+    for (const rc of records) {
+      const currentYear: string = moment(rc.created).format("YYYY");
+      if (allYears.indexOf(currentYear) === -1) {
+        allYears.push(currentYear);
+      }
+    }
+
+    // Check if records spanning over more than one year
+    if (allYears.length > 1) {
+      const choiceYear: any = await inquirer.prompt([
+        {
+          choices: allYears,
+          message: "List of years",
+          name: "year",
+          type: "list",
+        },
+      ]) as {
+        year: string,
+      };
+
+      return records.filter((rc: IRecord) => {
+        const currentYear: string = moment(rc.created).format("YYYY");
+        return currentYear === choiceYear.year;
+      });
+
+    } else {
+      return records;
+    }
+  }
+
+  public async filterRecordsByMonth(records: IRecord[]): Promise<IRecord[]> {
+    // Check for month
+    const allMonth: string[] = [];
+
+    for (const rc of records) {
+      const currentMonth: string = moment(rc.created).format("MMMM");
+      if (allMonth.indexOf(currentMonth) === -1) {
+        allMonth.push(currentMonth);
+      }
+    }
+
+    // Check if records spanning over more than one month
+    if (allMonth.length > 1) {
+      const choiceMonth: any = await inquirer.prompt([
+        {
+          choices: allMonth,
+          message: "List of Month",
+          name: "month",
+          type: "list",
+        },
+      ]) as {
+        month: string,
+      };
+
+      return records.filter((rc: IRecord) => {
+        const currentMonth: string = moment(rc.created).format("MMMM");
+        return currentMonth === choiceMonth.month;
+      });
+
+    } else {
+      return records;
+    }
+  }
+
+  public async filterRecordsByDay(records: IRecord[]): Promise<IRecord[]> {
+    // Check for days
+    const allDays: string[] = [];
+
+    for (const rc of records) {
+      const currentDay: string = moment(rc.created).format("DD");
+      if (allDays.indexOf(currentDay) === -1) {
+        allDays.push(currentDay);
+      }
+    }
+
+    // Check if records spanning over more than one day
+    if (allDays.length > 1) {
+      const choiceDay: any = await inquirer.prompt([
+        {
+          choices: allDays,
+          message: "List of Days",
+          name: "day",
+          type: "list",
+        },
+      ]) as {
+        day: string,
+      };
+
+      return records.filter((rc: IRecord) => {
+        const currentDay: string = moment(rc.created).format("DD");
+        return currentDay === choiceDay.day;
+      });
+
+    } else {
+      return records;
+    }
+  }
+
+  public async askRecord(records: IRecord[]): Promise<IRecord> {
+    const choice: any = await inquirer.prompt([
+      {
+        choices: records.map((rc: IRecord) => {
+          return {
+            name: `${moment(rc.created).format("dd.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} - "${_.
+              truncate(rc.message)}"`,
+            value: rc.guid,
+          };
+        }),
+        message: "List of records",
+        name: "choice",
+        type: "list",
+      },
+    ]);
+
+    const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
+      return rc.guid === choice.choice;
+    });
+
+    const [chosenRecord] = chosenRecords;
+
+    return chosenRecord;
+  }
+
+  public async askNewAmount(oldAmount: number): Promise<number> {
+    const newAmountAnswer: any = await inquirer.prompt([
+      {
+        default: oldAmount,
+        message: "Update amount",
+        name: "amount",
+        type: "number",
+        validate(input: any): boolean | string | Promise<boolean | string> {
+          return !isNaN(input);
+        },
+      },
+    ]) as {
+      amount: number,
+    };
+
+    return newAmountAnswer.amount;
+  }
+
+  public async askNewType(oldType: RECORD_TYPES): Promise<RECORD_TYPES> {
+    const newTypeAnswer: any = await inquirer.prompt([
+      {
+        choices: [
+          {
+            name: "Time",
+            value: "Time",
+          },
+        ],
+        default: oldType,
+        message: "Update type",
+        name: "type",
+        type: "list",
+      },
+    ]);
+
+    return newTypeAnswer.type;
   }
 
   public initCommander(): CommanderStatic {
@@ -245,7 +409,6 @@ export class App {
       .command("edit")
       .description("Edit record of current project")
       .action(async () => {
-        // TODO refactor/split up
         let projectFromGit: IProject;
         try {
           projectFromGit = this.projectHelper.getProjectFromGit();
@@ -268,153 +431,17 @@ export class App {
         const { records } = projectWithRecords;
         let recordsToEdit: IRecord[];
 
-        // Check for years
-        const allYears: string[] = [];
+        recordsToEdit = await this.filterRecordsByYear(records);
+        recordsToEdit = await this.filterRecordsByMonth(recordsToEdit);
+        recordsToEdit = await this.filterRecordsByDay(recordsToEdit);
 
-        for (const rc of projectWithRecords.records) {
-          const currentYear: string = moment(rc.created).format("YYYY");
-          if (allYears.indexOf(currentYear) === -1) {
-            allYears.push(currentYear);
-          }
-        }
-
-        // Check if records spanning over more than one year
-        if (allYears.length > 1) {
-          const choiceYear: any = await inquirer.prompt([
-            {
-              choices: allYears,
-              message: "List of years",
-              name: "year",
-              type: "list",
-            },
-          ]);
-
-          recordsToEdit = records.filter((rc: IRecord) => {
-            const currentYear: string = moment(rc.created).format("YYYY");
-            return currentYear === choiceYear.year;
-          });
-
-        } else {
-          recordsToEdit = records;
-        }
-
-        // Check for month
-        const allMonth: string[] = [];
-
-        for (const rc of recordsToEdit) {
-          const currentMonth: string = moment(rc.created).format("MMMM");
-          if (allMonth.indexOf(currentMonth) === -1) {
-            allMonth.push(currentMonth);
-          }
-        }
-
-        // Check if records spanning over more than one month
-        if (allMonth.length > 1) {
-          const choiceMonth: any = await inquirer.prompt([
-            {
-              choices: allMonth,
-              message: "List of Month",
-              name: "month",
-              type: "list",
-            },
-          ]);
-
-          recordsToEdit = recordsToEdit.filter((rc: IRecord) => {
-            const currentMonth: string = moment(rc.created).format("MMMM");
-            return currentMonth === choiceMonth.month;
-          });
-
-        } else {
-          recordsToEdit = recordsToEdit;
-        }
-
-        // Check for days
-        const allDays: string[] = [];
-
-        for (const rc of recordsToEdit) {
-          const currentDay: string = moment(rc.created).format("DD");
-          if (allDays.indexOf(currentDay) === -1) {
-            allDays.push(currentDay);
-          }
-        }
-
-        // Check if records spanning over more than one day
-        if (allDays.length > 1) {
-          const choiceDay: any = await inquirer.prompt([
-            {
-              choices: allDays,
-              message: "List of Days",
-              name: "day",
-              type: "list",
-            },
-          ]);
-
-          recordsToEdit = recordsToEdit.filter((rc: IRecord) => {
-            const currentDay: string = moment(rc.created).format("DD");
-            return currentDay === choiceDay.day;
-          });
-
-        } else {
-          recordsToEdit = recordsToEdit;
-        }
-
-        const choice: any = await inquirer.prompt([
-          {
-            choices: recordsToEdit.map((rc: IRecord) => {
-              return {
-                name: `${moment(rc.created).format("dd.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} - "${_.
-                  truncate(rc.message)}"`,
-                value: rc.guid,
-              };
-            }),
-            message: "List of records",
-            name: "choice",
-            type: "list",
-          },
-        ]);
-
-        const chosenRecords: IRecord[] = recordsToEdit.filter((rc: IRecord) => {
-          return rc.guid === choice.choice;
-        });
-
-        const [chosenRecord] = chosenRecords;
-
-        const newAmountAnswer: any = await inquirer.prompt([
-          {
-            default: chosenRecord.amount,
-            message: "Update amount",
-            name: "amount",
-            type: "number",
-            validate(input: any): boolean | string | Promise<boolean | string> {
-              return !isNaN(input);
-            },
-          },
-        ]);
-
-        const newAmount: number = newAmountAnswer.amount;
-
-        const newTypeAnswer: any = await inquirer.prompt([
-          {
-            choices: [
-              {
-                name: "Time",
-                value: "Time",
-              },
-            ],
-            default: chosenRecord.type,
-            message: "Update type",
-            name: "type",
-            type: "list",
-          },
-        ]);
-
-        const newType: RECORD_TYPES = newTypeAnswer.type;
+        const chosenRecord: IRecord = await this.askRecord(recordsToEdit);
 
         const updatedRecord: IRecord = chosenRecord;
-        updatedRecord.amount = newAmount;
-        updatedRecord.type = newType;
+        updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
+        updatedRecord.type = await this.askNewType(chosenRecord.type);
 
-        const updatedRecords: IRecord[] = projectWithRecords.records.map((rc: IRecord) => {
+        const updatedRecords: IRecord[] = records.map((rc: IRecord) => {
           return rc.guid === updatedRecord.guid ? updatedRecord : rc;
         });
 
