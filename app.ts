@@ -4,9 +4,9 @@ import _ from "lodash";
 import moment from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
-import { runInContext } from "vm";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
 import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject, IRecord } from "./interfaces";
+import { RECORD_TYPES } from "./types";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
@@ -245,6 +245,7 @@ export class App {
       .command("edit")
       .description("Edit record of current project")
       .action(async () => {
+        // TODO refactor/split up
         let projectFromGit: IProject;
         try {
           projectFromGit = this.projectHelper.getProjectFromGit();
@@ -372,7 +373,62 @@ export class App {
           },
         ]);
 
-        console.log(choice);
+        const chosenRecords: IRecord[] = recordsToEdit.filter((rc: IRecord) => {
+          return rc.guid === choice.choice;
+        });
+
+        const [chosenRecord] = chosenRecords;
+
+        const newAmountAnswer: any = await inquirer.prompt([
+          {
+            default: chosenRecord.amount,
+            message: "Update amount",
+            name: "amount",
+            type: "number",
+            validate(input: any): boolean | string | Promise<boolean | string> {
+              return !isNaN(input);
+            },
+          },
+        ]);
+
+        const newAmount: number = newAmountAnswer.amount;
+
+        const newTypeAnswer: any = await inquirer.prompt([
+          {
+            choices: [
+              {
+                name: "Time",
+                value: "Time",
+              },
+            ],
+            default: chosenRecord.type,
+            message: "Update type",
+            name: "type",
+            type: "list",
+          },
+        ]);
+
+        const newType: RECORD_TYPES = newTypeAnswer.type;
+
+        const updatedRecord: IRecord = chosenRecord;
+        updatedRecord.amount = newAmount;
+        updatedRecord.type = newType;
+
+        const updatedRecords: IRecord[] = projectWithRecords.records.map((rc: IRecord) => {
+          return rc.guid === updatedRecord.guid ? updatedRecord : rc;
+        });
+
+        const updatedProject: IProject = projectWithRecords;
+        updatedProject.records = updatedRecords;
+
+        this.fileHelper.saveProjectObject(updatedProject);
+
+        // TODO check if something really changed and take this in account in the message
+        const commitMessage: string = `Updated record ${updatedRecord.guid} in project ${updatedProject.name}
+New amount: ${updatedRecord.amount}
+New type: ${updatedRecord.type}`;
+
+        this.gitHelper.commitChanges(commitMessage);
       });
 
     return commander;

@@ -1,6 +1,7 @@
+import { async } from "rxjs/internal/scheduler/async";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import uuid from "uuid/v1";
-import { IProject, IRecord } from "../interfaces";
+import { IProject, IProjectMeta, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 
 export class ProjectHelper {
