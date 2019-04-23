@@ -5,6 +5,7 @@ export * from "./answers";
 export interface IRecord {
   guid?: string;
   created?: number;
+  updated?: number;
   amount: number;
   message?: string;
   type: RECORD_TYPES;

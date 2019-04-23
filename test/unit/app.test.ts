@@ -1,10 +1,11 @@
 import { assert, expect } from "chai";
+import { Command } from "commander";
 import moment from "moment";
 import proxyquire from "proxyquire";
 import sinon, { SinonInspectable } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import { IGitRepoAnswers, IInitAnswers, IProject, IRecord } from "../../interfaces";
+import { IConfigFile, IGitRepoAnswers, IInitAnswers, IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 
 LogHelper.DEBUG = false;
@@ -969,25 +970,20 @@ describe("App", () => {
 
     await mockedApp.setup();
 
-    await mockedApp.editAction();
+    const mockedCommand: Command = new Command();
+    mockedCommand.amount = 69;
+    mockedCommand.guid = "mocked-guid";
+    mockedCommand.type = "Time";
+
+    // Mock arguments array to enable interactive mode
+    process.argv = ["1", "2", "3"];
+
+    await mockedApp.editAction(mockedCommand);
 
     assert.isTrue(getProjectFromGitStub.calledOnce);
     assert.isTrue(findProjectByNameStub.calledOnce);
-    assert.isTrue(saveProjectObjectStub.calledWith({
-      meta: {
-        host: "test.git.com",
-        port: 443,
-      },
-      name: "mocked",
-      records: [
-        {
-          amount: 69,
-          created: 1234,
-          guid: "mocked-guid",
-          type: "Time",
-        },
-      ],
-    }));
+    assert.isTrue(saveProjectObjectStub.calledOnce);
+    expect(saveProjectObjectStub.args[0][0].records[0].amount).to.eq(mockedCommand.amount);
     assert.isTrue(commitChangesStub.calledOnce);
   });
 
@@ -1025,7 +1021,7 @@ describe("App", () => {
 
     await mockedApp.setup();
 
-    await mockedApp.editAction();
+    await mockedApp.editAction(new Command());
 
     assert.isTrue(getProjectFromGitStub.calledOnce);
     assert.isTrue(exitStub.calledOnce);
@@ -1075,7 +1071,7 @@ describe("App", () => {
 
     await mockedApp.setup();
 
-    await mockedApp.editAction();
+    await mockedApp.editAction(new Command());
 
     assert.isTrue(getProjectFromGitStub.calledOnce);
     assert.isTrue(exitStub.calledOnce);
@@ -1132,7 +1128,7 @@ describe("App", () => {
 
     await mockedApp.setup();
 
-    await mockedApp.editAction();
+    await mockedApp.editAction(new Command());
 
     assert.isTrue(getProjectFromGitStub.calledOnce);
     assert.isTrue(exitStub.calledOnce);
@@ -1201,29 +1197,20 @@ describe("App", () => {
 
     await mockedApp.setup();
 
-    await mockedApp.editAction({
-      amount: 69,
-      guid: "mocked-guid",
-      type: "Time",
-    });
+    const mockedCommand: Command = new Command();
+    mockedCommand.amount = 69;
+    mockedCommand.guid = "mocked-guid";
+    mockedCommand.type = "Time";
+
+    // Mock arguments array to be greater than 3
+    process.argv = ["1", "2", "3", "4"];
+
+    await mockedApp.editAction(mockedCommand);
 
     assert.isTrue(getProjectFromGitStub.calledOnce);
     assert.isTrue(findProjectByNameStub.calledOnce);
-    assert.isTrue(saveProjectObjectStub.calledWith({
-      meta: {
-        host: "test.git.com",
-        port: 443,
-      },
-      name: "mocked",
-      records: [
-        {
-          amount: 69,
-          created: 1234,
-          guid: "mocked-guid",
-          type: "Time",
-        },
-      ],
-    }));
+    assert.isTrue(saveProjectObjectStub.calledOnce);
+    expect(saveProjectObjectStub.args[0][0].records[0].amount).to.eq(mockedCommand.amount);
     assert.isTrue(commitChangesStub.calledOnce);
   });
 
@@ -1286,15 +1273,92 @@ describe("App", () => {
 
     await mockedApp.setup();
 
-    await mockedApp.editAction({
-      amount: 69,
-      guid: "unknown-guid",
-      type: "Time",
-    });
+    const mockedCommand: Command = new Command();
+    mockedCommand.amount = 69;
+    mockedCommand.guid = "unknown-guid";
+    mockedCommand.type = "Time";
+
+    // Mock arguments array to be greater than 3
+    process.argv = ["1", "2", "3", "4"];
+
+    await mockedApp.editAction(mockedCommand);
 
     assert.isTrue(getProjectFromGitStub.calledOnce);
     assert.isTrue(findProjectByNameStub.calledOnce);
     assert.isTrue(exitStub.calledOnce);
+  });
+
+  it("should fail to edit specific record with arguments [no guid]", async () => {
+    const mockedRecords: IRecord[] = [
+      {
+        amount: 1337,
+        created: 1234,
+        guid: "mocked-guid",
+        type: "Time",
+      } as IRecord,
+    ];
+
+    const getProjectFromGitStub: SinonInspectable = sinon.stub().returns({
+      meta: {
+        host: "test.git.com",
+        port: 443,
+      },
+      name: "mocked",
+    } as IProject);
+
+    const findProjectByNameStub: SinonInspectable = sinon.stub().resolves({
+      meta: {
+        host: "test.git.com",
+        port: 443,
+      },
+      name: "mocked",
+      records: mockedRecords,
+    });
+
+    const proxy: any = proxyquire("../../app", {
+      "./helper": {
+        FileHelper: function FileHelper(): any {
+          return {
+            configDirExists: sinon.stub().resolves(true),
+            findProjectByName: findProjectByNameStub,
+          };
+        },
+        GitHelper: function GitHelper(): any {
+          return {
+          };
+        },
+        LogHelper,
+        ProjectHelper: function ProjectHelper(): any {
+          return {
+            getProjectFromGit: getProjectFromGitStub,
+          };
+        },
+        TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+      },
+    });
+    const mockedApp: App = new proxy.App();
+
+    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+    sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+
+    await mockedApp.setup();
+
+    const mockedCommand: Command = new Command();
+    mockedCommand.amount = 3;
+    mockedCommand.type = "Time";
+
+    const helpStub: SinonInspectable = sinon.stub(mockedCommand, "help");
+
+    // Mock arguments array to be greater than 3
+    process.argv = ["1", "2", "3", "4"];
+
+    await mockedApp.editAction(mockedCommand);
+
+    assert.isTrue(getProjectFromGitStub.calledOnce);
+    assert.isTrue(findProjectByNameStub.calledOnce);
+    assert.isTrue(helpStub.calledOnce);
   });
 
   it("should fail to edit specific record with arguments [no amount]", async () => {
@@ -1352,15 +1416,18 @@ describe("App", () => {
     sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
     sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    const helpStub: SinonInspectable = sinon.stub().resolves();
-
     await mockedApp.setup();
 
-    await mockedApp.editAction({
-      guid: "mocked-guid",
-      help: helpStub,
-      type: "Time",
-    });
+    const mockedCommand: Command = new Command();
+    mockedCommand.guid = "mocked-guid";
+    mockedCommand.type = "Time";
+
+    const helpStub: SinonInspectable = sinon.stub(mockedCommand, "help");
+
+    // Mock arguments array to be greater than 3
+    process.argv = ["1", "2", "3", "4"];
+
+    await mockedApp.editAction(mockedCommand);
 
     assert.isTrue(getProjectFromGitStub.calledOnce);
     assert.isTrue(findProjectByNameStub.calledOnce);
@@ -1422,19 +1489,144 @@ describe("App", () => {
     sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
     sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    const helpStub: SinonInspectable = sinon.stub().resolves();
-
     await mockedApp.setup();
 
-    await mockedApp.editAction({
-      amount: 420,
-      guid: "mocked-guid",
-      help: helpStub,
-    });
+    const mockedCommand: Command = new Command();
+    mockedCommand.amount = 420;
+    mockedCommand.guid = "mocked-guid";
+
+    const helpStub: SinonInspectable = sinon.stub(mockedCommand, "help");
+
+    // Mock arguments array to be greater than 3
+    process.argv = ["1", "2", "3", "4"];
+
+    await mockedApp.editAction(mockedCommand);
 
     assert.isTrue(getProjectFromGitStub.calledOnce);
     assert.isTrue(findProjectByNameStub.calledOnce);
     assert.isTrue(helpStub.calledOnce);
+  });
+
+  it("should check if config file is valid", async () => {
+    const proxy: any = proxyquire("../../app", {
+      "./helper": {
+        FileHelper: function FileHelper(): any {
+          return {
+            configDirExists: sinon.stub().resolves(true),
+            getConfigObject: sinon.stub().resolves({
+              created: 1234,
+              gitRepo: "ssh://git@github.com:443/mocked/test.git",
+            } as IConfigFile),
+          };
+        },
+        GitHelper: function GitHelper(): any {
+          return {
+          };
+        },
+        LogHelper,
+        ProjectHelper: function ProjectHelper(): any {
+          return {
+          };
+        },
+        TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        parseProjectNameFromGitUrl: sinon.stub(),
+      },
+    });
+    const mockedApp: App = new proxy.App();
+
+    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+
+    // Mock isConfigFileValid to get over setup call
+    const setupMock: SinonInspectable = sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+    await mockedApp.setup();
+    // Restore isConfigFileValid to test the function
+    setupMock.restore();
+
+    const valid: boolean = await mockedApp.isConfigFileValid();
+
+    assert.isTrue(valid);
+  });
+
+  it("should fail to check config file [unable to get config object]", async () => {
+    const proxy: any = proxyquire("../../app", {
+      "./helper": {
+        FileHelper: function FileHelper(): any {
+          return {
+            configDirExists: sinon.stub().resolves(true),
+            getConfigObject: sinon.stub().throws(new Error("Mocked Error")),
+          };
+        },
+        GitHelper: function GitHelper(): any {
+          return {
+          };
+        },
+        LogHelper,
+        ProjectHelper: function ProjectHelper(): any {
+          return {
+          };
+        },
+        TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+      },
+    });
+    const mockedApp: App = new proxy.App();
+
+    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+
+    // Mock isConfigFileValid to get over setup call
+    const setupMock: SinonInspectable = sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+    await mockedApp.setup();
+    // Restore isConfigFileValid to test the function
+    setupMock.restore();
+
+    const valid: boolean = await mockedApp.isConfigFileValid();
+
+    assert.isFalse(valid);
+  });
+
+  it("should fail to check config file [unable to parse git url]", async () => {
+    const proxy: any = proxyquire("../../app", {
+      "./helper": {
+        FileHelper: function FileHelper(): any {
+          return {
+            configDirExists: sinon.stub().resolves(true),
+            getConfigObject: sinon.stub().resolves({
+              created: 1234,
+              gitRepo: "ssh://git@github.com:443/mocked/test.git",
+            } as IConfigFile),
+          };
+        },
+        GitHelper: function GitHelper(): any {
+          return {
+          };
+        },
+        LogHelper,
+        ProjectHelper: function ProjectHelper(): any {
+          return {
+          };
+        },
+        TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        parseProjectNameFromGitUrl: sinon.stub().throws(new Error("Mocked Error")),
+      },
+    });
+    const mockedApp: App = new proxy.App();
+
+    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+
+    // Mock isConfigFileValid to get over setup call
+    const setupMock: SinonInspectable = sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+    await mockedApp.setup();
+    // Restore isConfigFileValid to test the function
+    setupMock.restore();
+
+    const valid: boolean = await mockedApp.isConfigFileValid();
+
+    assert.isFalse(valid);
   });
 
   it("should ask for git url", async () => {

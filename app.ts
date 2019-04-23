@@ -1,9 +1,8 @@
-import commander, { CommanderStatic } from "commander";
+import commander, { Command, CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import _ from "lodash";
 import moment from "moment";
 import path from "path";
-import { async } from "rxjs/internal/scheduler/async";
 import { DefaultLogFields } from "simple-git/typings/response";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
 import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject, IRecord } from "./interfaces";
@@ -284,7 +283,8 @@ export class App {
     return newTypeAnswer.type;
   }
 
-  public async editAction(options?: any): Promise<void> {
+  public async editAction(options: Command): Promise<void> {
+    const interactiveMode: boolean = process.argv.length === 3;
     let projectFromGit: IProject;
     try {
       projectFromGit = this.projectHelper.getProjectFromGit();
@@ -306,7 +306,12 @@ export class App {
     let recordsToEdit: IRecord[];
     let chosenRecord: IRecord;
 
-    if (options && options.guid) {
+    if (!interactiveMode) {
+      if (!options.guid) {
+        LogHelper.error("No guid option found");
+        return options.help();
+      }
+
       const recordGuid: string = options.guid;
 
       const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
@@ -328,7 +333,7 @@ export class App {
 
     const updatedRecord: IRecord = chosenRecord;
 
-    if (options) {
+    if (!interactiveMode) {
       if (options.amount) {
         updatedRecord.amount = options.amount;
       } else {
@@ -345,6 +350,8 @@ export class App {
       updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
       updatedRecord.type = await this.askNewType(chosenRecord.type);
     }
+
+    updatedRecord.updated = Date.now();
 
     const updatedRecords: IRecord[] = records.map((rc: IRecord) => {
       return rc.guid === updatedRecord.guid ? updatedRecord : rc;
@@ -490,7 +497,7 @@ New type: ${updatedRecord.type}`;
       .option("-g, --guid [guid]", "GUID of the record to edit")
       .option("-a, --amount [amount]", "New amount for the record", parseFloat)
       .option("-t, --type [type]", "New Type for the record")
-      .action(async (cmd: any): Promise<void> => {
+      .action(async (cmd: Command): Promise<void> => {
         await this.editAction(cmd);
       });
 
