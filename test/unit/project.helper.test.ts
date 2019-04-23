@@ -182,6 +182,47 @@ describe("ProjectHelper", () => {
     getProjectFromGitStub.restore();
   });
 
+  it("should add record to project without created timestamp", async () => {
+    const findProjectByNameStub: SinonInspectable = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "test_mocked",
+      records: [],
+    } as IProject);
+    const saveProjectObjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+
+    const commitChangesStub: SinonInspectable = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+
+    const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "test_mocked",
+      records: [],
+    } as IProject);
+
+    await instance.addRecordToProject({
+      amount: 1337,
+      type: "Time",
+    });
+
+    assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked`));
+
+    assert.isTrue(findProjectByNameStub.calledOnce);
+    assert.isTrue(saveProjectObjectStub.calledOnce);
+    assert.isTrue(getProjectFromGitStub.calledOnce);
+
+    findProjectByNameStub.restore();
+    commitChangesStub.restore();
+    saveProjectObjectStub.restore();
+    getProjectFromGitStub.restore();
+  });
+
   it("should add record of one hour to project without message", async () => {
     const findProjectByNameStub: SinonInspectable = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
       meta: {

@@ -156,20 +156,20 @@ export class App {
 
   public async filterRecordsByMonth(records: IRecord[]): Promise<IRecord[]> {
     // Check for month
-    const allMonth: string[] = [];
+    const allMonths: string[] = [];
 
     for (const rc of records) {
       const currentMonth: string = moment(rc.created).format("MMMM");
-      if (allMonth.indexOf(currentMonth) === -1) {
-        allMonth.push(currentMonth);
+      if (allMonths.indexOf(currentMonth) === -1) {
+        allMonths.push(currentMonth);
       }
     }
 
     // Check if records spanning over more than one month
-    if (allMonth.length > 1) {
+    if (allMonths.length > 1) {
       const choiceMonth: any = await inquirer.prompt([
         {
-          choices: allMonth,
+          choices: allMonths,
           message: "List of Month",
           name: "month",
           type: "list",
@@ -282,6 +282,54 @@ export class App {
     ]);
 
     return newTypeAnswer.type;
+  }
+
+  public async editAction(): Promise<void> {
+    let projectFromGit: IProject;
+    try {
+      projectFromGit = this.projectHelper.getProjectFromGit();
+    } catch (err) {
+      LogHelper.debug("Unable to get project name from git folder", err);
+      return this.exit("Unable to get project name from git folder", 1);
+    }
+
+    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
+    if (!projectWithRecords) {
+      return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
+    }
+
+    if (projectWithRecords.records.length === 0) {
+      return this.exit(`No records found for "${projectFromGit.name}"`, 1);
+    }
+
+    const { records } = projectWithRecords;
+    let recordsToEdit: IRecord[];
+
+    recordsToEdit = await this.filterRecordsByYear(records);
+    recordsToEdit = await this.filterRecordsByMonth(recordsToEdit);
+    recordsToEdit = await this.filterRecordsByDay(recordsToEdit);
+
+    const chosenRecord: IRecord = await this.askRecord(recordsToEdit);
+
+    const updatedRecord: IRecord = chosenRecord;
+    updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
+    updatedRecord.type = await this.askNewType(chosenRecord.type);
+
+    const updatedRecords: IRecord[] = records.map((rc: IRecord) => {
+      return rc.guid === updatedRecord.guid ? updatedRecord : rc;
+    });
+
+    const updatedProject: IProject = projectWithRecords;
+    updatedProject.records = updatedRecords;
+
+    await this.fileHelper.saveProjectObject(updatedProject);
+
+    // TODO check if something really changed and take this in account in the message
+    const commitMessage: string = `Updated record ${updatedRecord.guid} in project ${updatedProject.name}
+New amount: ${updatedRecord.amount}
+New type: ${updatedRecord.type}`;
+
+    await this.gitHelper.commitChanges(commitMessage);
   }
 
   public initCommander(): CommanderStatic {
@@ -408,55 +456,7 @@ export class App {
     commander
       .command("edit")
       .description("Edit record of current project")
-      .action(async () => {
-        let projectFromGit: IProject;
-        try {
-          projectFromGit = this.projectHelper.getProjectFromGit();
-        } catch (err) {
-          LogHelper.debug("Unable to get project name from git folder", err);
-          return this.exit("Unable to get project name from git folder", 1);
-        }
-
-        const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
-        if (!projectWithRecords) {
-          return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
-        }
-
-        if (projectWithRecords.records.length === 0) {
-          return this.exit(`No records found for "${projectFromGit.name}"`, 1);
-        }
-
-        console.log(projectWithRecords);
-
-        const { records } = projectWithRecords;
-        let recordsToEdit: IRecord[];
-
-        recordsToEdit = await this.filterRecordsByYear(records);
-        recordsToEdit = await this.filterRecordsByMonth(recordsToEdit);
-        recordsToEdit = await this.filterRecordsByDay(recordsToEdit);
-
-        const chosenRecord: IRecord = await this.askRecord(recordsToEdit);
-
-        const updatedRecord: IRecord = chosenRecord;
-        updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
-        updatedRecord.type = await this.askNewType(chosenRecord.type);
-
-        const updatedRecords: IRecord[] = records.map((rc: IRecord) => {
-          return rc.guid === updatedRecord.guid ? updatedRecord : rc;
-        });
-
-        const updatedProject: IProject = projectWithRecords;
-        updatedProject.records = updatedRecords;
-
-        this.fileHelper.saveProjectObject(updatedProject);
-
-        // TODO check if something really changed and take this in account in the message
-        const commitMessage: string = `Updated record ${updatedRecord.guid} in project ${updatedProject.name}
-New amount: ${updatedRecord.amount}
-New type: ${updatedRecord.type}`;
-
-        this.gitHelper.commitChanges(commitMessage);
-      });
+      .action(this.editAction);
 
     return commander;
   }
