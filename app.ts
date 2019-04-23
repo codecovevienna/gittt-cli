@@ -284,7 +284,7 @@ export class App {
     return newTypeAnswer.type;
   }
 
-  public async editAction(): Promise<void> {
+  public async editAction(options?: any): Promise<void> {
     let projectFromGit: IProject;
     try {
       projectFromGit = this.projectHelper.getProjectFromGit();
@@ -304,16 +304,47 @@ export class App {
 
     const { records } = projectWithRecords;
     let recordsToEdit: IRecord[];
+    let chosenRecord: IRecord;
 
-    recordsToEdit = await this.filterRecordsByYear(records);
-    recordsToEdit = await this.filterRecordsByMonth(recordsToEdit);
-    recordsToEdit = await this.filterRecordsByDay(recordsToEdit);
+    if (options && options.guid) {
+      const recordGuid: string = options.guid;
 
-    const chosenRecord: IRecord = await this.askRecord(recordsToEdit);
+      const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
+        return rc.guid === recordGuid;
+      });
+
+      chosenRecord = chosenRecords[0];
+
+      if (!chosenRecord) {
+        return this.exit(`No records found for guid "${recordGuid}"`, 1);
+      }
+    } else {
+      recordsToEdit = await this.filterRecordsByYear(records);
+      recordsToEdit = await this.filterRecordsByMonth(recordsToEdit);
+      recordsToEdit = await this.filterRecordsByDay(recordsToEdit);
+
+      chosenRecord = await this.askRecord(recordsToEdit);
+    }
 
     const updatedRecord: IRecord = chosenRecord;
-    updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
-    updatedRecord.type = await this.askNewType(chosenRecord.type);
+
+    if (options) {
+      if (options.amount) {
+        updatedRecord.amount = options.amount;
+      } else {
+        LogHelper.error("No amount option found");
+        return options.help();
+      }
+      if (options.type) {
+        updatedRecord.amount = options.amount;
+      } else {
+        LogHelper.error("No type option found");
+        return options.help();
+      }
+    } else {
+      updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
+      updatedRecord.type = await this.askNewType(chosenRecord.type);
+    }
 
     const updatedRecords: IRecord[] = records.map((rc: IRecord) => {
       return rc.guid === updatedRecord.guid ? updatedRecord : rc;
@@ -456,7 +487,12 @@ New type: ${updatedRecord.type}`;
     commander
       .command("edit")
       .description("Edit record of current project")
-      .action(this.editAction);
+      .option("-g, --guid [guid]", "GUID of the record to edit")
+      .option("-a, --amount [amount]", "New amount for the record", parseFloat)
+      .option("-t, --type [type]", "New Type for the record")
+      .action(async (cmd: any): Promise<void> => {
+        await this.editAction(cmd);
+      });
 
     return commander;
   }
