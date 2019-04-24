@@ -142,7 +142,6 @@ export class App {
 
     switch (integration) {
       case "Jira":
-        console.log("TODO implement" + integration);
         const jiraAnswers: IJiraIntegrationAnswers = await inquirer.prompt([
           {
             message: "Jira gittt plugin endpoint",
@@ -173,7 +172,7 @@ export class App {
         const project: IProject = this.projectHelper.getProjectFromGit();
 
         if (!project) {
-          this.exit("Seems like you are not in a valid git directory", 1);
+          return this.exit("Seems like you are not in a valid git directory", 1);
         }
         // TODO validate if record exists in projects dir(?)
 
@@ -186,15 +185,19 @@ export class App {
           endpoint,
           hash,
           key,
+          linkType: "Jira",
           projectName,
           username,
         };
 
-        const configObject: IConfigFile = await this.fileHelper.getConfigObject();
-        // TODO check if already exists
-        configObject.links.push(link);
-        // TODO store link in config.json
-        console.log(configObject);
+        // TODO error handling
+        try {
+          await this.fileHelper.addOrUpdateLink(link);
+        } catch (err) {
+          LogHelper.debug(`Unable to add link to config file`, err);
+          return this.exit(`Unable to add link to config file`, 1);
+        }
+
         break;
 
       default:

@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
-import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../interfaces";
+import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
 import { LogHelper } from "./";
 
 export class FileHelper {
@@ -32,6 +32,24 @@ export class FileHelper {
     await this.saveConfigObject(initial);
 
     return initial;
+  }
+
+  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink): Promise<IConfigFile> => {
+    const configObject: IConfigFile = await this.getConfigObject();
+
+    // TODO check if already exists
+    const cleanLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
+      // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
+      return li.projectName !== link.projectName;
+    });
+
+    cleanLinks.push(link);
+
+    configObject.links = cleanLinks;
+
+    await this.saveConfigObject(configObject);
+
+    return configObject;
   }
 
   public initProject = async (project: IProject): Promise<IProject> => {

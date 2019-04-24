@@ -77,6 +77,69 @@ describe("FileHelper", () => {
     assert.isTrue(writeJsonSpy.calledOnce);
   });
 
+  it("should add link to config file", async () => {
+    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonSpy,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const getConfigObjectStub: SinonInspectable = sinon.stub(instance, "getConfigObject").resolves({
+      created: 1234,
+      gitRepo: "ssh://mocked",
+      links: [],
+    });
+
+    const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
+      linkType: "mock",
+      projectName: "mocked",
+    });
+
+    expect(updatedConfigFile.links.length).to.eq(1);
+
+    assert.isTrue(writeJsonSpy.calledOnce);
+    assert.isTrue(getConfigObjectStub.calledOnce);
+  });
+
+  it("should update link in config file", async () => {
+    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        writeJson: writeJsonSpy,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const getConfigObjectStub: SinonInspectable = sinon.stub(instance, "getConfigObject").resolves({
+      created: 1234,
+      gitRepo: "ssh://mocked",
+      links: [
+        {
+          linkType: "mock",
+          projectName: "mocked",
+        },
+      ],
+    });
+
+    const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
+      endpoint: "http://test.com/api",
+      hash: "1234asdf",
+      key: "test",
+      linkType: "mock",
+      projectName: "mocked",
+      username: "mock",
+    });
+
+    expect(updatedConfigFile.links.length).to.eq(1);
+
+    assert.isTrue(writeJsonSpy.calledOnce);
+    assert.isTrue(getConfigObjectStub.calledOnce);
+  });
+
   it("should init project", async () => {
     const ensureDirSpy: SinonInspectable = sinon.spy();
     const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
@@ -202,6 +265,7 @@ describe("FileHelper", () => {
     const mockedConfig: IConfigFile = {
       created: 1337,
       gitRepo: "ssh://git@mock.test.com:443/mocked/test.git",
+      links: [],
     };
 
     const readJsonSpy: SinonInspectable = sinon.stub().resolves(mockedConfig);

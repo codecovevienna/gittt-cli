@@ -17,6 +17,7 @@ export interface IProject {
 
 export interface IIntegrationLink {
   projectName: string;
+  linkType: string;
 }
 
 export interface IJiraLink extends IIntegrationLink {
