@@ -26,27 +26,28 @@
     "@types/commander": "^2.12.2",
     "@types/fs-extra": "^5.0.5",
     "@types/inquirer": "6.0.0",
-    "@types/shelljs": "^0.8.4",
+    "@types/shelljs": "^0.8.5",
     "@types/uuid": "^3.4.4",
     "chai": "^4.2.0",
     "chalk": "^2.4.2",
     "commander": "^2.20.0",
     "fs-extra": "^7.0.1",
-    "inquirer": "^6.2.2",
+    "inquirer": "^6.3.1",
     "shelljs": "^0.8.3",
     "simple-git": "^1.110.0",
-    "ts-node": "^8.0.3",
-    "typescript": "^3.4.2",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.5",
+    "unirest": "^0.6.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.6",
     "@types/proxyquire": "^1.3.28",
     "@types/sinon": "^7.0.11",
-    "mocha": "^6.1.2",
-    "nyc": "^13.3.0",
+    "mocha": "^6.1.4",
+    "nyc": "^14.0.0",
     "proxyquire": "^2.1.0",
-    "sinon": "^7.3.1",
-    "tslint": "^5.15.0"
+    "sinon": "^7.3.2",
+    "tslint": "^5.16.0"
   }
 }

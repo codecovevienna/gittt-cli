@@ -190,7 +190,6 @@ export class App {
           username,
         };
 
-        // TODO error handling
         try {
           await this.fileHelper.addOrUpdateLink(link);
         } catch (err) {
@@ -203,6 +202,10 @@ export class App {
       default:
         break;
     }
+  }
+
+  public async publishAction(cmd: Command): Promise<void> {
+
   }
 
   public initCommander(): CommanderStatic {
@@ -332,6 +335,13 @@ export class App {
       .description("Initializes link to third party applications")
       .action(async (cmd: Command) => {
         await this.linkAction(cmd);
+      });
+
+    commander
+      .command("publish")
+      .description("Publishes stored records to external endpoint")
+      .action(async (cmd: Command) => {
+        await this.publishAction(cmd);
       });
 
     return commander;
