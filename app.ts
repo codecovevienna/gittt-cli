@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import axios, { AxiosResponse } from "axios";
 import commander, { Command, CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import path from "path";
@@ -10,8 +10,10 @@ import {
   IInitAnswers,
   IInitProjectAnswers,
   IIntegrationAnswers,
+  IIntegrationLink,
   IJiraIntegrationAnswers,
   IJiraLink,
+  IJiraPublishResult,
   IProject,
 } from "./interfaces";
 
@@ -205,7 +207,71 @@ export class App {
   }
 
   public async publishAction(cmd: Command): Promise<void> {
+    const project: IProject = this.projectHelper.getProjectFromGit();
 
+    if (!project) {
+      return this.exit("Seems like you are not in a valid git directory", 1);
+    }
+
+    const configObject: IConfigFile = await this.fileHelper.getConfigObject();
+
+    const link: any | undefined = configObject.links.find((li: IIntegrationLink) => {
+      return li.projectName === project.name;
+    });
+
+    if (!link) {
+      return this.exit(`Unable to find a link for "${project.name}"`, 1);
+    }
+
+    const populatedProject: IProject | undefined = await this.fileHelper.findProjectByName(project.name);
+
+    if (!populatedProject) {
+      return this.exit("Unable to find project", 1);
+    }
+
+    switch (link.linkType) {
+      case "Jira":
+        // cast generic link to jira link
+        const jiraLink: IJiraLink = link;
+
+        // Map local project to jira key
+        LogHelper.debug(`Mapping "${populatedProject.name}" to Jira key "${jiraLink.key}"`);
+        populatedProject.name = jiraLink.key;
+
+        try {
+          const publishResult: AxiosResponse = await axios
+            .post(jiraLink.endpoint,
+              populatedProject,
+              {
+                headers: {
+                  "Authorization": `Basic ${jiraLink.hash}`,
+                  "Cache-Control": "no-cache",
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+
+          const data: IJiraPublishResult = publishResult.data;
+
+          if (data.success) {
+            LogHelper.info("Successfully published data to Jira");
+          } else {
+            this.exit(`Unable to publish to Jira: ${data.message}`, 1);
+          }
+        } catch (err) {
+          delete err.config;
+          delete err.request;
+          delete err.response;
+          LogHelper.debug("Publish request failed", err);
+          this.exit(`Publish request failed`, 1);
+        }
+
+        break;
+
+      default:
+        this.exit(`Link type "${link.linkType}" not implemented`, 1);
+        break;
+    }
   }
 
   public initCommander(): CommanderStatic {
