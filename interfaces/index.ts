@@ -3,7 +3,9 @@ import { RECORD_TYPES } from "../types";
 export * from "./answers";
 
 export interface IRecord {
-  created: number;
+  guid?: string;
+  created?: number;
+  updated?: number;
   amount: number;
   message?: string;
   type: RECORD_TYPES;

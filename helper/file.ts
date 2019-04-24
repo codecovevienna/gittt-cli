@@ -1,6 +1,6 @@
-import fs from "fs-extra";
+import fs, { WriteOptions } from "fs-extra";
 import path from "path";
-import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../interfaces";
+import { IConfigFile, IProject, IProjectMeta, IRecord, ITimerFile } from "../interfaces";
 import { LogHelper } from "./";
 
 export class FileHelper {
@@ -9,6 +9,10 @@ export class FileHelper {
   private configDir: string;
   private projectDir: string;
   private configObject: IConfigFile | undefined; // Cache
+  private jsonWriteOptions: WriteOptions = {
+    EOL: "\n",
+    spaces: 4,
+  };
 
   constructor(configDir: string, configFileName: string, timerFileName: string, projectDir: string) {
     this.configDir = configDir;
@@ -54,7 +58,7 @@ export class FileHelper {
         start: 0,
         stop: 0,
       };
-      await fs.writeJson(this.timerFilePath, initial);
+      await fs.writeJson(this.timerFilePath, initial, this.jsonWriteOptions);
     } catch (err) {
       LogHelper.debug("Error initializing timer file", err);
       throw new Error("Error initializing timer file");
@@ -100,7 +104,7 @@ export class FileHelper {
       const projectMetaString: string = this.projectMetaToPath(project.meta);
       const projectFilePath: string = path.join(projectMetaString, `${project.name}.json`);
       LogHelper.debug(`Saving project file to ${projectFilePath}`);
-      await fs.writeJson(projectFilePath, project);
+      await fs.writeJson(projectFilePath, project, this.jsonWriteOptions);
       // TODO update cache
     } catch (err) {
       LogHelper.debug("Error writing project file", err);
@@ -172,7 +176,7 @@ export class FileHelper {
 
   public saveTimerObject = async (timer: ITimerFile): Promise<void> => {
     try {
-      await fs.writeJson(this.timerFilePath, timer);
+      await fs.writeJson(this.timerFilePath, timer, this.jsonWriteOptions);
     } catch (err) {
       LogHelper.debug("Error writing timer file", err);
       throw new Error("Error writing timer file");
@@ -217,7 +221,7 @@ export class FileHelper {
 
   private saveConfigObject = async (config: IConfigFile): Promise<void> => {
     try {
-      await fs.writeJson(this.configFilePath, config);
+      await fs.writeJson(this.configFilePath, config, this.jsonWriteOptions);
       this.setConfigObject(config);
     } catch (err) {
       LogHelper.debug("Error writing config file", err);

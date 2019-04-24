@@ -22,11 +22,13 @@ export class GitHelper {
   }
 
   public pushChanges = async (): Promise<void> => {
+    LogHelper.debug("Pushing changes origin master");
     await this.git.pull("origin", "master");
     await this.git.push("origin", "master");
   }
 
   public commitChanges = async (message?: string): Promise<void> => {
+    LogHelper.debug("Committing changes");
     await this.git.pull("origin", "master");
     await this.git.add("./*");
     await this.git.commit(message ? message : "Did some changes");
