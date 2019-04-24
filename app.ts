@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import commander, { CommanderStatic } from "commander";
+import commander, { Command, CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
@@ -11,6 +11,7 @@ import {
   IInitProjectAnswers,
   IIntegrationAnswers,
   IJiraIntegrationAnswers,
+  IJiraLink,
   IProject,
 } from "./interfaces";
 
@@ -123,6 +124,81 @@ export class App {
         this.exit("Invalid config file", 1);
         // TODO reinitialize?
       }
+    }
+  }
+
+  public async linkAction(cmd: Command): Promise<void> {
+    const integrationAnswers: IIntegrationAnswers = await inquirer.prompt([
+      {
+        choices: [
+          "Jira",
+        ],
+        message: "Link project to what integration?",
+        name: "integration",
+        type: "list",
+      },
+    ]);
+    const { integration } = integrationAnswers;
+
+    switch (integration) {
+      case "Jira":
+        console.log("TODO implement" + integration);
+        const jiraAnswers: IJiraIntegrationAnswers = await inquirer.prompt([
+          {
+            message: "Jira gittt plugin endpoint",
+            name: "endpoint",
+            type: "input",
+            // TODO validate?
+          },
+          {
+            message: "Jira username",
+            name: "username",
+            type: "input",
+            // TODO validate
+          },
+          {
+            message: "Jira password",
+            name: "password",
+            type: "password",
+            // TODO validate
+          },
+          {
+            message: "Jira project key (e.g. GITTT)",
+            name: "key",
+            type: "input",
+            // TODO validate
+          },
+        ]);
+
+        const project: IProject = this.projectHelper.getProjectFromGit();
+
+        if (!project) {
+          this.exit("Seems like you are not in a valid git directory", 1);
+        }
+        // TODO validate if record exists in projects dir(?)
+
+        const hash: string = Buffer.from(`${jiraAnswers.username}:${jiraAnswers.password}`).toString("base64");
+
+        const { endpoint, key, username } = jiraAnswers;
+        const projectName: string = project.name;
+
+        const link: IJiraLink = {
+          endpoint,
+          hash,
+          key,
+          projectName,
+          username,
+        };
+
+        const configObject: IConfigFile = await this.fileHelper.getConfigObject();
+        // TODO check if already exists
+        configObject.links.push(link);
+        // TODO store link in config.json
+        console.log(configObject);
+        break;
+
+      default:
+        break;
     }
   }
 
@@ -251,63 +327,8 @@ export class App {
     commander
       .command("link")
       .description("Initializes link to third party applications")
-      .action(async () => {
-        const integrationAnswers: IIntegrationAnswers = await inquirer.prompt([
-          {
-            choices: [
-              "Jira",
-            ],
-            message: "Link project to what integration?",
-            name: "integration",
-            type: "list",
-          },
-        ]);
-        const { integration } = integrationAnswers;
-        LogHelper.debug("TODO implement" + integration);
-
-        switch (integration) {
-          case "Jira":
-            const jiraAnswers: IJiraIntegrationAnswers = await inquirer.prompt([
-              {
-                message: "Jira host",
-                name: "host",
-                type: "input",
-                // TODO validate
-              },
-              {
-                message: "Jira port",
-                name: "port",
-                type: "input",
-                validate(input: any): boolean | string | Promise<boolean | string> {
-                  if (isNaN(parseInt(input, 10))) {
-                    return "The port has to be a number";
-                  } else {
-                    return true;
-                  }
-                },
-                filter(input: string): any {
-                  return parseInt(input, 10);
-                },
-              },
-              {
-                message: "Jira username",
-                name: "username",
-                type: "input",
-                // TODO validate
-              },
-              {
-                message: "Jira password",
-                name: "password",
-                type: "password",
-                // TODO validate
-              },
-            ]);
-            console.log(jiraAnswers);
-            break;
-
-          default:
-            break;
-        }
+      .action(async (cmd: Command) => {
+        await this.linkAction(cmd);
       });
 
     return commander;

@@ -26,6 +26,7 @@ export class FileHelper {
     const initial: IConfigFile = {
       created: Date.now(),
       gitRepo,
+      links: [],
     };
 
     await this.saveConfigObject(initial);

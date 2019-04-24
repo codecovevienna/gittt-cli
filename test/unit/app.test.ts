@@ -1,9 +1,10 @@
 import { assert, expect } from "chai";
+import { Command, CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonInspectable } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import { IGitRepoAnswers, IInitAnswers } from "../../interfaces";
+import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject } from "../../interfaces";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
@@ -451,6 +452,69 @@ describe("App", () => {
 
     assert.isTrue(createDirStub.calledOnce);
     assert.isTrue(pullStub.calledOnce);
+  });
+
+  it.only("should setup new JIRA link", async () => {
+    const mockedCommander: CommanderStatic = proxyquire("commander", {});
+    const getProjectFromGitStub: SinonInspectable = sinon.stub().returns({
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "mocked_project_1",
+    } as IProject);
+
+    const getConfigObjectStub: SinonInspectable = sinon.stub().resolves({
+      created: 1234,
+      gitRepo: "ssh://git@mocked.com:443/mocked/test.git",
+      links: [],
+    } as IConfigFile);
+
+    const proxy: any = proxyquire("../../app", {
+      "./helper": {
+        FileHelper: function FileHelper(): any {
+          return {
+            configDirExists: sinon.stub().resolves(true),
+            getConfigObject: getConfigObjectStub,
+          };
+        },
+        GitHelper: function GitHelper(): any {
+          return {};
+        },
+        LogHelper,
+        ProjectHelper: function ProjectHelper(): any {
+          return {
+            addLink: sinon.stub().resolves(),
+            getProjectFromGit: getProjectFromGitStub,
+          };
+        },
+        TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+      },
+      "commander": mockedCommander,
+      "inquirer": {
+        prompt: sinon.stub()
+          .onCall(0).resolves({
+            integration: "Jira",
+          })
+          .onCall(1).resolves({
+            endpoint: "http://jira.test.com:1337/jira/rest/gittt/latest/",
+            key: "TEST",
+            password: "admin",
+            username: "admin",
+          }),
+      },
+    });
+
+    const mockedApp: App = new proxy.App();
+
+    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+    sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+
+    await mockedApp.setup();
+
+    await mockedApp.linkAction(new Command());
   });
 
   it("should ask for git url", async () => {

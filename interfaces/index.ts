@@ -16,15 +16,14 @@ export interface IProject {
 }
 
 export interface IIntegrationLink {
-  project: string;
+  projectName: string;
 }
 
 export interface IJiraLink extends IIntegrationLink {
-  host: string;
-  port: string;
   username: string;
-  password: string;
+  hash: string;
   endpoint: string;
+  key: string;
 }
 
 export interface IConfigFile {

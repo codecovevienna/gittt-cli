@@ -23,8 +23,8 @@ export interface IIntegrationAnswers {
 }
 
 export interface IJiraIntegrationAnswers {
-  host: string;
-  port: string;
+  endpoint: string;
   username: string;
   password: string;
+  key: string;
 }
