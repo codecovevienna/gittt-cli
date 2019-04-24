@@ -1,6 +1,7 @@
 import { RECORD_TYPES } from "../types";
 
 export * from "./answers";
+export * from "./integrations";
 
 export interface IRecord {
   guid?: string;
@@ -17,9 +18,22 @@ export interface IProject {
   records: IRecord[];
 }
 
+export interface IIntegrationLink {
+  projectName: string;
+  linkType: string;
+}
+
+export interface IJiraLink extends IIntegrationLink {
+  username: string;
+  hash: string;
+  endpoint: string;
+  key: string;
+}
+
 export interface IConfigFile {
   created: number;
   gitRepo: string;
+  links: IIntegrationLink[];
 }
 
 export interface IProjectMeta {

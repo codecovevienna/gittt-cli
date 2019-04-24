@@ -1,3 +1,4 @@
+import axios, { AxiosResponse } from "axios";
 import commander, { Command, CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import _ from "lodash";
@@ -5,7 +6,19 @@ import moment from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
-import { IConfigFile, IGitRepoAnswers, IInitAnswers, IInitProjectAnswers, IProject, IRecord } from "./interfaces";
+import {
+  IConfigFile,
+  IGitRepoAnswers,
+  IInitAnswers,
+  IInitProjectAnswers,
+  IIntegrationAnswers,
+  IIntegrationLink,
+  IJiraIntegrationAnswers,
+  IJiraLink,
+  IJiraPublishResult,
+  IProject,
+  IRecord,
+} from "./interfaces";
 import { RECORD_TYPES } from "./types";
 
 // tslint:disable-next-line no-var-requires
@@ -117,6 +130,151 @@ export class App {
         this.exit("Invalid config file", 1);
         // TODO reinitialize?
       }
+    }
+  }
+
+  public async linkAction(cmd: Command): Promise<void> {
+    const integrationAnswers: IIntegrationAnswers = await inquirer.prompt([
+      {
+        choices: [
+          "Jira",
+        ],
+        message: "Link project to what integration?",
+        name: "integration",
+        type: "list",
+      },
+    ]);
+    const { integration } = integrationAnswers;
+
+    switch (integration) {
+      case "Jira":
+        const jiraAnswers: IJiraIntegrationAnswers = await inquirer.prompt([
+          {
+            message: "Jira gittt plugin endpoint",
+            name: "endpoint",
+            type: "input",
+            // TODO validate?
+          },
+          {
+            message: "Jira username",
+            name: "username",
+            type: "input",
+            // TODO validate
+          },
+          {
+            message: "Jira password",
+            name: "password",
+            type: "password",
+            // TODO validate
+          },
+          {
+            message: "Jira project key (e.g. GITTT)",
+            name: "key",
+            type: "input",
+            // TODO validate
+          },
+        ]);
+
+        const project: IProject = this.projectHelper.getProjectFromGit();
+
+        if (!project) {
+          return this.exit("Seems like you are not in a valid git directory", 1);
+        }
+        // TODO validate if record exists in projects dir(?)
+
+        const hash: string = Buffer.from(`${jiraAnswers.username}:${jiraAnswers.password}`).toString("base64");
+
+        const { endpoint, key, username } = jiraAnswers;
+        const projectName: string = project.name;
+
+        const link: IJiraLink = {
+          endpoint,
+          hash,
+          key,
+          linkType: "Jira",
+          projectName,
+          username,
+        };
+
+        try {
+          await this.fileHelper.addOrUpdateLink(link);
+        } catch (err) {
+          LogHelper.debug(`Unable to add link to config file`, err);
+          return this.exit(`Unable to add link to config file`, 1);
+        }
+
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  public async publishAction(cmd: Command): Promise<void> {
+    const project: IProject = this.projectHelper.getProjectFromGit();
+
+    if (!project) {
+      return this.exit("Seems like you are not in a valid git directory", 1);
+    }
+
+    const configObject: IConfigFile = await this.fileHelper.getConfigObject();
+
+    const link: any | undefined = configObject.links.find((li: IIntegrationLink) => {
+      return li.projectName === project.name;
+    });
+
+    if (!link) {
+      return this.exit(`Unable to find a link for "${project.name}"`, 1);
+    }
+
+    const populatedProject: IProject | undefined = await this.fileHelper.findProjectByName(project.name);
+
+    if (!populatedProject) {
+      return this.exit("Unable to find project", 1);
+    }
+
+    switch (link.linkType) {
+      case "Jira":
+        // cast generic link to jira link
+        const jiraLink: IJiraLink = link;
+
+        // Map local project to jira key
+        LogHelper.debug(`Mapping "${populatedProject.name}" to Jira key "${jiraLink.key}"`);
+        populatedProject.name = jiraLink.key;
+
+        try {
+          const publishResult: AxiosResponse = await axios
+            .post(jiraLink.endpoint,
+              populatedProject,
+              {
+                headers: {
+                  "Authorization": `Basic ${jiraLink.hash}`,
+                  "Cache-Control": "no-cache",
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+
+          const data: IJiraPublishResult = publishResult.data;
+
+          if (data.success) {
+            LogHelper.info("Successfully published data to Jira");
+          } else {
+            this.exit(`Unable to publish to Jira: ${data.message}`, 1);
+          }
+        } catch (err) {
+          delete err.config;
+          delete err.request;
+          delete err.response;
+          LogHelper.debug("Publish request failed", err);
+          this.exit(`Publish request failed`, 1);
+        }
+
+        break;
+
+      default:
+        this.exit(`Link type "${link.linkType}" not implemented`, 1);
+        break;
     }
   }
 
@@ -489,6 +647,20 @@ New type: ${updatedRecord.type}`;
         if (initProjectAnswers.confirm) {
           await this.projectHelper.initProject();
         }
+      });
+
+    commander
+      .command("link")
+      .description("Initializes link to third party applications")
+      .action(async (cmd: Command) => {
+        await this.linkAction(cmd);
+      });
+
+    commander
+      .command("publish")
+      .description("Publishes stored records to external endpoint")
+      .action(async (cmd: Command) => {
+        await this.publishAction(cmd);
       });
 
     commander
