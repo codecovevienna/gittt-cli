@@ -153,3 +153,6 @@ crashlytics-build.properties
 
 # TypeDoc
 doc
+
+# pkg bin output
+bin
