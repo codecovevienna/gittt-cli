@@ -441,7 +441,7 @@ export class App {
     return newTypeAnswer.type;
   }
 
-  public async editAction(options: Command): Promise<void> {
+  public async editAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     // TODO move to own function, is used multiple times
@@ -467,12 +467,12 @@ export class App {
     let chosenRecord: IRecord;
 
     if (!interactiveMode) {
-      if (!options.guid) {
+      if (!cmd.guid) {
         LogHelper.error("No guid option found");
-        return options.help();
+        return cmd.help();
       }
 
-      const recordGuid: string = options.guid;
+      const recordGuid: string = cmd.guid;
 
       const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
         return rc.guid === recordGuid;
@@ -494,17 +494,17 @@ export class App {
     const updatedRecord: IRecord = chosenRecord;
 
     if (!interactiveMode) {
-      if (options.amount) {
-        updatedRecord.amount = options.amount;
+      if (cmd.amount) {
+        updatedRecord.amount = cmd.amount;
       } else {
         LogHelper.error("No amount option found");
-        return options.help();
+        return cmd.help();
       }
-      if (options.type) {
-        updatedRecord.amount = options.amount;
+      if (cmd.type) {
+        updatedRecord.amount = cmd.amount;
       } else {
         LogHelper.error("No type option found");
-        return options.help();
+        return cmd.help();
       }
     } else {
       updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
@@ -532,6 +532,8 @@ New type: ${updatedRecord.type}`;
 
   // TODO pretty much the same as editAction, refactor?
   public async removeAction(cmd: Command): Promise<void> {
+    const interactiveMode: boolean = process.argv.length === 3;
+
     let projectFromGit: IProject;
     try {
       projectFromGit = this.projectHelper.getProjectFromGit();
@@ -553,30 +555,30 @@ New type: ${updatedRecord.type}`;
     let recordsToDelete: IRecord[];
     let chosenRecord: IRecord;
 
-    // if (!interactiveMode) {
-    //   if (!options.guid) {
-    //     LogHelper.error("No guid option found");
-    //     return options.help();
-    //   }
+    if (!interactiveMode) {
+      if (!cmd.guid) {
+        LogHelper.error("No guid option found");
+        return cmd.help();
+      }
 
-    //   const recordGuid: string = options.guid;
+      const recordGuid: string = cmd.guid;
 
-    //   const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
-    //     return rc.guid === recordGuid;
-    //   });
+      const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
+        return rc.guid === recordGuid;
+      });
 
-    //   chosenRecord = chosenRecords[0];
+      chosenRecord = chosenRecords[0];
 
-    //   if (!chosenRecord) {
-    //     return this.exit(`No records found for guid "${recordGuid}"`, 1);
-    //   }
-    // } else {
-    recordsToDelete = await this.filterRecordsByYear(records);
-    recordsToDelete = await this.filterRecordsByMonth(recordsToDelete);
-    recordsToDelete = await this.filterRecordsByDay(recordsToDelete);
+      if (!chosenRecord) {
+        return this.exit(`No records found for guid "${recordGuid}"`, 1);
+      }
+    } else {
+      recordsToDelete = await this.filterRecordsByYear(records);
+      recordsToDelete = await this.filterRecordsByMonth(recordsToDelete);
+      recordsToDelete = await this.filterRecordsByDay(recordsToDelete);
 
-    chosenRecord = await this.askRecord(recordsToDelete);
-    // }
+      chosenRecord = await this.askRecord(recordsToDelete);
+    }
 
     // TODO confirm deletion?
     const updatedRecords: IRecord[] = records.filter((rc: IRecord) => {
