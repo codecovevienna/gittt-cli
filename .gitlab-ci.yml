@@ -42,10 +42,15 @@ build:
     - ./node_modules/.bin/tsc
     - cp package.json dist
     # Compile package for various systems
-    - pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output bin/gittt-${CI_COMMIT_REF_NAME}
+    - pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${CI_COMMIT_SHORT_SHA}
   artifacts:
     paths:
-      - bin/gittt*
+      - gittt-*
+  variables:
+    PKG_CACHE_PATH: ./pkg-cache
+  cache:
+    paths:
+      - ${PKG_CACHE_PATH}
   only:
     - master
     - GITTT-51-Release-management-for-cli
