@@ -42,8 +42,8 @@ build_latest:
   stage: build
   script:
     # Install packages
-    - npm install --no-save pkg
     - npm install
+    - npm install --no-save pkg
     # Compile ts into js
     - ./node_modules/.bin/tsc
     - cp package.json dist
@@ -62,8 +62,8 @@ build_tag:
   stage: build
   script:
     # Install packages
-    - npm install --no-save pkg
     - npm install
+    - npm install --no-save pkg
     # Compile ts into js
     - ./node_modules/.bin/tsc
     - cp package.json dist
