@@ -443,6 +443,8 @@ export class App {
 
   public async editAction(options: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
+
+    // TODO move to own function, is used multiple times
     let projectFromGit: IProject;
     try {
       projectFromGit = this.projectHelper.getProjectFromGit();
@@ -524,6 +526,69 @@ export class App {
     const commitMessage: string = `Updated record ${updatedRecord.guid} in project ${updatedProject.name}
 New amount: ${updatedRecord.amount}
 New type: ${updatedRecord.type}`;
+
+    await this.gitHelper.commitChanges(commitMessage);
+  }
+
+  // TODO pretty much the same as editAction, refactor?
+  public async removeAction(cmd: Command): Promise<void> {
+    let projectFromGit: IProject;
+    try {
+      projectFromGit = this.projectHelper.getProjectFromGit();
+    } catch (err) {
+      LogHelper.debug("Unable to get project name from git folder", err);
+      return this.exit("Unable to get project name from git folder", 1);
+    }
+
+    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
+    if (!projectWithRecords) {
+      return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
+    }
+
+    if (projectWithRecords.records.length === 0) {
+      return this.exit(`No records found for "${projectFromGit.name}"`, 1);
+    }
+
+    const { records } = projectWithRecords;
+    let recordsToDelete: IRecord[];
+    let chosenRecord: IRecord;
+
+    // if (!interactiveMode) {
+    //   if (!options.guid) {
+    //     LogHelper.error("No guid option found");
+    //     return options.help();
+    //   }
+
+    //   const recordGuid: string = options.guid;
+
+    //   const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
+    //     return rc.guid === recordGuid;
+    //   });
+
+    //   chosenRecord = chosenRecords[0];
+
+    //   if (!chosenRecord) {
+    //     return this.exit(`No records found for guid "${recordGuid}"`, 1);
+    //   }
+    // } else {
+    recordsToDelete = await this.filterRecordsByYear(records);
+    recordsToDelete = await this.filterRecordsByMonth(recordsToDelete);
+    recordsToDelete = await this.filterRecordsByDay(recordsToDelete);
+
+    chosenRecord = await this.askRecord(recordsToDelete);
+    // }
+
+    // TODO confirm deletion?
+    const updatedRecords: IRecord[] = records.filter((rc: IRecord) => {
+      return rc.guid !== chosenRecord.guid;
+    });
+
+    const updatedProject: IProject = projectWithRecords;
+    updatedProject.records = updatedRecords;
+
+    await this.fileHelper.saveProjectObject(updatedProject);
+
+    const commitMessage: string = `Removed record ${chosenRecord.guid} from project ${updatedProject.name}`;
 
     await this.gitHelper.commitChanges(commitMessage);
   }
@@ -671,6 +736,14 @@ New type: ${updatedRecord.type}`;
       .option("-t, --type [type]", "New Type for the record")
       .action(async (cmd: Command): Promise<void> => {
         await this.editAction(cmd);
+      });
+
+    commander
+      .command("remove")
+      .description("Remove record of current project")
+      .option("-g, --guid [guid]", "GUID of the record to remove")
+      .action(async (cmd: Command): Promise<void> => {
+        await this.removeAction(cmd);
       });
 
     return commander;
