@@ -50,6 +50,9 @@ build_latest:
     # Compile package for various systems
     - ./node_modules/.bin/pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${CI_COMMIT_SHORT_SHA}
   artifacts:
+    name: "gittt-${CI_COMMIT_SHORT_SHA}"
+    # TODO use never https://gitlab.com/gitlab-org/gitlab-ce/issues/47878
+    expire_in: "420 yrs"
     paths:
       - gittt-*
   only:
@@ -70,6 +73,9 @@ build_tag:
     # Compile package for various systems
     - ./node_modules/.bin/pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${CI_COMMIT_TAG}
   artifacts:
+    name: "gittt-${CI_COMMIT_TAG}"
+    # TODO use never https://gitlab.com/gitlab-org/gitlab-ce/issues/47878
+    expire_in: "420 yrs"
     paths:
       - gittt-*
   only:
