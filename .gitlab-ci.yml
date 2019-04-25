@@ -8,6 +8,10 @@ stages:
 cache:
   paths:
     - node_modules
+    - ${PKG_CACHE_PATH}
+
+variables:
+  PKG_CACHE_PATH: ./pkg-cache
   
 lint:
   tags:
@@ -17,6 +21,8 @@ lint:
   script:
     - npm install
     - npm run lint
+  except:
+    - tags
   
 test:
   tags:
@@ -29,7 +35,7 @@ test:
   except:
     - tags
 
-build:
+build_latest:
   tags:
     - docker
     - codecove
@@ -46,11 +52,26 @@ build:
   artifacts:
     paths:
       - gittt-*
-  variables:
-    PKG_CACHE_PATH: ./pkg-cache
-  cache:
-    paths:
-      - ${PKG_CACHE_PATH}
   only:
     - master
     - GITTT-51-Release-management-for-cli
+
+build_tag:
+  tags:
+    - docker
+    - codecove
+  stage: build
+  script:
+    # Install packages
+    - npm install -g pkg
+    - npm install
+    # Compile ts into js
+    - ./node_modules/.bin/tsc
+    - cp package.json dist
+    # Compile package for various systems
+    - pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${CI_COMMIT_TAG}
+  artifacts:
+    paths:
+      - gittt-*
+  only:
+    - tags
