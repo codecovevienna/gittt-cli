@@ -61,7 +61,9 @@ export class ProjectHelper {
     }
 
     if (!record.created) {
-      record.created = Date.now();
+      const now: number = Date.now();
+      record.created = now;
+      record.updated = now;
     }
 
     foundProject.records.push(record);
