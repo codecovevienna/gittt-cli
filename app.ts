@@ -233,6 +233,24 @@ export class App {
       return this.exit("Unable to find project", 1);
     }
 
+    const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
+    if (logs.length > 0) {
+      const pushConfirm: any = await inquirer.prompt([
+        {
+          default: true,
+          message: "Found local changes, they have to be pushed before publishing",
+          name: "push",
+          type: "confirm",
+        },
+      ]);
+
+      if (pushConfirm.push) {
+        await this.gitHelper.pushChanges();
+      } else {
+        return this.exit("Unable to publish with local changes", 1);
+      }
+    }
+
     switch (link.linkType) {
       case "Jira":
         // cast generic link to jira link
