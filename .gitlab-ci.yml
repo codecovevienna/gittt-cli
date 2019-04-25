@@ -54,7 +54,6 @@ build_latest:
       - gittt-*
   only:
     - master
-    - GITTT-51-Release-management-for-cli
 
 build_tag:
   tags:
