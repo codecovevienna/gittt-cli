@@ -95,6 +95,28 @@ export class ProjectHelper {
   }
 
   public getProjectFromGit = (): IProject => {
+    LogHelper.debug("Checking number of remote urls");
+    const gitRemoteExec: ExecOutputReturnValue = shelljs.exec("git remote", {
+      silent: true,
+    }) as ExecOutputReturnValue;
+
+    if (gitRemoteExec.code !== 0) {
+      LogHelper.debug("Error executing git remote", new Error(gitRemoteExec.stdout));
+      throw new Error("Unable to get remotes from git config");
+    }
+
+    const remotes: string[] = gitRemoteExec.stdout.trim().split("\n");
+
+    if (remotes.length > 1) {
+      LogHelper.debug("Found more than one remotes, trying to find origin");
+      const hasOrigin: boolean = remotes.indexOf("origin") !== -1;
+
+      if (!hasOrigin) {
+        LogHelper.error(`Unable to find any remote called "origin"`);
+        throw new Error(`Unable to find any remote called "origin"`);
+      }
+    }
+
     LogHelper.debug("Trying to find project name from .git folder");
     const gitConfigExec: ExecOutputReturnValue = shelljs.exec("git config remote.origin.url", {
       silent: true,
