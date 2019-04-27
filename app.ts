@@ -153,7 +153,22 @@ export class App {
             message: "Jira gittt plugin endpoint",
             name: "endpoint",
             type: "input",
-            // TODO validate?
+            validate(input: any): boolean | string | Promise<boolean | string> {
+              const inputString: string = input;
+              if (new RegExp("^(http://|https://).+").test(inputString)) {
+                return true;
+              } else {
+                return "The endpoint has to be a valid url";
+              }
+            },
+            filter(input: string): any {
+              // Ensure trailing slash
+              if (input[input.length - 1] !== "/") {
+                return input + "/";
+              } else {
+                return input;
+              }
+            },
           },
           {
             message: "Jira username",
@@ -171,7 +186,15 @@ export class App {
             message: "Jira project key (e.g. GITTT)",
             name: "key",
             type: "input",
-            // TODO validate
+            validate(input: any): boolean | string | Promise<boolean | string> {
+              const inputString: string = input;
+              if (inputString.length > 1) {
+                return true;
+              } else {
+                return "The key has to be longer than one character";
+              }
+
+            },
           },
         ]);
 
@@ -224,7 +247,22 @@ export class App {
     });
 
     if (!link) {
-      return this.exit(`Unable to find a link for "${project.name}"`, 1);
+      LogHelper.warn(`Unable to find a link for "${project.name}"`);
+      const linkSetupAnswer: any = await inquirer.prompt([
+        {
+          message: `Do you want to setup a new link for this project?`,
+          name: "confirm",
+          type: "confirm",
+        },
+      ]);
+
+      if (linkSetupAnswer.confirm) {
+        await this.linkAction(cmd);
+
+        return await this.publishAction(cmd);
+      } else {
+        return this.exit(`Unable to publish without link`, 1);
+      }
     }
 
     const populatedProject: IProject | undefined = await this.fileHelper.findProjectByName(project.name);
@@ -430,7 +468,11 @@ export class App {
         name: "amount",
         type: "number",
         validate(input: any): boolean | string | Promise<boolean | string> {
-          return !isNaN(input);
+          if (!isNaN(input)) {
+            return true;
+          } else {
+            return "The amount has to be a number";
+          }
         },
       },
     ]) as {
