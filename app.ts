@@ -153,7 +153,18 @@ export class App {
             message: "Jira gittt plugin endpoint",
             name: "endpoint",
             type: "input",
-            // TODO validate?
+            validate(input: any): boolean | string | Promise<boolean | string> {
+              const inputString: string = input;
+              return new RegExp("^(http://|https://).+").test(inputString);
+            },
+            filter(input: string): any {
+              // Ensure trailing slash
+              if (input[input.length - 1] !== "/") {
+                return input + "/";
+              } else {
+                return input;
+              }
+            },
           },
           {
             message: "Jira username",
@@ -171,7 +182,10 @@ export class App {
             message: "Jira project key (e.g. GITTT)",
             name: "key",
             type: "input",
-            // TODO validate
+            validate(input: any): boolean | string | Promise<boolean | string> {
+              const inputString: string = input;
+              return inputString.length > 1;
+            },
           },
         ]);
 
