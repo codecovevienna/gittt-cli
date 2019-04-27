@@ -1,11 +1,10 @@
 import { assert, expect } from "chai";
-import { ADDRGETNETWORKPARAMS } from "dns";
 import inquirer = require("inquirer");
 import path from "path";
 import proxyquire from "proxyquire";
 import sinon, { SinonInspectable } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper, TimerHelper } from "../../helper/index";
-import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
+import { ITimerFile } from "../../interfaces";
 
 const sandboxDir: string = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");

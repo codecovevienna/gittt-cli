@@ -7,13 +7,8 @@ import sinon, { SinonInspectable } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
 import {
-  IConfigFile,
-  IGitRepoAnswers,
-  IInitAnswers,
-  IJiraLink,
-  IJiraPublishResult,
-  IProject,
-  IRecord,
+  IConfigFile, IGitRepoAnswers, IInitAnswers,
+  IJiraLink, IJiraPublishResult, IProject, IRecord,
 } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 

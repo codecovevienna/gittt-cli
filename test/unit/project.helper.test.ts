@@ -1,7 +1,6 @@
 import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
-import { ExecOutputReturnValue } from "shelljs";
 import sinon, { SinonInspectable } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "../../helper/index";
 import { IProject } from "../../interfaces";
@@ -430,15 +429,21 @@ describe("ProjectHelper", () => {
   });
 
   it("should get project from git", () => {
+    const shellExecStub: SinonInspectable = sinon.stub()
+      .onCall(0).returns({
+        code: 0,
+        stderr: "",
+        stdout: "origin",
+      })
+      .onCall(1).returns({
+        code: 0,
+        stderr: "",
+        stdout: "ssh://git@github.com:443/test/mocked.git",
+      });
+
     const projectProxy: any = proxyquire("../../helper/project", {
       shelljs: {
-        exec: (): ExecOutputReturnValue => {
-          return {
-            code: 0,
-            stderr: "",
-            stdout: "ssh://git@github.com:443/test/mocked.git",
-          };
-        },
+        exec: shellExecStub,
       },
     });
 
@@ -453,47 +458,143 @@ describe("ProjectHelper", () => {
     expect(project.meta.raw).to.eq("ssh://git@github.com:443/test/mocked.git");
   });
 
-  it("should fail to get project from git [shell exec fails]", () => {
+  it("should get project from git [multiple remotes]", () => {
+    const shellExecStub: SinonInspectable = sinon.stub()
+      .onCall(0).returns({
+        code: 0,
+        stderr: "",
+        stdout: "test\nother\norigin\n",
+      })
+      .onCall(1).returns({
+        code: 0,
+        stderr: "",
+        stdout: "ssh://git@github.com:443/test/mocked.git",
+      });
+
     const projectProxy: any = proxyquire("../../helper/project", {
       shelljs: {
-        exec: (): ExecOutputReturnValue => {
-          return {
-            code: 1337,
-            stderr: "",
-            stdout: "ssh://git@github.com:443/test/mocked.git",
-          };
-        },
+        exec: shellExecStub,
       },
     });
 
     const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
+    const project: IProject = instance.getProjectFromGit();
+
+    assert.isArray(project.records);
+    expect(project.name).to.eq("test_mocked");
+    expect(project.meta.host).to.eq("github.com");
+    expect(project.meta.port).to.eq(443);
+    expect(project.meta.raw).to.eq("ssh://git@github.com:443/test/mocked.git");
+  });
+
+  it("should fail to get project from git [no origin remote]", () => {
+    const shellExecStub: SinonInspectable = sinon.stub()
+      .onCall(0).returns({
+        code: 0,
+        stderr: "",
+        stdout: "test\nother\n",
+      });
+
+    const projectProxy: any = proxyquire("../../helper/project", {
+      shelljs: {
+        exec: shellExecStub,
+      },
+    });
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    let thrownError: Error | undefined;
     try {
       instance.getProjectFromGit();
     } catch (err) {
-      assert.isDefined(err);
+      thrownError = err;
     }
+    assert.isDefined(thrownError);
+  });
+
+  it("should fail to get project from git [shell exec fails]", () => {
+    const shellExecStub: SinonInspectable = sinon.stub()
+      .onCall(0).returns({
+        code: 1337,
+        stderr: "",
+        stdout: "origin",
+      });
+
+    const projectProxy: any = proxyquire("../../helper/project", {
+      shelljs: {
+        exec: shellExecStub,
+      },
+    });
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    let thrownError: Error | undefined;
+    try {
+      instance.getProjectFromGit();
+    } catch (err) {
+      thrownError = err;
+    }
+    assert.isDefined(thrownError);
+  });
+
+  it("should fail to get project from git [shell exec fails]", () => {
+    const shellExecStub: SinonInspectable = sinon.stub()
+      .onCall(0).returns({
+        code: 0,
+        stderr: "",
+        stdout: "origin",
+      })
+      .onCall(1).returns({
+        code: 1337,
+        stderr: "",
+        stdout: "ssh://git@github.com:443/test/mocked.git",
+      });
+
+    const projectProxy: any = proxyquire("../../helper/project", {
+      shelljs: {
+        exec: shellExecStub,
+      },
+    });
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    let thrownError: Error | undefined;
+    try {
+      instance.getProjectFromGit();
+    } catch (err) {
+      thrownError = err;
+    }
+    assert.isDefined(thrownError);
   });
 
   it("should fail to get project from git [invalid stdout]", () => {
+    const shellExecStub: SinonInspectable = sinon.stub()
+      .onCall(0).returns({
+        code: 0,
+        stderr: "",
+        stdout: "origin",
+      })
+      .onCall(1).returns({
+        code: 0,
+        stderr: "",
+        stdout: "ssh",
+      });
+
     const projectProxy: any = proxyquire("../../helper/project", {
       shelljs: {
-        exec: (): ExecOutputReturnValue => {
-          return {
-            code: 0,
-            stderr: "",
-            stdout: "ssh",
-          };
-        },
+        exec: shellExecStub,
       },
     });
 
     const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
+    let thrownError: Error | undefined;
     try {
       instance.getProjectFromGit();
     } catch (err) {
-      assert.isDefined(err);
+      thrownError = err;
     }
+    assert.isDefined(thrownError);
   });
 });
