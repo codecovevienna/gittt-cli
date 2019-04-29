@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from "axios";
-import commander, { Command, CommanderStatic } from "commander";
+import commander, { Command, CommanderStatic, CommandOptions } from "commander";
 import inquirer from "inquirer";
 import _ from "lodash";
-import moment from "moment";
+import moment, { Moment } from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
@@ -338,7 +338,7 @@ export class App {
     const allYears: string[] = [];
 
     for (const rc of records) {
-      const currentYear: string = moment(rc.created).format("YYYY");
+      const currentYear: string = moment(rc.to).format("YYYY");
       if (allYears.indexOf(currentYear) === -1) {
         allYears.push(currentYear);
       }
@@ -358,7 +358,7 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentYear: string = moment(rc.created).format("YYYY");
+        const currentYear: string = moment(rc.to).format("YYYY");
         return currentYear === choiceYear.year;
       });
 
@@ -372,7 +372,7 @@ export class App {
     const allMonths: string[] = [];
 
     for (const rc of records) {
-      const currentMonth: string = moment(rc.created).format("MMMM");
+      const currentMonth: string = moment(rc.to).format("MMMM");
       if (allMonths.indexOf(currentMonth) === -1) {
         allMonths.push(currentMonth);
       }
@@ -392,7 +392,7 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentMonth: string = moment(rc.created).format("MMMM");
+        const currentMonth: string = moment(rc.to).format("MMMM");
         return currentMonth === choiceMonth.month;
       });
 
@@ -406,7 +406,7 @@ export class App {
     const allDays: string[] = [];
 
     for (const rc of records) {
-      const currentDay: string = moment(rc.created).format("DD");
+      const currentDay: string = moment(rc.to).format("DD");
       if (allDays.indexOf(currentDay) === -1) {
         allDays.push(currentDay);
       }
@@ -426,7 +426,7 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentDay: string = moment(rc.created).format("DD");
+        const currentDay: string = moment(rc.to).format("DD");
         return currentDay === choiceDay.day;
       });
 
@@ -440,7 +440,7 @@ export class App {
       {
         choices: records.map((rc: IRecord) => {
           return {
-            name: `${moment(rc.created).format("dd.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} - "${_.
+            name: `${moment(rc.to).format("DD.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} - "${_.
               truncate(rc.message)}"`,
             value: rc.guid,
           };
@@ -458,6 +458,160 @@ export class App {
     const [chosenRecord] = chosenRecords;
 
     return chosenRecord;
+  }
+
+  public async askYear(): Promise<number> {
+    const choice: any = await inquirer.prompt([
+      {
+        default: moment().year(),
+        message: "Year",
+        name: "choice",
+        type: "number",
+        validate(input: any): boolean | string | Promise<boolean | string> {
+          if (!isNaN(input)) {
+            return true;
+          } else {
+            return "The year has to be a number";
+          }
+
+        },
+      },
+    ]);
+
+    return parseInt(choice.choice, 10);
+  }
+
+  public async askMonth(): Promise<number> {
+    const choice: any = await inquirer.prompt([
+      {
+        default: moment().month() + 1,
+        message: "Month",
+        name: "choice",
+        type: "number",
+        validate(input: any): boolean | string | Promise<boolean | string> {
+          if (!isNaN(input)) {
+            const inputNumber: number = parseInt(input, 10);
+            if (inputNumber > 0 && inputNumber < 13) {
+              return true;
+            } else {
+              return "Only values between 1 and 12 are valid";
+            }
+          } else {
+            return "The month has to be a number";
+          }
+
+        },
+      },
+    ]);
+
+    return parseInt(choice.choice, 10);
+  }
+
+  public async askDay(): Promise<number> {
+    const choice: any = await inquirer.prompt([
+      {
+        default: moment().date(),
+        message: "Day",
+        name: "choice",
+        type: "number",
+        validate(input: any): boolean | string | Promise<boolean | string> {
+          if (!isNaN(input)) {
+            const inputNumber: number = parseInt(input, 10);
+            if (inputNumber > 0 && inputNumber < 32) {
+              return true;
+            } else {
+              return "Only values between 1 and 31 are valid";
+            }
+          } else {
+            return "The day has to be a number";
+          }
+
+        },
+      },
+    ]);
+
+    return parseInt(choice.choice, 10);
+  }
+
+  public async askHour(): Promise<number> {
+    const choice: any = await inquirer.prompt([
+      {
+        default: moment().hour(),
+        message: "Hour",
+        name: "choice",
+        type: "number",
+        validate(input: any): boolean | string | Promise<boolean | string> {
+          if (!isNaN(input)) {
+            const inputNumber: number = parseInt(input, 10);
+            if (inputNumber >= 0 && inputNumber < 24) {
+              return true;
+            } else {
+              return "Only values between 0 and 23 are valid";
+            }
+          } else {
+            return "The hour has to be a number";
+          }
+
+        },
+      },
+    ]);
+
+    return parseInt(choice.choice, 10);
+  }
+
+  public async askMinute(): Promise<number> {
+    const choice: any = await inquirer.prompt([
+      {
+        default: moment().minute(),
+        message: "Minute",
+        name: "choice",
+        type: "number",
+        validate(input: any): boolean | string | Promise<boolean | string> {
+          if (!isNaN(input)) {
+            const inputNumber: number = parseInt(input, 10);
+            if (inputNumber >= 0 && inputNumber < 60) {
+              return true;
+            } else {
+              return "Only values between 0 and 59 are valid";
+            }
+          } else {
+            return "The minute has to be a number";
+          }
+
+        },
+      },
+    ]);
+
+    return parseInt(choice.choice, 10);
+  }
+
+  // public async askBeforeAfter(): Promise<string> {
+  //   const choice: any = await inquirer.prompt([
+  //     {
+  //       choices: [
+  //         "after",
+  //         "before",
+  //       ],
+  //       default: "after",
+  //       message: "Should the amount be added before after the set time?",
+  //       name: "choice",
+  //       type: "list",
+  //     },
+  //   ]);
+
+  //   return choice.choice;
+  // }
+
+  public async askMessage(): Promise<string> {
+    const choice: any = await inquirer.prompt([
+      {
+        message: "Message",
+        name: "choice",
+        type: "input",
+      },
+    ]);
+
+    return choice.choice;
   }
 
   public async askNewAmount(oldAmount: number): Promise<number> {
@@ -571,6 +725,8 @@ export class App {
       updatedRecord.type = await this.askNewType(chosenRecord.type);
     }
 
+    // TODO update from timestamp
+
     updatedRecord.updated = Date.now();
 
     const updatedRecords: IRecord[] = records.map((rc: IRecord) => {
@@ -655,13 +811,50 @@ New type: ${updatedRecord.type}`;
     await this.gitHelper.commitChanges(commitMessage);
   }
 
+  public async addAction(cmd: Command): Promise<void> {
+    // TODO allow future?
+    // TODO test validation
+
+    const year: number = await this.askYear();
+    const month: number = await this.askMonth();
+    const day: number = await this.askDay();
+    const hour: number = await this.askHour();
+    const minute: number = await this.askMinute();
+    const amount: number = await this.askNewAmount(1);
+    const message: string = await this.askMessage();
+    // const beforeAfter: string = await this.askBeforeAfter();
+
+    const modifiedMoment: Moment = moment().set({
+      date: day,
+      hour,
+      millisecond: 0,
+      minute,
+      month: month - 1,
+      second: 0,
+      year,
+    });
+
+    const to: number = modifiedMoment.unix() * 1000;
+    const from: number = modifiedMoment.subtract(amount, "hours").unix() * 1000;
+
+    const newRecord: IRecord = {
+      amount,
+      from,
+      message,
+      to,
+      type: "Time",
+    };
+
+    await this.projectHelper.addRecordToProject(newRecord);
+  }
+
   public initCommander(): CommanderStatic {
     commander
       .version(APP_VERSION);
 
     commander
       .command("commit <hours>")
-      .description("Adding hours to the project")
+      .description("Committing current hours to the project")
       .option("-m, --message <message>", "Description of the spent hours")
       .action(async (cmd: string, options: any): Promise<void> => {
         const hours: number = parseFloat(cmd);
@@ -674,6 +867,18 @@ New type: ${updatedRecord.type}`;
           message: options.message,
           type: "Time",
         });
+      });
+
+    commander
+      .command("add")
+      .description("Adding hours to the project in the past")
+      .option("-a, --amount <amount>", "Specify the amount")
+      .option("-y, --year [year]", "Specify the year, defaults to current year")
+      .option("-m, --month [month]", "Specify the month, defaults to current month")
+      .option("-d, --day [day]", "Specify the day, defaults to current day")
+      .option("-t, --time [time]", "Specify the time, defaults to current time")
+      .action(async (cmd: Command): Promise<void> => {
+        await this.addAction(cmd);
       });
 
     commander

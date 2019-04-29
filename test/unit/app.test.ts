@@ -1973,6 +1973,98 @@ describe("App", () => {
     assert.isTrue(exitStub.calledOnce);
   });
 
+  it.only("should add record to the past", async () => {
+    const mockedRecords: IRecord[] = [
+      {
+        amount: 1337,
+        created: 1234,
+        guid: "mocked-guid",
+        type: "Time",
+      } as IRecord,
+    ];
+
+    const getProjectFromGitStub: SinonInspectable = sinon.stub().returns({
+      meta: {
+        host: "test.git.com",
+        port: 443,
+      },
+      name: "mocked",
+    } as IProject);
+
+    const findProjectByNameStub: SinonInspectable = sinon.stub().resolves({
+      meta: {
+        host: "test.git.com",
+        port: 443,
+      },
+      name: "mocked",
+      records: mockedRecords,
+    });
+
+    const commitChangesStub: SinonInspectable = sinon.stub().resolves();
+
+    const addRecordToProjectStub: SinonInspectable = sinon.stub().resolves();
+
+    const saveProjectObjectStub: SinonInspectable = sinon.stub().resolves();
+
+    const proxy: any = proxyquire("../../app", {
+      "./helper": {
+        FileHelper: function FileHelper(): any {
+          return {
+            configDirExists: sinon.stub().resolves(true),
+            findProjectByName: findProjectByNameStub,
+            saveProjectObject: saveProjectObjectStub,
+          };
+        },
+        GitHelper: function GitHelper(): any {
+          return {
+            commitChanges: commitChangesStub,
+          };
+        },
+        LogHelper,
+        ProjectHelper: function ProjectHelper(): any {
+          return {
+            addRecordToProject: addRecordToProjectStub,
+            getProjectFromGit: getProjectFromGitStub,
+          };
+        },
+        TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+      },
+    });
+    const mockedApp: App = new proxy.App();
+
+    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+    sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+
+    sinon.stub(mockedApp, "askYear").resolves(2019);
+    sinon.stub(mockedApp, "askMonth").resolves(12);
+    sinon.stub(mockedApp, "askDay").resolves(24);
+    sinon.stub(mockedApp, "askHour").resolves(13);
+    sinon.stub(mockedApp, "askMinute").resolves(37);
+    sinon.stub(mockedApp, "askNewAmount").resolves(1.234);
+    sinon.stub(mockedApp, "askMessage").resolves("Mocked message");
+    // sinon.stub(mockedApp, "askBeforeAfter").resolves("before");
+    // sinon.stub(mockedApp, "filterRecordsByMonth").resolves(mockedRecords);
+    // sinon.stub(mockedApp, "filterRecordsByDay").resolves(mockedRecords);
+    // sinon.stub(mockedApp, "askRecord").resolves(mockedRecords[0]);
+
+    await mockedApp.setup();
+
+    const mockedCommand: Command = new Command();
+
+    // Mock arguments array to enable interactive mode
+    process.argv = ["1", "2", "3"];
+
+    await mockedApp.addAction(mockedCommand);
+
+    // assert.isTrue(getProjectFromGitStub.calledOnce);
+    // assert.isTrue(findProjectByNameStub.calledOnce);
+    // assert.isTrue(saveProjectObjectStub.calledOnce);
+    // expect(saveProjectObjectStub.args[0][0].records.length).to.eq(0);
+    // assert.isTrue(commitChangesStub.calledOnce);
+  });
+
   it("should check if config file is valid", async () => {
     const proxy: any = proxyquire("../../app", {
       "./helper": {
