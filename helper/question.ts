@@ -178,7 +178,7 @@ export class QuestionHelper {
   public static askAmount = async (oldAmount?: number): Promise<number> => {
     const question: Question = {
       message: "Update amount",
-      name: "amount",
+      name: "choice",
       type: "number",
       validate: QuestionHelper.validateAmount,
     };
