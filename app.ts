@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import commander, { Command, CommanderStatic, CommandOptions } from "commander";
+import commander, { Command, CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import _ from "lodash";
 import moment, { Moment } from "moment";
@@ -18,15 +18,12 @@ import {
   IConfigFile,
   IInitAnswers,
   IInitProjectAnswers,
-  IIntegrationAnswers,
   IIntegrationLink,
-  IJiraIntegrationAnswers,
   IJiraLink,
   IJiraPublishResult,
   IProject,
   IRecord,
 } from "./interfaces";
-import { RECORD_TYPES } from "./types";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");

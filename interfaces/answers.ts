@@ -13,14 +13,3 @@ export interface IGitCommitMessageAnswers {
 export interface IInitProjectAnswers {
   confirm: boolean;
 }
-
-export interface IIntegrationAnswers {
-  integration: string;
-}
-
-export interface IJiraIntegrationAnswers {
-  endpoint: string;
-  username: string;
-  password: string;
-  key: string;
-}
