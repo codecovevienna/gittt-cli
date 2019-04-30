@@ -2057,18 +2057,6 @@ describe("App", () => {
     sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
     sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    // sinon.stub(mockedApp, "askYear").resolves(2019);
-    // sinon.stub(mockedApp, "askMonth").resolves(12);
-    // sinon.stub(mockedApp, "askDay").resolves(24);
-    // sinon.stub(mockedApp, "askHour").resolves(13);
-    // sinon.stub(mockedApp, "askMinute").resolves(37);
-    // sinon.stub(mockedApp, "askNewAmount").resolves(1.234);
-    // sinon.stub(mockedApp, "askMessage").resolves("Mocked message");
-    // sinon.stub(mockedApp, "askBeforeAfter").resolves("before");
-    // sinon.stub(mockedApp, "filterRecordsByMonth").resolves(mockedRecords);
-    // sinon.stub(mockedApp, "filterRecordsByDay").resolves(mockedRecords);
-    // sinon.stub(mockedApp, "askRecord").resolves(mockedRecords[0]);
-
     await mockedApp.setup();
 
     const mockedCommand: Command = new Command();

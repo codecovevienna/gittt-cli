@@ -524,13 +524,46 @@ New type: ${updatedRecord.type}`;
   }
 
   public async addAction(cmd: Command): Promise<void> {
-    const year: number = await QuestionHelper.askYear();
-    const month: number = await QuestionHelper.askMonth();
-    const day: number = await QuestionHelper.askDay();
-    const hour: number = await QuestionHelper.askHour();
-    const minute: number = await QuestionHelper.askMinute();
-    const amount: number = await QuestionHelper.askAmount(1);
-    const message: string = await QuestionHelper.askMessage();
+    const interactiveMode: boolean = process.argv.length === 3;
+
+    let year: number;
+    let month: number;
+    let day: number;
+    let hour: number;
+    let minute: number;
+    let amount: number;
+    let message: string | undefined;
+
+    if (!interactiveMode) {
+      if (!cmd.amount || !QuestionHelper.validateNumber(cmd.amount)) {
+        LogHelper.error("No amount option found");
+        return cmd.help();
+      }
+
+      amount = parseInt(cmd.amount, 10);
+
+      year = (cmd.year && QuestionHelper.validateNumber(cmd.year))
+        ? parseInt(cmd.year, 10) : moment().year();
+      month = (cmd.month && QuestionHelper.validateNumber(cmd.month, 1, 12))
+        ? parseInt(cmd.month, 10) : moment().month() + 1;
+      day = (cmd.day && QuestionHelper.validateNumber(cmd.day, 1, 31))
+        ? parseInt(cmd.day, 10) : moment().date();
+      hour = (cmd.hour && QuestionHelper.validateNumber(cmd.hour, 0, 23))
+        ? parseInt(cmd.hour, 10) : moment().hour();
+      minute = (cmd.minute && QuestionHelper.validateNumber(cmd.minute, 0, 59))
+        ? parseInt(cmd.minute, 10) : moment().minute();
+
+      message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
+
+    } else {
+      year = await QuestionHelper.askYear();
+      month = await QuestionHelper.askMonth();
+      day = await QuestionHelper.askDay();
+      hour = await QuestionHelper.askHour();
+      minute = await QuestionHelper.askMinute();
+      amount = await QuestionHelper.askAmount(1);
+      message = await QuestionHelper.askMessage();
+    }
 
     const modifiedMoment: Moment = moment().set({
       date: day,
@@ -547,7 +580,7 @@ New type: ${updatedRecord.type}`;
     const newRecord: IRecord = {
       amount,
       end,
-      message,
+      message: message ? message : undefined,
       type: "Time",
     };
 
@@ -583,7 +616,9 @@ New type: ${updatedRecord.type}`;
       .option("-y, --year [year]", "Specify the year, defaults to current year")
       .option("-m, --month [month]", "Specify the month, defaults to current month")
       .option("-d, --day [day]", "Specify the day, defaults to current day")
-      .option("-t, --time [time]", "Specify the time, defaults to current time")
+      .option("-h, --hour [hour]", "Specify the hour, defaults to current hour")
+      .option("-M, --minute [minute]", "Specify the minute, defaults to current minute")
+      .option("-w, --message [message]", "Specify the message of the record")
       .action(async (cmd: Command): Promise<void> => {
         await this.addAction(cmd);
       });
