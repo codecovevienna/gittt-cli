@@ -5,10 +5,17 @@ import _ from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
-import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
+import {
+  FileHelper,
+  GitHelper,
+  LogHelper,
+  parseProjectNameFromGitUrl,
+  ProjectHelper,
+  QuestionHelper,
+  TimerHelper,
+} from "./helper";
 import {
   IConfigFile,
-  IGitRepoAnswers,
   IInitAnswers,
   IInitProjectAnswers,
   IIntegrationAnswers,
@@ -100,7 +107,7 @@ export class App {
       this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
 
       if (!(await this.isConfigFileValid())) {
-        const gitUrl: string = await this.askGitUrl();
+        const gitUrl: string = await QuestionHelper.askGitUrl();
         LogHelper.info("Initializing local repo");
         await this.gitHelper.initRepo(gitUrl);
         // TODO remove reset=true?
@@ -134,70 +141,10 @@ export class App {
   }
 
   public async linkAction(cmd: Command): Promise<void> {
-    const integrationAnswers: IIntegrationAnswers = await inquirer.prompt([
-      {
-        choices: [
-          "Jira",
-        ],
-        message: "Link project to what integration?",
-        name: "integration",
-        type: "list",
-      },
-    ]);
-    const { integration } = integrationAnswers;
+    const integration: string = await QuestionHelper.chooseIntegration();
 
     switch (integration) {
       case "Jira":
-        const jiraAnswers: IJiraIntegrationAnswers = await inquirer.prompt([
-          {
-            message: "Jira gittt plugin endpoint",
-            name: "endpoint",
-            type: "input",
-            validate(input: any): boolean | string | Promise<boolean | string> {
-              const inputString: string = input;
-              if (new RegExp("^(http://|https://).+").test(inputString)) {
-                return true;
-              } else {
-                return "The endpoint has to be a valid url";
-              }
-            },
-            filter(input: string): any {
-              // Ensure trailing slash
-              if (input[input.length - 1] !== "/") {
-                return input + "/";
-              } else {
-                return input;
-              }
-            },
-          },
-          {
-            message: "Jira username",
-            name: "username",
-            type: "input",
-            // TODO validate
-          },
-          {
-            message: "Jira password",
-            name: "password",
-            type: "password",
-            // TODO validate
-          },
-          {
-            message: "Jira project key (e.g. GITTT)",
-            name: "key",
-            type: "input",
-            validate(input: any): boolean | string | Promise<boolean | string> {
-              const inputString: string = input;
-              if (inputString.length > 1) {
-                return true;
-              } else {
-                return "The key has to be longer than one character";
-              }
-
-            },
-          },
-        ]);
-
         const project: IProject = this.projectHelper.getProjectFromGit();
 
         if (!project) {
@@ -205,22 +152,10 @@ export class App {
         }
         // TODO validate if record exists in projects dir(?)
 
-        const hash: string = Buffer.from(`${jiraAnswers.username}:${jiraAnswers.password}`).toString("base64");
-
-        const { endpoint, key, username } = jiraAnswers;
-        const projectName: string = project.name;
-
-        const link: IJiraLink = {
-          endpoint,
-          hash,
-          key,
-          linkType: "Jira",
-          projectName,
-          username,
-        };
+        const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project);
 
         try {
-          await this.fileHelper.addOrUpdateLink(link);
+          await this.fileHelper.addOrUpdateLink(jiraLink);
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -338,7 +273,7 @@ export class App {
     const allYears: string[] = [];
 
     for (const rc of records) {
-      const currentYear: string = moment(rc.to).format("YYYY");
+      const currentYear: string = moment(rc.end).format("YYYY");
       if (allYears.indexOf(currentYear) === -1) {
         allYears.push(currentYear);
       }
@@ -358,7 +293,7 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentYear: string = moment(rc.to).format("YYYY");
+        const currentYear: string = moment(rc.end).format("YYYY");
         return currentYear === choiceYear.year;
       });
 
@@ -372,7 +307,7 @@ export class App {
     const allMonths: string[] = [];
 
     for (const rc of records) {
-      const currentMonth: string = moment(rc.to).format("MMMM");
+      const currentMonth: string = moment(rc.end).format("MMMM");
       if (allMonths.indexOf(currentMonth) === -1) {
         allMonths.push(currentMonth);
       }
@@ -392,7 +327,7 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentMonth: string = moment(rc.to).format("MMMM");
+        const currentMonth: string = moment(rc.end).format("MMMM");
         return currentMonth === choiceMonth.month;
       });
 
@@ -406,7 +341,7 @@ export class App {
     const allDays: string[] = [];
 
     for (const rc of records) {
-      const currentDay: string = moment(rc.to).format("DD");
+      const currentDay: string = moment(rc.end).format("DD");
       if (allDays.indexOf(currentDay) === -1) {
         allDays.push(currentDay);
       }
@@ -426,233 +361,13 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentDay: string = moment(rc.to).format("DD");
+        const currentDay: string = moment(rc.end).format("DD");
         return currentDay === choiceDay.day;
       });
 
     } else {
       return records;
     }
-  }
-
-  public async askRecord(records: IRecord[]): Promise<IRecord> {
-    const choice: any = await inquirer.prompt([
-      {
-        choices: records.map((rc: IRecord) => {
-          return {
-            name: `${moment(rc.to).format("DD.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} - "${_.
-              truncate(rc.message)}"`,
-            value: rc.guid,
-          };
-        }),
-        message: "List of records",
-        name: "choice",
-        type: "list",
-      },
-    ]);
-
-    const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
-      return rc.guid === choice.choice;
-    });
-
-    const [chosenRecord] = chosenRecords;
-
-    return chosenRecord;
-  }
-
-  public async askYear(): Promise<number> {
-    const choice: any = await inquirer.prompt([
-      {
-        default: moment().year(),
-        message: "Year",
-        name: "choice",
-        type: "number",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          if (!isNaN(input)) {
-            return true;
-          } else {
-            return "The year has to be a number";
-          }
-
-        },
-      },
-    ]);
-
-    return parseInt(choice.choice, 10);
-  }
-
-  public async askMonth(): Promise<number> {
-    const choice: any = await inquirer.prompt([
-      {
-        default: moment().month() + 1,
-        message: "Month",
-        name: "choice",
-        type: "number",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          if (!isNaN(input)) {
-            const inputNumber: number = parseInt(input, 10);
-            if (inputNumber > 0 && inputNumber < 13) {
-              return true;
-            } else {
-              return "Only values between 1 and 12 are valid";
-            }
-          } else {
-            return "The month has to be a number";
-          }
-
-        },
-      },
-    ]);
-
-    return parseInt(choice.choice, 10);
-  }
-
-  public async askDay(): Promise<number> {
-    const choice: any = await inquirer.prompt([
-      {
-        default: moment().date(),
-        message: "Day",
-        name: "choice",
-        type: "number",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          if (!isNaN(input)) {
-            const inputNumber: number = parseInt(input, 10);
-            if (inputNumber > 0 && inputNumber < 32) {
-              return true;
-            } else {
-              return "Only values between 1 and 31 are valid";
-            }
-          } else {
-            return "The day has to be a number";
-          }
-
-        },
-      },
-    ]);
-
-    return parseInt(choice.choice, 10);
-  }
-
-  public async askHour(): Promise<number> {
-    const choice: any = await inquirer.prompt([
-      {
-        default: moment().hour(),
-        message: "Hour",
-        name: "choice",
-        type: "number",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          if (!isNaN(input)) {
-            const inputNumber: number = parseInt(input, 10);
-            if (inputNumber >= 0 && inputNumber < 24) {
-              return true;
-            } else {
-              return "Only values between 0 and 23 are valid";
-            }
-          } else {
-            return "The hour has to be a number";
-          }
-
-        },
-      },
-    ]);
-
-    return parseInt(choice.choice, 10);
-  }
-
-  public async askMinute(): Promise<number> {
-    const choice: any = await inquirer.prompt([
-      {
-        default: moment().minute(),
-        message: "Minute",
-        name: "choice",
-        type: "number",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          if (!isNaN(input)) {
-            const inputNumber: number = parseInt(input, 10);
-            if (inputNumber >= 0 && inputNumber < 60) {
-              return true;
-            } else {
-              return "Only values between 0 and 59 are valid";
-            }
-          } else {
-            return "The minute has to be a number";
-          }
-
-        },
-      },
-    ]);
-
-    return parseInt(choice.choice, 10);
-  }
-
-  // public async askBeforeAfter(): Promise<string> {
-  //   const choice: any = await inquirer.prompt([
-  //     {
-  //       choices: [
-  //         "after",
-  //         "before",
-  //       ],
-  //       default: "after",
-  //       message: "Should the amount be added before after the set time?",
-  //       name: "choice",
-  //       type: "list",
-  //     },
-  //   ]);
-
-  //   return choice.choice;
-  // }
-
-  public async askMessage(): Promise<string> {
-    const choice: any = await inquirer.prompt([
-      {
-        message: "Message",
-        name: "choice",
-        type: "input",
-      },
-    ]);
-
-    return choice.choice;
-  }
-
-  public async askNewAmount(oldAmount: number): Promise<number> {
-    const newAmountAnswer: any = await inquirer.prompt([
-      {
-        default: oldAmount,
-        message: "Update amount",
-        name: "amount",
-        type: "number",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          if (!isNaN(input)) {
-            return true;
-          } else {
-            return "The amount has to be a number";
-          }
-        },
-      },
-    ]) as {
-      amount: number,
-    };
-
-    return newAmountAnswer.amount;
-  }
-
-  public async askNewType(oldType: RECORD_TYPES): Promise<RECORD_TYPES> {
-    const newTypeAnswer: any = await inquirer.prompt([
-      {
-        choices: [
-          {
-            name: "Time",
-            value: "Time",
-          },
-        ],
-        default: oldType,
-        message: "Update type",
-        name: "type",
-        type: "list",
-      },
-    ]);
-
-    return newTypeAnswer.type;
   }
 
   public async editAction(cmd: Command): Promise<void> {
@@ -702,7 +417,7 @@ export class App {
       recordsToEdit = await this.filterRecordsByMonth(recordsToEdit);
       recordsToEdit = await this.filterRecordsByDay(recordsToEdit);
 
-      chosenRecord = await this.askRecord(recordsToEdit);
+      chosenRecord = await QuestionHelper.chooseRecord(recordsToEdit);
     }
 
     const updatedRecord: IRecord = chosenRecord;
@@ -721,8 +436,8 @@ export class App {
         return cmd.help();
       }
     } else {
-      updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
-      updatedRecord.type = await this.askNewType(chosenRecord.type);
+      updatedRecord.amount = await QuestionHelper.askAmount(chosenRecord.amount);
+      updatedRecord.type = await QuestionHelper.chooseType(chosenRecord.type);
     }
 
     // TODO update from timestamp
@@ -793,7 +508,7 @@ New type: ${updatedRecord.type}`;
       recordsToDelete = await this.filterRecordsByMonth(recordsToDelete);
       recordsToDelete = await this.filterRecordsByDay(recordsToDelete);
 
-      chosenRecord = await this.askRecord(recordsToDelete);
+      chosenRecord = await QuestionHelper.chooseRecord(recordsToDelete);
     }
 
     // TODO confirm deletion?
@@ -812,17 +527,13 @@ New type: ${updatedRecord.type}`;
   }
 
   public async addAction(cmd: Command): Promise<void> {
-    // TODO allow future?
-    // TODO test validation
-
-    const year: number = await this.askYear();
-    const month: number = await this.askMonth();
-    const day: number = await this.askDay();
-    const hour: number = await this.askHour();
-    const minute: number = await this.askMinute();
-    const amount: number = await this.askNewAmount(1);
-    const message: string = await this.askMessage();
-    // const beforeAfter: string = await this.askBeforeAfter();
+    const year: number = await QuestionHelper.askYear();
+    const month: number = await QuestionHelper.askMonth();
+    const day: number = await QuestionHelper.askDay();
+    const hour: number = await QuestionHelper.askHour();
+    const minute: number = await QuestionHelper.askMinute();
+    const amount: number = await QuestionHelper.askAmount(1);
+    const message: string = await QuestionHelper.askMessage();
 
     const modifiedMoment: Moment = moment().set({
       date: day,
@@ -834,14 +545,12 @@ New type: ${updatedRecord.type}`;
       year,
     });
 
-    const to: number = modifiedMoment.unix() * 1000;
-    const from: number = modifiedMoment.subtract(amount, "hours").unix() * 1000;
+    const end: number = modifiedMoment.unix() * 1000;
 
     const newRecord: IRecord = {
       amount,
-      from,
+      end,
       message,
-      to,
       type: "Time",
     };
 
@@ -864,6 +573,7 @@ New type: ${updatedRecord.type}`;
 
         await this.projectHelper.addRecordToProject({
           amount: hours,
+          end: Date.now(),
           message: options.message,
           type: "Time",
         });
@@ -1033,26 +743,5 @@ New type: ${updatedRecord.type}`;
       LogHelper.debug("Unable to get project name", err);
       return false;
     }
-  }
-
-  public async askGitUrl(): Promise<string> {
-    const gitRepoAnswers: IGitRepoAnswers = await inquirer.prompt([
-      {
-        message: "Git Repository URL:",
-        name: "gitRepo",
-        type: "input",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          try {
-            // Will throw if parsing fails
-            parseProjectNameFromGitUrl(input);
-            return true;
-          } catch (err) {
-            return "The url has to look like ssh://git@github.com:eiabea/awesomeProject.git";
-          }
-        },
-      },
-    ]);
-
-    return gitRepoAnswers.gitRepo;
   }
 }

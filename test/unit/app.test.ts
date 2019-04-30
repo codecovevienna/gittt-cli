@@ -7,7 +7,7 @@ import sinon, { SinonInspectable } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
 import {
-  IConfigFile, IGitRepoAnswers, IInitAnswers,
+  IConfigFile, IInitAnswers,
   IJiraLink, IJiraPublishResult, IProject, IRecord,
 } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
@@ -391,6 +391,9 @@ describe("App", () => {
         ProjectHelper: function ProjectHelper(): any {
           return {};
         },
+        QuestionHelper: {
+          askGitUrl: sinon.stub().resolves("ssh://git@mocked.git.com/mock/test.git"),
+        },
         TimerHelper: function TimerHelper(): any {
           return {};
         },
@@ -404,8 +407,6 @@ describe("App", () => {
     sinon.stub(app, "isConfigFileValid")
       .onCall(0).resolves(true)
       .onCall(1).resolves(false);
-
-    sinon.stub(app, "askGitUrl").resolves("ssh://git@mocked.git.com/mock/test.git");
 
     // Has to be called to have all helper instantiated
     await app.setup();
@@ -464,13 +465,13 @@ describe("App", () => {
     const mockedRecords: IRecord[] = [
       {
         amount: 69,
-        created: moment().year(2012).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2012).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
       {
         amount: 1337,
-        created: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
@@ -519,13 +520,13 @@ describe("App", () => {
     const mockedRecords: IRecord[] = [
       {
         amount: 69,
-        created: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
       {
         amount: 1337,
-        created: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
@@ -568,13 +569,13 @@ describe("App", () => {
     const mockedRecords: IRecord[] = [
       {
         amount: 69,
-        created: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
       {
         amount: 1337,
-        created: moment().year(2019).month(1).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).month(1).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
@@ -623,13 +624,13 @@ describe("App", () => {
     const mockedRecords: IRecord[] = [
       {
         amount: 69,
-        created: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
       {
         amount: 1337,
-        created: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
@@ -672,13 +673,13 @@ describe("App", () => {
     const mockedRecords: IRecord[] = [
       {
         amount: 69,
-        created: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
       {
         amount: 1337,
-        created: moment().year(2019).month(0).date(2).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).month(0).date(2).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
@@ -727,13 +728,13 @@ describe("App", () => {
     const mockedRecords: IRecord[] = [
       {
         amount: 69,
-        created: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
       {
         amount: 1337,
-        created: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
+        end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
         guid: "mocked-guid",
         type: "Time",
       } as IRecord,
@@ -772,137 +773,143 @@ describe("App", () => {
     expect(filtered).to.deep.eq(mockedRecords);
   });
 
-  it("should choose one record", async () => {
-    const mockedRecords: IRecord[] = [
-      {
-        amount: 69,
-        created: 1234,
-        guid: "mocked-guid-one",
-        type: "Time",
-      } as IRecord,
-      {
-        amount: 1337,
-        created: 1234,
-        guid: "mocked-guid-two",
-        type: "Time",
-      } as IRecord,
-    ];
+  // it("should choose one record", async () => {
+  //   const mockedRecords: IRecord[] = [
+  //     {
+  //       amount: 69,
+  //       created: 1234,
+  //       guid: "mocked-guid-one",
+  //       type: "Time",
+  //     } as IRecord,
+  //     {
+  //       amount: 1337,
+  //       created: 1234,
+  //       guid: "mocked-guid-two",
+  //       type: "Time",
+  //     } as IRecord,
+  //   ];
 
-    const proxy: any = proxyquire("../../app", {
-      "./helper": {
-        FileHelper: function FileHelper(): any {
-          return {
-            configDirExists: sinon.stub().resolves(true),
-          };
-        },
-        GitHelper: function GitHelper(): any {
-          return {
-          };
-        },
-        LogHelper,
-        ProjectHelper: function ProjectHelper(): any {
-          return {
-          };
-        },
-        TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-      },
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          choice: "mocked-guid-one",
-        }),
-      },
-    });
-    const mockedApp: App = new proxy.App();
+  //   const proxy: any = proxyquire("../../app", {
+  //     "./helper": {
+  //       FileHelper: function FileHelper(): any {
+  //         return {
+  //           configDirExists: sinon.stub().resolves(true),
+  //         };
+  //       },
+  //       GitHelper: function GitHelper(): any {
+  //         return {
+  //         };
+  //       },
+  //       LogHelper,
+  //       ProjectHelper: function ProjectHelper(): any {
+  //         return {
+  //         };
+  //       },
+  //       QuestionHelper: {
+  //         chooseRecord: sinon.stub().resolves({
+  //           choice: "mocked-guid-one",
+  //         }),
+  //       },
+  //       TimerHelper: function TimerHelper(): any {
+  //         return {};
+  //       },
+  //     },
+  //     // "inquirer": {
+  //     //   prompt: sinon.stub().resolves({
+  //     //     choice: "mocked-guid-one",
+  //     //   }),
+  //     // },
+  //   });
+  //   const mockedApp: App = new proxy.App();
 
-    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+  //   sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+  //   sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    await mockedApp.setup();
+  //   await mockedApp.setup();
 
-    const chosen: IRecord = await mockedApp.askRecord(mockedRecords);
+  //   const chosen: IRecord = await mockedApp.askRecord(mockedRecords);
 
-    expect(chosen).to.deep.eq(mockedRecords[0]);
-  });
+  //   expect(chosen).to.deep.eq(mockedRecords[0]);
+  // });
 
-  it("should ask for new amount", async () => {
-    const proxy: any = proxyquire("../../app", {
-      "./helper": {
-        FileHelper: function FileHelper(): any {
-          return {
-            configDirExists: sinon.stub().resolves(true),
-          };
-        },
-        GitHelper: function GitHelper(): any {
-          return {
-          };
-        },
-        LogHelper,
-        ProjectHelper: function ProjectHelper(): any {
-          return {
-          };
-        },
-        TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-      },
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          amount: 1234,
-        }),
-      },
-    });
-    const mockedApp: App = new proxy.App();
+  // it("should ask for new amount", async () => {
+  //   const proxy: any = proxyquire("../../app", {
+  //     "./helper": {
+  //       FileHelper: function FileHelper(): any {
+  //         return {
+  //           configDirExists: sinon.stub().resolves(true),
+  //         };
+  //       },
+  //       GitHelper: function GitHelper(): any {
+  //         return {
+  //         };
+  //       },
+  //       LogHelper,
+  //       ProjectHelper: function ProjectHelper(): any {
+  //         return {
+  //         };
+  //       },
+  //       TimerHelper: function TimerHelper(): any {
+  //         return {};
+  //       },
+  //     },
+  //     "askAmount": sinon.stub().resolves(4321),
+  //     "inquirer": {
+  //       prompt: sinon.stub().resolves({
+  //         amount: 1234,
+  //       }),
+  //     },
+  //   });
+  //   const mockedApp: App = new proxy.App();
 
-    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+  //   sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+  //   sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    await mockedApp.setup();
+  //   await mockedApp.setup();
 
-    const newAmount: number = await mockedApp.askNewAmount(4321);
+  //   const newAmount: number = await mockedApp.askNewAmount(4321);
 
-    expect(newAmount).to.eq(1234);
-  });
+  //   expect(newAmount).to.eq(1234);
+  // });
 
-  it("should ask for new type", async () => {
-    const proxy: any = proxyquire("../../app", {
-      "./helper": {
-        FileHelper: function FileHelper(): any {
-          return {
-            configDirExists: sinon.stub().resolves(true),
-          };
-        },
-        GitHelper: function GitHelper(): any {
-          return {
-          };
-        },
-        LogHelper,
-        ProjectHelper: function ProjectHelper(): any {
-          return {
-          };
-        },
-        TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-      },
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          type: "Money",
-        }),
-      },
-    });
-    const mockedApp: App = new proxy.App();
+  // it("should ask for new type", async () => {
+  //   const proxy: any = proxyquire("../../app", {
+  //     "./helper": {
+  //       FileHelper: function FileHelper(): any {
+  //         return {
+  //           configDirExists: sinon.stub().resolves(true),
+  //         };
+  //       },
+  //       GitHelper: function GitHelper(): any {
+  //         return {
+  //         };
+  //       },
+  //       LogHelper,
+  //       ProjectHelper: function ProjectHelper(): any {
+  //         return {
+  //         };
+  //       },
+  //       TimerHelper: function TimerHelper(): any {
+  //         return {};
+  //       },
+  //     },
+  //     "inquirer": {
+  //       prompt: sinon.stub().resolves({
+  //         type: "Money",
+  //       }),
+  //     },
+  //   });
+  //   const mockedApp: App = new proxy.App();
 
-    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+  //   sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+  //   sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    await mockedApp.setup();
+  //   await mockedApp.setup();
 
-    const newType: RECORD_TYPES = await mockedApp.askNewType("Time");
+  //   const newType: RECORD_TYPES = await mockedApp.askNewType("Time");
 
-    expect(newType).to.eq("Money");
-  });
+  //   expect(newType).to.eq("Money");
+  // });
 
   it("should edit specific record", async () => {
     const mockedRecords: IRecord[] = [
@@ -955,6 +962,11 @@ describe("App", () => {
             getProjectFromGit: getProjectFromGitStub,
           };
         },
+        QuestionHelper: {
+          askAmount: sinon.stub().resolves(69),
+          chooseRecord: sinon.stub().resolves(mockedRecords[0]),
+          chooseType: sinon.stub().resolves("Time"),
+        },
         TimerHelper: function TimerHelper(): any {
           return {};
         },
@@ -968,9 +980,6 @@ describe("App", () => {
     sinon.stub(mockedApp, "filterRecordsByYear").resolves(mockedRecords);
     sinon.stub(mockedApp, "filterRecordsByMonth").resolves(mockedRecords);
     sinon.stub(mockedApp, "filterRecordsByDay").resolves(mockedRecords);
-    sinon.stub(mockedApp, "askRecord").resolves(mockedRecords[0]);
-    sinon.stub(mockedApp, "askNewAmount").resolves(69);
-    sinon.stub(mockedApp, "askNewType").resolves("Time");
 
     await mockedApp.setup();
 
@@ -1562,6 +1571,9 @@ describe("App", () => {
             getProjectFromGit: getProjectFromGitStub,
           };
         },
+        QuestionHelper: {
+          chooseRecord: sinon.stub().resolves(mockedRecords[0]),
+        },
         TimerHelper: function TimerHelper(): any {
           return {};
         },
@@ -1575,7 +1587,6 @@ describe("App", () => {
     sinon.stub(mockedApp, "filterRecordsByYear").resolves(mockedRecords);
     sinon.stub(mockedApp, "filterRecordsByMonth").resolves(mockedRecords);
     sinon.stub(mockedApp, "filterRecordsByDay").resolves(mockedRecords);
-    sinon.stub(mockedApp, "askRecord").resolves(mockedRecords[0]);
 
     await mockedApp.setup();
 
@@ -1973,7 +1984,7 @@ describe("App", () => {
     assert.isTrue(exitStub.calledOnce);
   });
 
-  it.only("should add record to the past", async () => {
+  it("should add record to the past", async () => {
     const mockedRecords: IRecord[] = [
       {
         amount: 1337,
@@ -2027,6 +2038,15 @@ describe("App", () => {
             getProjectFromGit: getProjectFromGitStub,
           };
         },
+        QuestionHelper: {
+          askAmount: sinon.stub().resolves(1.234),
+          askDay: sinon.stub().resolves(24),
+          askHour: sinon.stub().resolves(13),
+          askMessage: sinon.stub().resolves("Mocked message"),
+          askMinute: sinon.stub().resolves(37),
+          askMonth: sinon.stub().resolves(24),
+          askYear: sinon.stub().resolves(2019),
+        },
         TimerHelper: function TimerHelper(): any {
           return {};
         },
@@ -2037,13 +2057,13 @@ describe("App", () => {
     sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
     sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    sinon.stub(mockedApp, "askYear").resolves(2019);
-    sinon.stub(mockedApp, "askMonth").resolves(12);
-    sinon.stub(mockedApp, "askDay").resolves(24);
-    sinon.stub(mockedApp, "askHour").resolves(13);
-    sinon.stub(mockedApp, "askMinute").resolves(37);
-    sinon.stub(mockedApp, "askNewAmount").resolves(1.234);
-    sinon.stub(mockedApp, "askMessage").resolves("Mocked message");
+    // sinon.stub(mockedApp, "askYear").resolves(2019);
+    // sinon.stub(mockedApp, "askMonth").resolves(12);
+    // sinon.stub(mockedApp, "askDay").resolves(24);
+    // sinon.stub(mockedApp, "askHour").resolves(13);
+    // sinon.stub(mockedApp, "askMinute").resolves(37);
+    // sinon.stub(mockedApp, "askNewAmount").resolves(1.234);
+    // sinon.stub(mockedApp, "askMessage").resolves("Mocked message");
     // sinon.stub(mockedApp, "askBeforeAfter").resolves("before");
     // sinon.stub(mockedApp, "filterRecordsByMonth").resolves(mockedRecords);
     // sinon.stub(mockedApp, "filterRecordsByDay").resolves(mockedRecords);
@@ -2217,23 +2237,22 @@ describe("App", () => {
             getProjectFromGit: getProjectFromGitStub,
           };
         },
+        QuestionHelper: {
+          askJiraLink: sinon.stub().resolves({
+            endpoint: "http://mocked.com/endpoint/",
+            hash: "shaHash",
+            key: "MOCKED",
+            linkType: "Jira",
+            projectName: "mocked_,project_1",
+            username: "mocked",
+          } as IJiraLink),
+          chooseIntegration: sinon.stub().resolves("Jira"),
+        },
         TimerHelper: function TimerHelper(): any {
           return {};
         },
       },
       "commander": mockedCommander,
-      "inquirer": {
-        prompt: sinon.stub()
-          .onCall(0).resolves({
-            integration: "Jira",
-          })
-          .onCall(1).resolves({
-            endpoint: "http://jira.test.com:1337/jira/rest/gittt/latest/",
-            key: "TEST",
-            password: "admin",
-            username: "admin",
-          }),
-      },
     });
 
     const mockedApp: App = new proxy.App();
@@ -2269,23 +2288,14 @@ describe("App", () => {
             getProjectFromGit: getProjectFromGitStub,
           };
         },
+        QuestionHelper: {
+          chooseIntegration: sinon.stub().resolves("Jira"),
+        },
         TimerHelper: function TimerHelper(): any {
           return {};
         },
       },
       "commander": mockedCommander,
-      "inquirer": {
-        prompt: sinon.stub()
-          .onCall(0).resolves({
-            integration: "Jira",
-          })
-          .onCall(1).resolves({
-            endpoint: "http://jira.test.com:1337/jira/rest/gittt/latest/",
-            key: "TEST",
-            password: "admin",
-            username: "admin",
-          }),
-      },
     });
 
     const mockedApp: App = new proxy.App();
@@ -2331,23 +2341,22 @@ describe("App", () => {
             getProjectFromGit: getProjectFromGitStub,
           };
         },
+        QuestionHelper: {
+          askJiraLink: sinon.stub().resolves({
+            endpoint: "http://mocked.com/endpoint/",
+            hash: "shaHash",
+            key: "MOCKED",
+            linkType: "Jira",
+            projectName: "mocked_,project_1",
+            username: "mocked",
+          } as IJiraLink),
+          chooseIntegration: sinon.stub().resolves("Jira"),
+        },
         TimerHelper: function TimerHelper(): any {
           return {};
         },
       },
       "commander": mockedCommander,
-      "inquirer": {
-        prompt: sinon.stub()
-          .onCall(0).resolves({
-            integration: "Jira",
-          })
-          .onCall(1).resolves({
-            endpoint: "http://jira.test.com:1337/jira/rest/gittt/latest/",
-            key: "TEST",
-            password: "admin",
-            username: "admin",
-          }),
-      },
     });
 
     const mockedApp: App = new proxy.App();
@@ -3171,20 +3180,20 @@ describe("App", () => {
     assert.isTrue(exitStub.called);
   });
 
-  it("should ask for git url", async () => {
-    const proxy: any = proxyquire("../../app", {
-      inquirer: {
-        prompt: sinon.stub().resolves({
-          gitRepo: "ssh://git@mock.git.com/mock/test.git",
-        } as IGitRepoAnswers),
-      },
-    });
+  // it("should ask for git url", async () => {
+  //   const proxy: any = proxyquire("../../app", {
+  //     inquirer: {
+  //       prompt: sinon.stub().resolves({
+  //         gitRepo: "ssh://git@mock.git.com/mock/test.git",
+  //       } as IGitRepoAnswers),
+  //     },
+  //   });
 
-    const app: App = new proxy.App();
+  //   const app: App = new proxy.App();
 
-    const repo: string = await app.askGitUrl();
+  //   const repo: string = await app.askGitUrl();
 
-    // TODO should test inquirer validation
-    expect(repo).to.eq("ssh://git@mock.git.com/mock/test.git");
-  });
+  //   // TODO should test inquirer validation
+  //   expect(repo).to.eq("ssh://git@mock.git.com/mock/test.git");
+  // });
 });

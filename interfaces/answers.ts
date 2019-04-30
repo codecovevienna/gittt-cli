@@ -6,10 +6,6 @@ export interface IOverrideAnswers {
   override: number;
 }
 
-export interface IGitRepoAnswers {
-  gitRepo: string;
-}
-
 export interface IGitCommitMessageAnswers {
   gitCommitMessage: string;
 }
