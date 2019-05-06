@@ -2,24 +2,28 @@ import axios, { AxiosResponse } from "axios";
 import commander, { Command, CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import _ from "lodash";
-import moment from "moment";
+import moment, { Moment } from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
-import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl, ProjectHelper, TimerHelper } from "./helper";
+import {
+  FileHelper,
+  GitHelper,
+  LogHelper,
+  parseProjectNameFromGitUrl,
+  ProjectHelper,
+  QuestionHelper,
+  TimerHelper,
+} from "./helper";
 import {
   IConfigFile,
-  IGitRepoAnswers,
   IInitAnswers,
   IInitProjectAnswers,
-  IIntegrationAnswers,
   IIntegrationLink,
-  IJiraIntegrationAnswers,
   IJiraLink,
   IJiraPublishResult,
   IProject,
   IRecord,
 } from "./interfaces";
-import { RECORD_TYPES } from "./types";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
@@ -100,7 +104,7 @@ export class App {
       this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
 
       if (!(await this.isConfigFileValid())) {
-        const gitUrl: string = await this.askGitUrl();
+        const gitUrl: string = await QuestionHelper.askGitUrl();
         LogHelper.info("Initializing local repo");
         await this.gitHelper.initRepo(gitUrl);
         // TODO remove reset=true?
@@ -134,70 +138,10 @@ export class App {
   }
 
   public async linkAction(cmd: Command): Promise<void> {
-    const integrationAnswers: IIntegrationAnswers = await inquirer.prompt([
-      {
-        choices: [
-          "Jira",
-        ],
-        message: "Link project to what integration?",
-        name: "integration",
-        type: "list",
-      },
-    ]);
-    const { integration } = integrationAnswers;
+    const integration: string = await QuestionHelper.chooseIntegration();
 
     switch (integration) {
       case "Jira":
-        const jiraAnswers: IJiraIntegrationAnswers = await inquirer.prompt([
-          {
-            message: "Jira gittt plugin endpoint",
-            name: "endpoint",
-            type: "input",
-            validate(input: any): boolean | string | Promise<boolean | string> {
-              const inputString: string = input;
-              if (new RegExp("^(http://|https://).+").test(inputString)) {
-                return true;
-              } else {
-                return "The endpoint has to be a valid url";
-              }
-            },
-            filter(input: string): any {
-              // Ensure trailing slash
-              if (input[input.length - 1] !== "/") {
-                return input + "/";
-              } else {
-                return input;
-              }
-            },
-          },
-          {
-            message: "Jira username",
-            name: "username",
-            type: "input",
-            // TODO validate
-          },
-          {
-            message: "Jira password",
-            name: "password",
-            type: "password",
-            // TODO validate
-          },
-          {
-            message: "Jira project key (e.g. GITTT)",
-            name: "key",
-            type: "input",
-            validate(input: any): boolean | string | Promise<boolean | string> {
-              const inputString: string = input;
-              if (inputString.length > 1) {
-                return true;
-              } else {
-                return "The key has to be longer than one character";
-              }
-
-            },
-          },
-        ]);
-
         const project: IProject = this.projectHelper.getProjectFromGit();
 
         if (!project) {
@@ -205,22 +149,10 @@ export class App {
         }
         // TODO validate if record exists in projects dir(?)
 
-        const hash: string = Buffer.from(`${jiraAnswers.username}:${jiraAnswers.password}`).toString("base64");
-
-        const { endpoint, key, username } = jiraAnswers;
-        const projectName: string = project.name;
-
-        const link: IJiraLink = {
-          endpoint,
-          hash,
-          key,
-          linkType: "Jira",
-          projectName,
-          username,
-        };
+        const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project);
 
         try {
-          await this.fileHelper.addOrUpdateLink(link);
+          await this.fileHelper.addOrUpdateLink(jiraLink);
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -338,7 +270,7 @@ export class App {
     const allYears: string[] = [];
 
     for (const rc of records) {
-      const currentYear: string = moment(rc.created).format("YYYY");
+      const currentYear: string = moment(rc.end).format("YYYY");
       if (allYears.indexOf(currentYear) === -1) {
         allYears.push(currentYear);
       }
@@ -358,7 +290,7 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentYear: string = moment(rc.created).format("YYYY");
+        const currentYear: string = moment(rc.end).format("YYYY");
         return currentYear === choiceYear.year;
       });
 
@@ -372,7 +304,7 @@ export class App {
     const allMonths: string[] = [];
 
     for (const rc of records) {
-      const currentMonth: string = moment(rc.created).format("MMMM");
+      const currentMonth: string = moment(rc.end).format("MMMM");
       if (allMonths.indexOf(currentMonth) === -1) {
         allMonths.push(currentMonth);
       }
@@ -392,7 +324,7 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentMonth: string = moment(rc.created).format("MMMM");
+        const currentMonth: string = moment(rc.end).format("MMMM");
         return currentMonth === choiceMonth.month;
       });
 
@@ -406,7 +338,7 @@ export class App {
     const allDays: string[] = [];
 
     for (const rc of records) {
-      const currentDay: string = moment(rc.created).format("DD");
+      const currentDay: string = moment(rc.end).format("DD");
       if (allDays.indexOf(currentDay) === -1) {
         allDays.push(currentDay);
       }
@@ -426,79 +358,13 @@ export class App {
       };
 
       return records.filter((rc: IRecord) => {
-        const currentDay: string = moment(rc.created).format("DD");
+        const currentDay: string = moment(rc.end).format("DD");
         return currentDay === choiceDay.day;
       });
 
     } else {
       return records;
     }
-  }
-
-  public async askRecord(records: IRecord[]): Promise<IRecord> {
-    const choice: any = await inquirer.prompt([
-      {
-        choices: records.map((rc: IRecord) => {
-          return {
-            name: `${moment(rc.created).format("dd.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} - "${_.
-              truncate(rc.message)}"`,
-            value: rc.guid,
-          };
-        }),
-        message: "List of records",
-        name: "choice",
-        type: "list",
-      },
-    ]);
-
-    const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
-      return rc.guid === choice.choice;
-    });
-
-    const [chosenRecord] = chosenRecords;
-
-    return chosenRecord;
-  }
-
-  public async askNewAmount(oldAmount: number): Promise<number> {
-    const newAmountAnswer: any = await inquirer.prompt([
-      {
-        default: oldAmount,
-        message: "Update amount",
-        name: "amount",
-        type: "number",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          if (!isNaN(input)) {
-            return true;
-          } else {
-            return "The amount has to be a number";
-          }
-        },
-      },
-    ]) as {
-      amount: number,
-    };
-
-    return newAmountAnswer.amount;
-  }
-
-  public async askNewType(oldType: RECORD_TYPES): Promise<RECORD_TYPES> {
-    const newTypeAnswer: any = await inquirer.prompt([
-      {
-        choices: [
-          {
-            name: "Time",
-            value: "Time",
-          },
-        ],
-        default: oldType,
-        message: "Update type",
-        name: "type",
-        type: "list",
-      },
-    ]);
-
-    return newTypeAnswer.type;
   }
 
   public async editAction(cmd: Command): Promise<void> {
@@ -548,7 +414,7 @@ export class App {
       recordsToEdit = await this.filterRecordsByMonth(recordsToEdit);
       recordsToEdit = await this.filterRecordsByDay(recordsToEdit);
 
-      chosenRecord = await this.askRecord(recordsToEdit);
+      chosenRecord = await QuestionHelper.chooseRecord(recordsToEdit);
     }
 
     const updatedRecord: IRecord = chosenRecord;
@@ -567,9 +433,11 @@ export class App {
         return cmd.help();
       }
     } else {
-      updatedRecord.amount = await this.askNewAmount(chosenRecord.amount);
-      updatedRecord.type = await this.askNewType(chosenRecord.type);
+      updatedRecord.amount = await QuestionHelper.askAmount(chosenRecord.amount);
+      updatedRecord.type = await QuestionHelper.chooseType(chosenRecord.type);
     }
+
+    // TODO update from timestamp
 
     updatedRecord.updated = Date.now();
 
@@ -637,7 +505,7 @@ New type: ${updatedRecord.type}`;
       recordsToDelete = await this.filterRecordsByMonth(recordsToDelete);
       recordsToDelete = await this.filterRecordsByDay(recordsToDelete);
 
-      chosenRecord = await this.askRecord(recordsToDelete);
+      chosenRecord = await QuestionHelper.chooseRecord(recordsToDelete);
     }
 
     // TODO confirm deletion?
@@ -655,13 +523,77 @@ New type: ${updatedRecord.type}`;
     await this.gitHelper.commitChanges(commitMessage);
   }
 
+  public async addAction(cmd: Command): Promise<void> {
+    const interactiveMode: boolean = process.argv.length === 3;
+
+    let year: number;
+    let month: number;
+    let day: number;
+    let hour: number;
+    let minute: number;
+    let amount: number;
+    let message: string | undefined;
+
+    if (!interactiveMode) {
+      if (!cmd.amount || !QuestionHelper.validateNumber(cmd.amount)) {
+        LogHelper.error("No amount option found");
+        return cmd.help();
+      }
+
+      amount = parseInt(cmd.amount, 10);
+
+      year = (cmd.year && QuestionHelper.validateNumber(cmd.year))
+        ? parseInt(cmd.year, 10) : moment().year();
+      month = (cmd.month && QuestionHelper.validateNumber(cmd.month, 1, 12))
+        ? parseInt(cmd.month, 10) : moment().month() + 1;
+      day = (cmd.day && QuestionHelper.validateNumber(cmd.day, 1, 31))
+        ? parseInt(cmd.day, 10) : moment().date();
+      hour = (cmd.hour && QuestionHelper.validateNumber(cmd.hour, 0, 23))
+        ? parseInt(cmd.hour, 10) : moment().hour();
+      minute = (cmd.minute && QuestionHelper.validateNumber(cmd.minute, 0, 59))
+        ? parseInt(cmd.minute, 10) : moment().minute();
+
+      message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
+
+    } else {
+      year = await QuestionHelper.askYear();
+      month = await QuestionHelper.askMonth();
+      day = await QuestionHelper.askDay();
+      hour = await QuestionHelper.askHour();
+      minute = await QuestionHelper.askMinute();
+      amount = await QuestionHelper.askAmount(1);
+      message = await QuestionHelper.askMessage();
+    }
+
+    const modifiedMoment: Moment = moment().set({
+      date: day,
+      hour,
+      millisecond: 0,
+      minute,
+      month: month - 1,
+      second: 0,
+      year,
+    });
+
+    const end: number = modifiedMoment.unix() * 1000;
+
+    const newRecord: IRecord = {
+      amount,
+      end,
+      message: message ? message : undefined,
+      type: "Time",
+    };
+
+    await this.projectHelper.addRecordToProject(newRecord);
+  }
+
   public initCommander(): CommanderStatic {
     commander
       .version(APP_VERSION);
 
     commander
       .command("commit <hours>")
-      .description("Adding hours to the project")
+      .description("Committing current hours to the project")
       .option("-m, --message <message>", "Description of the spent hours")
       .action(async (cmd: string, options: any): Promise<void> => {
         const hours: number = parseFloat(cmd);
@@ -671,9 +603,24 @@ New type: ${updatedRecord.type}`;
 
         await this.projectHelper.addRecordToProject({
           amount: hours,
+          end: Date.now(),
           message: options.message,
           type: "Time",
         });
+      });
+
+    commander
+      .command("add")
+      .description("Adding hours to the project in the past")
+      .option("-a, --amount <amount>", "Specify the amount")
+      .option("-y, --year [year]", "Specify the year, defaults to current year")
+      .option("-m, --month [month]", "Specify the month, defaults to current month")
+      .option("-d, --day [day]", "Specify the day, defaults to current day")
+      .option("-h, --hour [hour]", "Specify the hour, defaults to current hour")
+      .option("-M, --minute [minute]", "Specify the minute, defaults to current minute")
+      .option("-w, --message [message]", "Specify the message of the record")
+      .action(async (cmd: Command): Promise<void> => {
+        await this.addAction(cmd);
       });
 
     commander
@@ -828,26 +775,5 @@ New type: ${updatedRecord.type}`;
       LogHelper.debug("Unable to get project name", err);
       return false;
     }
-  }
-
-  public async askGitUrl(): Promise<string> {
-    const gitRepoAnswers: IGitRepoAnswers = await inquirer.prompt([
-      {
-        message: "Git Repository URL:",
-        name: "gitRepo",
-        type: "input",
-        validate(input: any): boolean | string | Promise<boolean | string> {
-          try {
-            // Will throw if parsing fails
-            parseProjectNameFromGitUrl(input);
-            return true;
-          } catch (err) {
-            return "The url has to look like ssh://git@github.com:eiabea/awesomeProject.git";
-          }
-        },
-      },
-    ]);
-
-    return gitRepoAnswers.gitRepo;
   }
 }
