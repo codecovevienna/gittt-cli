@@ -24,6 +24,7 @@ import {
   IProject,
   IRecord,
 } from "./interfaces";
+import { RECORD_TYPES } from "./types";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
@@ -419,27 +420,68 @@ export class App {
 
     const updatedRecord: IRecord = chosenRecord;
 
+    let year: number;
+    let month: number;
+    let day: number;
+    let hour: number;
+    let minute: number;
+    let amount: number;
+    let message: string | undefined;
+
     if (!interactiveMode) {
-      if (cmd.amount) {
-        updatedRecord.amount = cmd.amount;
-      } else {
-        LogHelper.error("No amount option found");
-        return cmd.help();
-      }
       if (cmd.type) {
-        updatedRecord.amount = cmd.amount;
+        updatedRecord.type = cmd.type;
       } else {
         LogHelper.error("No type option found");
         return cmd.help();
       }
+
+      if (!cmd.amount || !QuestionHelper.validateNumber(cmd.amount)) {
+        LogHelper.error("No amount option found");
+        return cmd.help();
+      }
+
+      amount = parseInt(cmd.amount, 10);
+
+      year = (cmd.year && QuestionHelper.validateNumber(cmd.year))
+        ? parseInt(cmd.year, 10) : moment().year();
+      month = (cmd.month && QuestionHelper.validateNumber(cmd.month, 1, 12))
+        ? parseInt(cmd.month, 10) : moment().month() + 1;
+      day = (cmd.day && QuestionHelper.validateNumber(cmd.day, 1, 31))
+        ? parseInt(cmd.day, 10) : moment().date();
+      hour = (cmd.hour && QuestionHelper.validateNumber(cmd.hour, 0, 23))
+        ? parseInt(cmd.hour, 10) : moment().hour();
+      minute = (cmd.minute && QuestionHelper.validateNumber(cmd.minute, 0, 59))
+        ? parseInt(cmd.minute, 10) : moment().minute();
+
+      message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
     } else {
-      updatedRecord.amount = await QuestionHelper.askAmount(chosenRecord.amount);
       updatedRecord.type = await QuestionHelper.chooseType(chosenRecord.type);
+
+      year = await QuestionHelper.askYear(moment(chosenRecord.end).year());
+      month = await QuestionHelper.askMonth(moment(chosenRecord.end).month() + 1);
+      day = await QuestionHelper.askDay(moment(chosenRecord.end).date());
+      hour = await QuestionHelper.askHour(moment(chosenRecord.end).hour());
+      minute = await QuestionHelper.askMinute(moment(chosenRecord.end).minute());
+      amount = await QuestionHelper.askAmount(chosenRecord.amount);
+      message = await QuestionHelper.askMessage(chosenRecord.message);
     }
 
-    // TODO update from timestamp
-
     updatedRecord.updated = Date.now();
+    updatedRecord.message = message;
+    updatedRecord.amount = amount;
+
+    const modifiedMoment: Moment = moment().set({
+      date: day,
+      hour,
+      millisecond: 0,
+      minute,
+      month: month - 1,
+      second: 0,
+      year,
+    });
+
+    updatedRecord.end = modifiedMoment.unix() * 1000;
 
     const updatedRecords: IRecord[] = records.map((rc: IRecord) => {
       return rc.guid === updatedRecord.guid ? updatedRecord : rc;
@@ -533,14 +575,20 @@ New type: ${updatedRecord.type}`;
     let minute: number;
     let amount: number;
     let message: string | undefined;
+    let type: RECORD_TYPES;
 
     if (!interactiveMode) {
       if (!cmd.amount || !QuestionHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
+      if (!cmd.type) {
+        LogHelper.error("No type option found");
+        return cmd.help();
+      }
 
       amount = parseInt(cmd.amount, 10);
+      type = cmd.type;
 
       year = (cmd.year && QuestionHelper.validateNumber(cmd.year))
         ? parseInt(cmd.year, 10) : moment().year();
@@ -554,7 +602,6 @@ New type: ${updatedRecord.type}`;
         ? parseInt(cmd.minute, 10) : moment().minute();
 
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
-
     } else {
       year = await QuestionHelper.askYear();
       month = await QuestionHelper.askMonth();
@@ -563,6 +610,7 @@ New type: ${updatedRecord.type}`;
       minute = await QuestionHelper.askMinute();
       amount = await QuestionHelper.askAmount(1);
       message = await QuestionHelper.askMessage();
+      type = await QuestionHelper.chooseType();
     }
 
     const modifiedMoment: Moment = moment().set({
@@ -581,7 +629,7 @@ New type: ${updatedRecord.type}`;
       amount,
       end,
       message: message ? message : undefined,
-      type: "Time",
+      type,
     };
 
     await this.projectHelper.addRecordToProject(newRecord);
@@ -619,6 +667,7 @@ New type: ${updatedRecord.type}`;
       .option("-h, --hour [hour]", "Specify the hour, defaults to current hour")
       .option("-M, --minute [minute]", "Specify the minute, defaults to current minute")
       .option("-w, --message [message]", "Specify the message of the record")
+      .option("-t, --type [type]", "Specify the type of the record")
       .action(async (cmd: Command): Promise<void> => {
         await this.addAction(cmd);
       });
@@ -741,8 +790,14 @@ New type: ${updatedRecord.type}`;
       .command("edit")
       .description("Edit record of current project")
       .option("-g, --guid [guid]", "GUID of the record to edit")
-      .option("-a, --amount [amount]", "New amount for the record", parseFloat)
-      .option("-t, --type [type]", "New Type for the record")
+      .option("-a, --amount <amount>", "Specify the amount")
+      .option("-y, --year [year]", "Specify the year, defaults to current year")
+      .option("-m, --month [month]", "Specify the month, defaults to current month")
+      .option("-d, --day [day]", "Specify the day, defaults to current day")
+      .option("-h, --hour [hour]", "Specify the hour, defaults to current hour")
+      .option("-M, --minute [minute]", "Specify the minute, defaults to current minute")
+      .option("-w, --message [message]", "Specify the message of the record")
+      .option("-t, --type [type]", "Specify the type of the record")
       .action(async (cmd: Command): Promise<void> => {
         await this.editAction(cmd);
       });

@@ -105,10 +105,10 @@ export class QuestionHelper {
     }
   }
 
-  public static askYear = async (): Promise<number> => {
+  public static askYear = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: moment().year(),
+        default: defaultValue ? defaultValue : moment().year(),
         message: "Year",
         name: "choice",
         type: "number",
@@ -119,10 +119,10 @@ export class QuestionHelper {
     return parseInt(choice.choice, 10);
   }
 
-  public static askMonth = async (): Promise<number> => {
+  public static askMonth = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: moment().month() + 1,
+        default: defaultValue ? defaultValue : moment().month() + 1,
         message: "Month",
         name: "choice",
         type: "number",
@@ -133,10 +133,10 @@ export class QuestionHelper {
     return parseInt(choice.choice, 10);
   }
 
-  public static askDay = async (): Promise<number> => {
+  public static askDay = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: moment().date(),
+        default: defaultValue ? defaultValue : moment().date(),
         message: "Day",
         name: "choice",
         type: "number",
@@ -147,10 +147,10 @@ export class QuestionHelper {
     return parseInt(choice.choice, 10);
   }
 
-  public static askHour = async (): Promise<number> => {
+  public static askHour = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: moment().hour(),
+        default: defaultValue ? defaultValue : moment().hour(),
         message: "Hour",
         name: "choice",
         type: "number",
@@ -161,10 +161,10 @@ export class QuestionHelper {
     return parseInt(choice.choice, 10);
   }
 
-  public static askMinute = async (): Promise<number> => {
+  public static askMinute = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: moment().minute(),
+        default: defaultValue ? defaultValue : moment().minute(),
         message: "Minute",
         name: "choice",
         type: "number",
@@ -194,9 +194,10 @@ export class QuestionHelper {
     return parseInt(choice.choice, 10);
   }
 
-  public static askMessage = async (): Promise<string> => {
+  public static askMessage = async (defaultValue?: string): Promise<string> => {
     const choice: any = await inquirer.prompt([
       {
+        default: defaultValue ? defaultValue : undefined,
         message: "Message",
         name: "choice",
         type: "input",
