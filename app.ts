@@ -441,7 +441,7 @@ export class App {
         return cmd.help();
       }
 
-      amount = parseInt(cmd.amount, 10);
+      amount = parseFloat(cmd.amount);
 
       year = (cmd.year && QuestionHelper.validateNumber(cmd.year))
         ? parseInt(cmd.year, 10) : moment().year();

@@ -108,7 +108,7 @@ export class QuestionHelper {
   public static askYear = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: defaultValue ? defaultValue : moment().year(),
+        default: _.isNumber(defaultValue) ? defaultValue : moment().year(),
         message: "Year",
         name: "choice",
         type: "number",
@@ -122,7 +122,7 @@ export class QuestionHelper {
   public static askMonth = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: defaultValue ? defaultValue : moment().month() + 1,
+        default: _.isNumber(defaultValue) ? defaultValue : moment().month() + 1,
         message: "Month",
         name: "choice",
         type: "number",
@@ -136,7 +136,7 @@ export class QuestionHelper {
   public static askDay = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: defaultValue ? defaultValue : moment().date(),
+        default: _.isNumber(defaultValue) ? defaultValue : moment().date(),
         message: "Day",
         name: "choice",
         type: "number",
@@ -150,7 +150,7 @@ export class QuestionHelper {
   public static askHour = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: defaultValue ? defaultValue : moment().hour(),
+        default: _.isNumber(defaultValue) ? defaultValue : moment().hour(),
         message: "Hour",
         name: "choice",
         type: "number",
@@ -164,7 +164,7 @@ export class QuestionHelper {
   public static askMinute = async (defaultValue?: number): Promise<number> => {
     const choice: any = await inquirer.prompt([
       {
-        default: defaultValue ? defaultValue : moment().minute(),
+        default: _.isNumber(defaultValue) ? defaultValue : moment().minute(),
         message: "Minute",
         name: "choice",
         type: "number",
@@ -191,7 +191,7 @@ export class QuestionHelper {
       amount: number,
     };
 
-    return parseInt(choice.choice, 10);
+    return parseFloat(choice.choice);
   }
 
   public static askMessage = async (defaultValue?: string): Promise<string> => {
