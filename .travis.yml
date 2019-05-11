@@ -25,6 +25,7 @@ jobs:
       tags: false
 
   - stage: build
+    if: NOT type = pull_request AND tag IS present
     script:
       # Install packages
       - npm install
@@ -33,7 +34,7 @@ jobs:
       - ./node_modules/.bin/tsc
       - cp package.json dist
       # Compile package for various systems
-      - ./node_modules/.bin/pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${CI_COMMIT_TAG}
+      - ./node_modules/.bin/pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${TRAVIS_TAG}
     deploy:
       provider: releases
       api_key:
