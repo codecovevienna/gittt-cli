@@ -1,6 +1,6 @@
 {
   "name": "gittt-cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Tracking time with CLI into a git repository",
   "main": "index.ts",
   "scripts": {
