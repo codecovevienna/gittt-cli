@@ -1,6 +1,6 @@
 {
   "name": "gittt-cli",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Tracking time with CLI into a git repository",
   "main": "index.ts",
   "scripts": {
@@ -33,9 +33,9 @@
     "@types/axios": "^0.14.0",
     "@types/chai": "^4.1.7",
     "@types/commander": "^2.12.2",
-    "@types/fs-extra": "^5.0.5",
-    "@types/inquirer": "6.0.0",
-    "@types/lodash": "^4.14.123",
+    "@types/fs-extra": "^5.1.0",
+    "@types/inquirer": "6.0.1",
+    "@types/lodash": "^4.14.126",
     "@types/shelljs": "^0.8.5",
     "@types/uuid": "^3.4.4",
     "axios": "^0.18.0",
@@ -47,7 +47,7 @@
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "shelljs": "^0.8.3",
-    "simple-git": "^1.110.0",
+    "simple-git": "^1.113.0",
     "ts-node": "^8.1.0",
     "typescript": "^3.4.5",
     "uuid": "^3.3.2"
@@ -58,7 +58,7 @@
     "@types/sinon": "^7.0.11",
     "codecov": "^3.4.0",
     "mocha": "^6.1.4",
-    "nyc": "^14.0.0",
+    "nyc": "^14.1.1",
     "proxyquire": "^2.1.0",
     "sinon": "^7.3.2",
     "tslint": "^5.16.0"
