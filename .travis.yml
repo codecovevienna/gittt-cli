@@ -1,0 +1,25 @@
+jobs:
+  include:
+  - stage: lint
+    language: node_js
+    cache: npm
+    node_js:
+      - 10.14.1
+    script:
+      - npm install
+      - npm run lint
+    on:
+      tags: false
+
+  - stage: test
+    language: node_js
+    cache: npm
+    node_js:
+      - 10.14.1
+    script:
+      - npm install
+      - npm run test:ci
+    after_success:
+      - npm run codecov
+    on:
+      tags: false
