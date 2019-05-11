@@ -1,5 +1,5 @@
 {
-  "name": "git-time-tracker",
+  "name": "gittt-cli",
   "version": "0.0.1",
   "description": "Tracking time with CLI into a git repository",
   "main": "index.ts",
@@ -12,14 +12,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@gitlab.codecove.at:10022/codecove/git-time-tracker.git"
+    "url": "git@github.com:codecovevienna/gittt-cli.git"
   },
   "keywords": [
     "git",
     "time",
     "tracking"
   ],
-  "author": "Manuel Zangl",
+  "author": "CodeCove Vienna",
+  "contributors": [
+    {
+      "name": "eiabea",
+      "email": "developer@eiabea.com",
+      "url": "https://github.com/eiabea"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "@types/axios": "^0.14.0",
