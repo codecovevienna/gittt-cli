@@ -23,3 +23,24 @@ jobs:
       - npm run codecov
     on:
       tags: false
+
+  - stage: build
+    script:
+      # Install packages
+      - npm install
+      - npm install --no-save pkg
+      # Compile ts into js
+      - ./node_modules/.bin/tsc
+      - cp package.json dist
+      # Compile package for various systems
+      - ./node_modules/.bin/pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${CI_COMMIT_TAG}
+    deploy:
+      provider: releases
+      api_key:
+        secure: cjalC6QtCqhfW0paD4/oB2YhEyPhuMRDjPBh4PPXOnpj341mxFOG8ieX6Qx4s5+2mDqqcnMeIRVshMb0XkHQpMmsVqxEL9XgBLw0ng5WS+33MQPg60okqZL1M+8TLP+v4+JGHiuC/wkJjXwhabC707MD4gRnNY+1aMHnXYRluybGwvxtSz6WSng98kgwzgLCZXXMHfSqazT2OTTZR4npVmL58YZ4pJjSfLBuhS5zbCDLyiCKJ7J9F420N6cbJv3rkEBwcwlKfUrRw2jpUnZ7Bnv7turAp2zKwlenIvOxnHWBncG+zQrxYc19nhxVqD5Vrcr7G8MWQbXaoe1GCimqeq72+36OveHf7dQrJolNmThp3+40t7UbSi62IFa+Zg7cj/dAifUbd0OiwNJ/MvPRWwrnKAnHf+fhGlhU8CNtcp9ksCh8S6ZcZ00711S53pri3HjDdV/xELxxwMaceohlwKws1GblDRCQNexvRMT/XYVOsLpy8Lp8fP6AQxaBnbkk37uwHBuyARgo53ZYg3co3OzvscvI1d8ejiYjnR0iAKqVV3dJ76rEhB41ynoaIwb3aIZWADMx8NgShk4y/rvheJE6iWkdQsMKtJd5MW06/jvlZBcFh2iHPqQY6oSO8BzB8y3W1/knAhohWRgIpW8LFMfZQR3B8SZvE2dKMOgdTV4=
+      file: gittt-*
+      skip_cleanup: true
+      file_glob: true
+      on:
+        tags: true
+        repo: codecovevienna/gittt-cli
