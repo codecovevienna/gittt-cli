@@ -26,6 +26,10 @@ jobs:
 
   - stage: build
     if: NOT type = pull_request AND tag IS present
+    language: node_js
+    cache: npm
+    node_js:
+      - 10.14.1
     script:
       # Install packages
       - npm install
