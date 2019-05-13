@@ -1,8 +1,9 @@
 {
-  "name": "gittt-cli",
+  "name": "@codecovevienna/gittt-cli",
   "version": "1.0.0",
   "description": "Tracking time with CLI into a git repository",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "start": "./node_modules/.bin/ts-node index.ts",
     "test": "TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true ./node_modules/.bin/mocha test ./test/**/*.test.ts",
@@ -10,8 +11,14 @@
     "lint": "./node_modules/.bin/tslint --project ./tsconfig.json",
     "lint:fix": "./node_modules/.bin/tslint --fix --project ./tsconfig.json",
     "codecov": "./node_modules/.bin/nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov",
-    "build": "tsc && cp package.json dist"
+    "build": "tsc"
   },
+  "bin": {
+    "gittt": "./dist/index.js"
+  },
+  "files": [
+    "dist/**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:codecovevienna/gittt-cli.git"
