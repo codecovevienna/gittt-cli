@@ -9,7 +9,7 @@ export { QuestionHelper } from "./question";
 
 export function parseProjectNameFromGitUrl(input: string): IProject {
   const split: RegExpMatchArray | null = input
-    .match(new RegExp("(\\w+:\/\/)(.+@)*([\\w\\d\.]+)(:[\\d]+){0,1}\/*(.*)\.git"));
+    .match(new RegExp("(\\w+:\/\/){0,1}(.+@)*([\\w\\d\.]+)(:[\\d]*){0,1}\/*(.*)\.git"));
 
   if (!split || split.length !== 6) {
     throw new Error("Unable to get project information from repo URL");

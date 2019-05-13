@@ -235,7 +235,7 @@ export class FileHelper {
 
   private projectMetaToPath = (projectMeta: IProjectMeta): string => {
     const { host, port } = projectMeta;
-    return path.join(this.projectDir, `${host.replace(/\./gi, "_")}_${port}`);
+    return path.join(this.projectDir, `${host.replace(/\./gi, "_")}${port ? "_"+port : ""}`);
   }
 
   private saveConfigObject = async (config: IConfigFile): Promise<void> => {
