@@ -30,7 +30,7 @@ import { RECORD_TYPES } from "./types";
 const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
-const APP_CONFIG_DIR: string = "gittt-cli";
+const APP_CONFIG_DIR: string = ".gittt-cli";
 
 export class App {
   private homeDir: string;
@@ -72,7 +72,7 @@ export class App {
 
   public async setup(): Promise<void> {
     this.homeDir = this.getHomeDir();
-    this.configDir = path.join(this.homeDir, `./${APP_CONFIG_DIR}`);
+    this.configDir = path.join(this.homeDir, `${APP_CONFIG_DIR}`);
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
 
     // TODO correct place to ask this?
