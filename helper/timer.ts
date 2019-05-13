@@ -1,5 +1,6 @@
 import inquirer from "inquirer";
 import { isString } from "util";
+import moment from "moment";
 import { IGitCommitMessageAnswers, ITimerFile } from "../interfaces";
 import { FileHelper, LogHelper } from "./index";
 import { ProjectHelper } from "./project";
