@@ -38,9 +38,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@types/axios": "^0.14.0",
     "@types/chai": "^4.1.7",
-    "@types/commander": "^2.12.2",
     "@types/fs-extra": "^5.1.0",
     "@types/inquirer": "6.0.1",
     "@types/lodash": "^4.14.126",
