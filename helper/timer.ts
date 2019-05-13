@@ -27,7 +27,7 @@ export class TimerHelper {
         stop: 0,
       });
 
-      LogHelper.info(`Started Timer: ${new Date(now)}`);
+      LogHelper.info(`Started Timer: ${moment(now).format("DD.MM.YYYY HH:mm:ss")}`);
     } else {
 
       // file exists check if timer is running
@@ -35,13 +35,13 @@ export class TimerHelper {
       if (await this.isTimerRunning(now)) {
         const timer: ITimerFile = await this.fileHelper.getTimerObject();
         const diff: number = now - timer.start;
-        LogHelper.info(`Timer is already started since ${diff} seconds`);
+        LogHelper.info(`Timer is already started ${moment(timer.start).from(now)}`);
       } else {
         await this.fileHelper.saveTimerObject({
           start: now,
           stop: 0,
         });
-        LogHelper.info(`Started Timer: ${new Date(now)}`);
+        LogHelper.info(`Started Timer: ${moment(now).format("DD.MM.YYYY HH:mm:ss")}`);
       }
     }
   }
@@ -61,13 +61,14 @@ export class TimerHelper {
             type: "input",
           },
         ]);
+        // console.log(gitCommitMessageAnswer.gitCommitMessage);
         gitCommitMessage = gitCommitMessageAnswer.gitCommitMessage;
       }
 
       await this.projectHelper.addRecordToProject({
         amount: this.hh(diff),
-        created: now,
         message: gitCommitMessage,
+        // message: null,
         type: "Time",
       });
 
