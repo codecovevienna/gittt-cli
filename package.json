@@ -1,6 +1,6 @@
 {
   "name": "@codecovevienna/gittt-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Tracking time with CLI into a git repository",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,9 +16,6 @@
   "bin": {
     "gittt": "./dist/index.js"
   },
-  "files": [
-    "dist"
-  ],
   "publishConfig": {
     "access": "public"
   },

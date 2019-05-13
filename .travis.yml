@@ -36,11 +36,10 @@ jobs:
       - npm install --no-save pkg
       # Compile ts into js
       - ./node_modules/.bin/tsc
+      # File is used by app.ts
       - cp package.json dist
       # Compile package for various systems
       - ./node_modules/.bin/pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${TRAVIS_TAG}
-      # Npm publish does not like the package.json in dist
-      - rm -rf dist/package.json
     deploy:
       - provider: releases
         api_key:
