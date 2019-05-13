@@ -303,7 +303,7 @@ export class QuestionHelper {
 
     const question: Question = {
       choices,
-      message: "Update type",
+      message: "Type",
       name: "choice",
       type: "list",
     };
