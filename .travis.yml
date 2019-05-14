@@ -32,20 +32,30 @@ jobs:
       - 10.14.1
     script:
       # Install packages
-      - npm install
+      - npm install --production
       - npm install --no-save pkg
       # Compile ts into js
       - ./node_modules/.bin/tsc
+      # File is used by app.ts
       - cp package.json dist
       # Compile package for various systems
       - ./node_modules/.bin/pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${TRAVIS_TAG}
     deploy:
-      provider: releases
-      api_key:
-        secure: cjalC6QtCqhfW0paD4/oB2YhEyPhuMRDjPBh4PPXOnpj341mxFOG8ieX6Qx4s5+2mDqqcnMeIRVshMb0XkHQpMmsVqxEL9XgBLw0ng5WS+33MQPg60okqZL1M+8TLP+v4+JGHiuC/wkJjXwhabC707MD4gRnNY+1aMHnXYRluybGwvxtSz6WSng98kgwzgLCZXXMHfSqazT2OTTZR4npVmL58YZ4pJjSfLBuhS5zbCDLyiCKJ7J9F420N6cbJv3rkEBwcwlKfUrRw2jpUnZ7Bnv7turAp2zKwlenIvOxnHWBncG+zQrxYc19nhxVqD5Vrcr7G8MWQbXaoe1GCimqeq72+36OveHf7dQrJolNmThp3+40t7UbSi62IFa+Zg7cj/dAifUbd0OiwNJ/MvPRWwrnKAnHf+fhGlhU8CNtcp9ksCh8S6ZcZ00711S53pri3HjDdV/xELxxwMaceohlwKws1GblDRCQNexvRMT/XYVOsLpy8Lp8fP6AQxaBnbkk37uwHBuyARgo53ZYg3co3OzvscvI1d8ejiYjnR0iAKqVV3dJ76rEhB41ynoaIwb3aIZWADMx8NgShk4y/rvheJE6iWkdQsMKtJd5MW06/jvlZBcFh2iHPqQY6oSO8BzB8y3W1/knAhohWRgIpW8LFMfZQR3B8SZvE2dKMOgdTV4=
-      file: gittt-*
-      skip_cleanup: true
-      file_glob: true
-      on:
-        tags: true
-        repo: codecovevienna/gittt-cli
+      - provider: releases
+        api_key:
+          secure: cjalC6QtCqhfW0paD4/oB2YhEyPhuMRDjPBh4PPXOnpj341mxFOG8ieX6Qx4s5+2mDqqcnMeIRVshMb0XkHQpMmsVqxEL9XgBLw0ng5WS+33MQPg60okqZL1M+8TLP+v4+JGHiuC/wkJjXwhabC707MD4gRnNY+1aMHnXYRluybGwvxtSz6WSng98kgwzgLCZXXMHfSqazT2OTTZR4npVmL58YZ4pJjSfLBuhS5zbCDLyiCKJ7J9F420N6cbJv3rkEBwcwlKfUrRw2jpUnZ7Bnv7turAp2zKwlenIvOxnHWBncG+zQrxYc19nhxVqD5Vrcr7G8MWQbXaoe1GCimqeq72+36OveHf7dQrJolNmThp3+40t7UbSi62IFa+Zg7cj/dAifUbd0OiwNJ/MvPRWwrnKAnHf+fhGlhU8CNtcp9ksCh8S6ZcZ00711S53pri3HjDdV/xELxxwMaceohlwKws1GblDRCQNexvRMT/XYVOsLpy8Lp8fP6AQxaBnbkk37uwHBuyARgo53ZYg3co3OzvscvI1d8ejiYjnR0iAKqVV3dJ76rEhB41ynoaIwb3aIZWADMx8NgShk4y/rvheJE6iWkdQsMKtJd5MW06/jvlZBcFh2iHPqQY6oSO8BzB8y3W1/knAhohWRgIpW8LFMfZQR3B8SZvE2dKMOgdTV4=
+        file: gittt-*
+        skip_cleanup: true
+        file_glob: true
+        on:
+          tags: true
+          repo: codecovevienna/gittt-cli
+
+      - provider: npm
+        skip_cleanup: true
+        email: developer@eiabea.com
+        api_key:
+          secure: nvry4+Z3QDqU5EbMthQDTbm+SjdMkSYiCS2S7JkC1v5wIGKeTl0nc2H5Ng9urvznnkSG83FUVDkv1v3F/PWfarscIPL8Vcbn2k2aLkR0dY/baUOXSbdwTNZR0Cc0yleey9PudpjVDrfhpXlCQlMLDtyM47nERmNOygLjKrZWZocyXADAy/9YSACsZ3/Dtaxg3eec8qSvt4RulK644nlcA1Y5WfqIQCRfaj236PACX1h+4RlVq+qOJd2H0mrwqYsR6/3uXjr5dWVoncAkQN0uyea3+sUB32MISlmvecFa60SYJBL5MQXWDPCHOkr4R5SlzE1sUkUsoQnb5zkgjJ5xAI/QWyDBMQquSwOocjQEBRLkVQ2bRjJ61mpie82yp3JNXgad3s4FHb+a1SwjdvySrM0fODp+4pfvetKDTLarTqL6iwn+3rAN7tioTx9wDvwZEqp5fnpE2KsgqiSzVyJsEMZRPBoBb47QB+arvnR1k9BuN4CorQrC67JdkO40YWTzUst9Sg80MUVtsKBLLA84G7nD32XGNBCJDJKTYlEIMWk/BjAwYMx5f4u1qQkV3X18kK5q0GA59BNEm7XWAFcyhICaMxG75FKuXNl00TxRqeuC6zodpvCbnGxE0XAP8Qt0Z1CwaSAcUTKZNZW0Sh5n6WZMgHxPCpkXQCbyUl7LyPY=
+        on:
+          tags: true
+          repo: codecovevienna/gittt-cli
