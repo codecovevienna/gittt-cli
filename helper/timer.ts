@@ -1,4 +1,5 @@
 import inquirer from "inquirer";
+import moment, { Moment } from "moment";
 import { isString } from "util";
 import { IGitCommitMessageAnswers, ITimerFile } from "../interfaces";
 import { FileHelper, LogHelper } from "./index";
@@ -15,41 +16,41 @@ export class TimerHelper {
 
   public startTimer = async (): Promise<void> => {
 
-    const now: number = Date.now();
+    const now: Moment = moment();
 
     if (!this.fileHelper.timerFileExists()) {
 
       // file does not exist just init with start time now
-
       await this.fileHelper.saveTimerObject({
-        start: now,
+        start: now.valueOf(),
         stop: 0,
       });
 
-      LogHelper.info(`Started Timer: ${new Date(now)}`);
+      LogHelper.info(`Started Timer: ${moment(now).format("DD.MM.YYYY HH:mm:ss")}`);
     } else {
 
       // file exists check if timer is running
 
       if (await this.isTimerRunning(now)) {
         const timer: ITimerFile = await this.fileHelper.getTimerObject();
-        const diff: number = now - timer.start;
-        LogHelper.info(`Timer is already started since ${diff} seconds`);
+        // const diff: number = now - timer.start;
+        LogHelper.info(`Timer is already started ${moment(timer.start).from(now)}`);
       } else {
         await this.fileHelper.saveTimerObject({
-          start: now,
+          start: now.valueOf(),
           stop: 0,
         });
-        LogHelper.info(`Started Timer: ${new Date(now)}`);
+        LogHelper.info(`Started Timer: ${moment(now).format("DD.MM.YYYY HH:mm:ss")}`);
       }
     }
   }
 
   public stopTimer = async (gitCommitMessage?: string): Promise<void> => {
-    const now: number = Date.now();
+    const now: Moment = moment();
     if (await this.isTimerRunning(now)) {
       const timer: ITimerFile = await this.fileHelper.getTimerObject();
-      const diff: number = now - timer.start;
+      // const diff: number = now - timer.start;
+      const diff: number = now.diff(timer.start);
 
       if (!isString(gitCommitMessage)) {
         // ask for message
@@ -60,29 +61,28 @@ export class TimerHelper {
             type: "input",
           },
         ]);
+        // console.log(gitCommitMessageAnswer.gitCommitMessage);
         gitCommitMessage = gitCommitMessageAnswer.gitCommitMessage;
       }
 
       await this.projectHelper.addRecordToProject({
-        amount: this.hh(diff),
-        created: now,
+        amount: moment(diff).hours(),
         message: gitCommitMessage,
+        // message: null,
         type: "Time",
       });
 
-      timer.stop = now;
+      timer.stop = now.valueOf();
       await this.fileHelper.saveTimerObject(timer);
 
-      // TODO change representation of time in hh:mm:ss
-      LogHelper.info(`Timer stopped and work time is ${this.parseMs(diff)}`);
+      LogHelper.info(`Timer stopped and work time is ${moment(diff).format("HH:mm:ss")}`);
     } else {
       LogHelper.info("No timer was started previously");
     }
   }
 
   public killTimer = async (): Promise<void> => {
-    const now: number = Date.now();
-    if (await this.isTimerRunning(now)) {
+    if (await this.isTimerRunning(moment())) {
       this.fileHelper.initTimerFile();
       LogHelper.warn("Timer was killed");
     } else {
@@ -90,40 +90,12 @@ export class TimerHelper {
     }
   }
 
-  public isTimerRunning = async (now: number): Promise<boolean> => {
+  public isTimerRunning = async (now: Moment): Promise<boolean> => {
     if (this.fileHelper.timerFileExists()) {
       const timer: ITimerFile = await this.fileHelper.getTimerObject();
-      if ((timer.start > 0 && timer.start < now && timer.stop === 0)) {
-        return true;
-      } else {
-        return false;
-      }
+      return timer.start > 0 && timer.start < now.valueOf() && timer.stop === 0;
     }
     return false;
-  }
-
-  // TODO use moment.js?
-  private parseMs = (msec: number): string => {
-
-    const sec: number = msec / 1000;
-
-    const hours: number = Math.floor(sec / 3600);
-    const minutes: number = Math.floor((sec - (hours * 3600)) / 60);
-    const seconds: number = sec - (hours * 3600) - (minutes * 60);
-
-    let strHours: string = "" + hours;
-    let strMinutes: string = "" + minutes;
-    let strSeconds: string = "" + seconds;
-
-    if (hours < 10) { strHours = "0" + hours; }
-    if (minutes < 10) { strMinutes = "0" + minutes; }
-    if (seconds < 10) { strSeconds = "0" + seconds; }
-
-    return strHours + ":" + strMinutes + ":" + strSeconds;
-  }
-
-  private hh = (msec: number): number => {
-    return msec / 360000;
   }
 
 }
