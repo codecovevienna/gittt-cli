@@ -14,7 +14,7 @@ const projectsDir: string = "projects";
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
 
-describe("ProjectHelper", () => {
+describe.only("ProjectHelper", () => {
   let mockedFileHelper: FileHelper;
   let mockedGitHelper: GitHelper;
   before(() => {
@@ -596,5 +596,25 @@ describe("ProjectHelper", () => {
       thrownError = err;
     }
     assert.isDefined(thrownError);
+  });
+
+  it.only("should migrate project", async () => {
+    LogHelper.DEBUG = true;
+    LogHelper.silence = false;
+
+    const projectProxy: any = proxyquire("../../helper/project", {});
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "test_mocked",
+      records: [],
+    } as IProject);
+
+    await instance.migrate();
   });
 });

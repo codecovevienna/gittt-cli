@@ -41,6 +41,7 @@ export class ProjectHelper {
       try {
 
         // TODO ask user if he wants to create this project?
+        // TODO add something like "migrate project"-dialog here
         LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
         LogHelper.info(`Initializing project "${projectName}"`);
         foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
@@ -129,5 +130,13 @@ export class ProjectHelper {
     const originUrl: string = gitConfigExec.stdout.trim();
 
     return parseProjectNameFromGitUrl(originUrl);
+  }
+
+  public migrate = async (): Promise<void> => {
+    LogHelper.debug("Starting migrate procedure");
+
+    const currProject: IProject = this.getProjectFromGit();
+
+    LogHelper.debug(`Current project: ${currProject.name} - ${currProject.meta.host}`);
   }
 }

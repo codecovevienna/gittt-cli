@@ -4,6 +4,7 @@ import moment from "moment";
 import { parseProjectNameFromGitUrl } from ".";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
+import { FileHelper } from "./file";
 
 export class QuestionHelper {
   public static validateNumber = (input: any, from?: number, to?: number): boolean => {
@@ -324,6 +325,37 @@ export class QuestionHelper {
 
     const question: Question = {
       choices,
+      message: "What integration should be used?",
+      name: "choice",
+      type: "list",
+    };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static chooseDomain = async (domains: string[]): Promise<string> => {
+    const question: Question = {
+      choices: domains,
+      message: "What domain should be used?",
+      name: "choice",
+      type: "list",
+    };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static chooseProject = async (projects: IProject[]): Promise<IProject> => {
+    const question: Question = {
+      choices: projects.map((project: IProject) => {
+        return {
+          name: `${project.meta.host} ${project.name}`,
+          value: FileHelper.projectMetaToDomain(project.meta),
+        };
+      }),
       message: "What integration should be used?",
       name: "choice",
       type: "list",

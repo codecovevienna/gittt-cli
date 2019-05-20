@@ -4,6 +4,11 @@ import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITime
 import { LogHelper } from "./";
 
 export class FileHelper {
+  public static projectMetaToDomain = (projectMeta: IProjectMeta): string => {
+    const { host, port } = projectMeta;
+    return `${host.replace(/\./gi, "_")}${port ? "_" + port : ""}`;
+  }
+
   private configFilePath: string;
   private timerFilePath: string;
   private configDir: string;
@@ -234,8 +239,7 @@ export class FileHelper {
   }
 
   private projectMetaToPath = (projectMeta: IProjectMeta): string => {
-    const { host, port } = projectMeta;
-    return path.join(this.projectDir, `${host.replace(/\./gi, "_")}${port ? "_" + port : ""}`);
+    return path.join(this.projectDir, FileHelper.projectMetaToDomain(projectMeta));
   }
 
   private saveConfigObject = async (config: IConfigFile): Promise<void> => {
