@@ -117,7 +117,11 @@ describe("TimerHelper", () => {
     assert.isTrue(nowStub.calledOnce);
     assert.isTrue(isTimerRunningObjectStub.calledOnce);
     assert.isTrue(getTimerObjectStub.calledOnce);
-    assert.isTrue(addRecordToProjectStub.calledOnce);
+    assert.isTrue(addRecordToProjectStub.calledOnceWith({
+      amount: moment.duration(10).asHours(),
+      message: "test",
+      type: "Time",
+    }));
     assert.isTrue(saveTimerObjectStub.calledOnce);
 
     nowStub.restore();
@@ -147,7 +151,47 @@ describe("TimerHelper", () => {
     assert.isTrue(nowStub.calledOnce);
     assert.isTrue(isTimerRunningObjectStub.calledOnce);
     assert.isTrue(getTimerObjectStub.calledOnce);
-    assert.isTrue(addRecordToProjectStub.calledOnce);
+    assert.isTrue(addRecordToProjectStub.calledOnceWith({
+      amount: moment.duration(10).asHours(),
+      message: "Test",
+      type: "Time",
+    }));
+    assert.isTrue(saveTimerObjectStub.calledOnce);
+    assert.isTrue(promptStub.calledOnce);
+
+    nowStub.restore();
+    isTimerRunningObjectStub.restore();
+    getTimerObjectStub.restore();
+    addRecordToProjectStub.restore();
+    saveTimerObjectStub.restore();
+    promptStub.restore();
+  });
+
+  it("should stop the timer [ask for message {empty}]", async () => {
+
+    const now: number = Date.now();
+
+    const nowStub: SinonInspectable = sinon.stub(Date, "now").returns(now);
+    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+    const isTimerRunningObjectStub: SinonInspectable = sinon.stub(instance, "isTimerRunning").resolves(true);
+    const getTimerObjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
+      start: now - 10,
+      stop: 0,
+    } as ITimerFile);
+    const addRecordToProjectStub: SinonInspectable = sinon.stub(mockedProjectHelper, "addRecordToProject").resolves();
+    const saveTimerObjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+    const promptStub: SinonInspectable = sinon.stub(inquirer, "prompt").resolves({ gitCommitMessage: "" });
+
+    await instance.stopTimer(undefined);
+
+    assert.isTrue(nowStub.calledOnce);
+    assert.isTrue(isTimerRunningObjectStub.calledOnce);
+    assert.isTrue(getTimerObjectStub.calledOnce);
+    assert.isTrue(addRecordToProjectStub.calledOnceWith({
+      amount: moment.duration(10).asHours(),
+      message: undefined,
+      type: "Time",
+    }));
     assert.isTrue(saveTimerObjectStub.calledOnce);
     assert.isTrue(promptStub.calledOnce);
 

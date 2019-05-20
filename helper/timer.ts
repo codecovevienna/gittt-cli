@@ -1,4 +1,5 @@
 import inquirer from "inquirer";
+import _ from "lodash";
 import moment, { Moment } from "moment";
 import { isString } from "util";
 import { IGitCommitMessageAnswers, ITimerFile } from "../interfaces";
@@ -30,10 +31,8 @@ export class TimerHelper {
     } else {
 
       // file exists check if timer is running
-
       if (await this.isTimerRunning(now)) {
         const timer: ITimerFile = await this.fileHelper.getTimerObject();
-        // const diff: number = now - timer.start;
         LogHelper.info(`Timer is already started ${moment(timer.start).from(now)}`);
       } else {
         await this.fileHelper.saveTimerObject({
@@ -49,10 +48,10 @@ export class TimerHelper {
     const now: Moment = moment();
     if (await this.isTimerRunning(now)) {
       const timer: ITimerFile = await this.fileHelper.getTimerObject();
-      // const diff: number = now - timer.start;
       const diff: number = now.diff(timer.start);
+      let finalCommitMessage: string | undefined = gitCommitMessage;
 
-      if (!isString(gitCommitMessage)) {
+      if (!finalCommitMessage) {
         // ask for message
         const gitCommitMessageAnswer: IGitCommitMessageAnswers = await inquirer.prompt([
           {
@@ -61,21 +60,22 @@ export class TimerHelper {
             type: "input",
           },
         ]);
-        // console.log(gitCommitMessageAnswer.gitCommitMessage);
-        gitCommitMessage = gitCommitMessageAnswer.gitCommitMessage;
+        finalCommitMessage = gitCommitMessageAnswer.gitCommitMessage;
       }
 
       await this.projectHelper.addRecordToProject({
-        amount: moment(diff).hours(),
-        message: gitCommitMessage,
-        // message: null,
+        amount: moment.duration(diff).asHours(),
+        message: _.isEmpty(finalCommitMessage) ? undefined : finalCommitMessage,
         type: "Time",
       });
 
       timer.stop = now.valueOf();
       await this.fileHelper.saveTimerObject(timer);
 
-      LogHelper.info(`Timer stopped and work time is ${moment(diff).format("HH:mm:ss")}`);
+      LogHelper.info(`Timer stopped and work time is ${moment.utc(moment
+        .duration(diff)
+        .asMilliseconds(),
+      ).format("HH:mm:ss.SSS")}`);
     } else {
       LogHelper.info("No timer was started previously");
     }
@@ -97,5 +97,4 @@ export class TimerHelper {
     }
     return false;
   }
-
 }
