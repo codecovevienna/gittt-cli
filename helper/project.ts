@@ -1,9 +1,21 @@
+import fs, { WriteOptions } from "fs-extra";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import uuid from "uuid/v1";
-import { IProject, IRecord } from "../interfaces";
+import { IProject, IProjectMeta, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 
 export class ProjectHelper {
+  public static projectMetaToDomain = (projectMeta: IProjectMeta): string => {
+    const { host, port } = projectMeta;
+    return `${host.replace(/\./gi, "_")}${port ? "_" + port : ""}`;
+  }
+  public static projectToProjectFilename = (project: IProject): string => {
+    return `${project.name}.json`;
+  }
+  public static getProjectPath = (project: IProject): string => {
+    return `${ProjectHelper.projectMetaToDomain(project.meta)}/${ProjectHelper.projectToProjectFilename(project)}`;
+  }
+
   private fileHelper: FileHelper;
   private gitHelper: GitHelper;
 
@@ -132,11 +144,37 @@ export class ProjectHelper {
     return parseProjectNameFromGitUrl(originUrl);
   }
 
-  public migrate = async (): Promise<void> => {
+  public migrate = async (from: IProject, to: IProject): Promise<void> => {
     LogHelper.debug("Starting migrate procedure");
 
-    const currProject: IProject = this.getProjectFromGit();
+    LogHelper.debug(`${from.name} -> ${to.name}`);
 
-    LogHelper.debug(`Current project: ${currProject.name} - ${currProject.meta.host}`);
+    // Ensure all records are present in the "from" project
+    const populatedFrom: IProject | undefined = await this.fileHelper.findProjectByName(from.name, from.meta);
+    if (!populatedFrom) {
+      throw new Error(`Unable to get records from ${from.name}`);
+    }
+
+    const migratedProject: IProject = {
+      meta: to.meta,
+      name: to.name,
+      records: populatedFrom.records,
+    };
+
+    await this.fileHelper.initProject(migratedProject);
+
+    const fromDomainProjects: IProject[] = await this.fileHelper.findProjectsForDomain(from.meta);
+
+    // TODO check if really the same project object?
+    if (fromDomainProjects.length === 1) {
+      LogHelper.debug(`"from" is only member of domain, remove dir`);
+      // we know that it is not empty, force delete it
+      await this.fileHelper.removeDomainDirectory(from.meta, true);
+    } else {
+      LogHelper.debug(`"from" is not the only member of domain, remove project file`);
+      await this.fileHelper.removeProjectFile(from);
+    }
+
+    // TODO migrate links?
   }
 }

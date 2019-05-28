@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon, { SinonSpy, SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "../../helper/index";
 import { IProject } from "../../interfaces";
 
@@ -30,6 +30,28 @@ describe("ProjectHelper", () => {
 
     mockedFileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
     mockedGitHelper = new gitProxy.GitHelper(configDir, mockedFileHelper);
+  });
+
+  it("should return project file name", async () => {
+    expect(ProjectHelper.projectToProjectFilename({
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "mocked",
+      records: [],
+    })).to.eq("mocked.json");
+  });
+
+  it("should return project file path", async () => {
+    expect(ProjectHelper.getProjectPath({
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "mocked",
+      records: [],
+    })).to.eq("github_com_443/mocked.json");
   });
 
   it("should create instance", async () => {
@@ -598,23 +620,188 @@ describe("ProjectHelper", () => {
     assert.isDefined(thrownError);
   });
 
-  it.only("should migrate project", async () => {
+  it("should migrate project [only project in domain]", async () => {
     LogHelper.DEBUG = true;
     LogHelper.silence = false;
 
-    const projectProxy: any = proxyquire("../../helper/project", {});
-
-    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
-
-    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+    const fromProject: IProject = {
       meta: {
         host: "github.com",
         port: 443,
       },
       name: "test_mocked",
-      records: [],
-    } as IProject);
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    };
 
-    await instance.migrate();
+    const toProject: IProject = {
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [],
+    };
+
+    const projectProxy: any = proxyquire("../../helper/project", {});
+
+    const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      fromProject,
+    ]);
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+    const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    await instance.migrate(fromProject, toProject);
+
+    assert.isTrue(findProjectsForDomainStub.calledOnce);
+    assert.isTrue(findProjectByNameStub.calledOnce);
+    assert.isTrue(initProjectStub.calledWith({
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    }));
+    assert.isTrue(removeDomainStub.calledOnce);
+
+    findProjectsForDomainStub.restore();
+    findProjectByNameStub.restore();
+    initProjectStub.restore();
+    removeDomainStub.restore();
+  });
+
+  it("should migrate project [more projects in domain]", async () => {
+    LogHelper.DEBUG = true;
+    LogHelper.silence = false;
+
+    const additionalProject: IProject = {
+      meta: {
+        host: "bitbucket.com",
+        port: 443,
+      },
+      name: "add_mocked",
+      records: [
+        {
+          amount: 69,
+          type: "Time",
+        },
+      ],
+    };
+
+    const fromProject: IProject = {
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "test_mocked",
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    };
+
+    const toProject: IProject = {
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [],
+    };
+
+    const projectProxy: any = proxyquire("../../helper/project", {});
+
+    const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      fromProject,
+      additionalProject,
+    ]);
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+    const removeProjectFileStub: SinonStub = sinon.stub(mockedFileHelper, "removeProjectFile").resolves();
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    await instance.migrate(fromProject, toProject);
+
+    assert.isTrue(findProjectsForDomainStub.calledOnce);
+    assert.isTrue(findProjectByNameStub.calledOnce);
+    assert.isTrue(initProjectStub.calledWith({
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    }));
+    assert.isTrue(removeProjectFileStub.calledOnce);
+
+    findProjectsForDomainStub.restore();
+    findProjectByNameStub.restore();
+    initProjectStub.restore();
+    removeProjectFileStub.restore();
+  });
+
+  it("should fail migrate project [project not found]", async () => {
+    LogHelper.DEBUG = true;
+    LogHelper.silence = false;
+
+    const fromProject: IProject = {
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "test_mocked",
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    };
+
+    const toProject: IProject = {
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [],
+    };
+
+    const projectProxy: any = proxyquire("../../helper/project", {});
+
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(undefined);
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    try {
+      await instance.migrate(fromProject, toProject);
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(findProjectByNameStub.calledOnce);
+
+    findProjectByNameStub.restore();
   });
 });

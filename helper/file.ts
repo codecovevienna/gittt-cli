@@ -1,14 +1,11 @@
 import fs, { WriteOptions } from "fs-extra";
 import path from "path";
+import { async } from "rxjs/internal/scheduler/async";
 import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
 import { LogHelper } from "./";
+import { ProjectHelper } from "./project";
 
 export class FileHelper {
-  public static projectMetaToDomain = (projectMeta: IProjectMeta): string => {
-    const { host, port } = projectMeta;
-    return `${host.replace(/\./gi, "_")}${port ? "_" + port : ""}`;
-  }
-
   private configFilePath: string;
   private timerFilePath: string;
   private configDir: string;
@@ -234,12 +231,29 @@ export class FileHelper {
     return projects;
   }
 
+  public removeDomainDirectory = async (projectMeta: IProjectMeta, force: boolean = false): Promise<void> => {
+    const projectsInDomain: IProject[] = await this.findProjectsForDomain(projectMeta);
+    if (projectsInDomain.length > 0) {
+      if (force) {
+        await fs.remove(this.projectMetaToPath(projectMeta));
+      } else {
+        throw new Error(`${this.projectMetaToPath(projectMeta)} is not empty`);
+      }
+    } else {
+      await fs.remove(this.projectMetaToPath(projectMeta));
+    }
+  }
+
+  public removeProjectFile = async (project: IProject): Promise<void> => {
+    return fs.remove(ProjectHelper.projectToProjectFilename(project));
+  }
+
   private setConfigObject = (config: IConfigFile): void => {
     this.configObject = config;
   }
 
   private projectMetaToPath = (projectMeta: IProjectMeta): string => {
-    return path.join(this.projectDir, FileHelper.projectMetaToDomain(projectMeta));
+    return path.join(this.projectDir, ProjectHelper.projectMetaToDomain(projectMeta));
   }
 
   private saveConfigObject = async (config: IConfigFile): Promise<void> => {

@@ -4,7 +4,7 @@ import moment from "moment";
 import { parseProjectNameFromGitUrl } from ".";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
-import { FileHelper } from "./file";
+import { ProjectHelper } from "./project";
 
 export class QuestionHelper {
   public static validateNumber = (input: any, from?: number, to?: number): boolean => {
@@ -351,12 +351,13 @@ export class QuestionHelper {
   public static chooseProject = async (projects: IProject[]): Promise<IProject> => {
     const question: Question = {
       choices: projects.map((project: IProject) => {
+        const {host, port} = project.meta;
         return {
-          name: `${project.meta.host} ${project.name}`,
-          value: FileHelper.projectMetaToDomain(project.meta),
+          name: `${host}:${port} ${project.name}`,
+          value: ProjectHelper.getProjectPath(project),
         };
       }),
-      message: "What integration should be used?",
+      message: "Choose a project",
       name: "choice",
       type: "list",
     };
