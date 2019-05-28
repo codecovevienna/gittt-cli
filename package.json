@@ -21,7 +21,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:codecovevienna/gittt-cli.git"
+    "url": "https://github.com/codecovevienna/gittt-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/codecovevienna/gittt-cli/issues"
   },
   "keywords": [
     "git",
