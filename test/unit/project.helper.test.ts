@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "../../helper/index";
 import { IProject } from "../../interfaces";
 
@@ -14,7 +14,7 @@ const projectsDir: string = "projects";
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
 
-describe.only("ProjectHelper", () => {
+describe("ProjectHelper", () => {
   let mockedFileHelper: FileHelper;
   let mockedGitHelper: GitHelper;
   before(() => {
@@ -38,12 +38,12 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should initialize project", async () => {
-    const initProjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "initProject").resolves();
-    const commitChangesStub: SinonInspectable = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+    const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -68,13 +68,13 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should fail to initialize project", async () => {
-    const initProjectStub: SinonInspectable = sinon
+    const initProjectStub: SinonStub = sinon
       .stub(mockedFileHelper, "initProject")
       .rejects(new Error("Mocked error"));
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -97,7 +97,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should add record to project", async () => {
-    const findProjectByNameStub: SinonInspectable = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
       meta: {
         host: "github.com",
         port: 443,
@@ -105,13 +105,13 @@ describe.only("ProjectHelper", () => {
       name: "test_mocked",
       records: [],
     } as IProject);
-    const saveProjectObjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-    const commitChangesStub: SinonInspectable = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -140,7 +140,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should add record to project without message", async () => {
-    const findProjectByNameStub: SinonInspectable = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
       meta: {
         host: "github.com",
         port: 443,
@@ -148,13 +148,13 @@ describe.only("ProjectHelper", () => {
       name: "test_mocked",
       records: [],
     } as IProject);
-    const saveProjectObjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-    const commitChangesStub: SinonInspectable = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -182,7 +182,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should add record to project without created timestamp", async () => {
-    const findProjectByNameStub: SinonInspectable = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
       meta: {
         host: "github.com",
         port: 443,
@@ -190,13 +190,13 @@ describe.only("ProjectHelper", () => {
       name: "test_mocked",
       records: [],
     } as IProject);
-    const saveProjectObjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-    const commitChangesStub: SinonInspectable = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -223,7 +223,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should add record of one hour to project without message", async () => {
-    const findProjectByNameStub: SinonInspectable = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
       meta: {
         host: "github.com",
         port: 443,
@@ -231,13 +231,13 @@ describe.only("ProjectHelper", () => {
       name: "test_mocked",
       records: [],
     } as IProject);
-    const saveProjectObjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-    const commitChangesStub: SinonInspectable = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -265,11 +265,11 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should add record to non existing project", async () => {
-    const findProjectByNameStub: SinonInspectable = sinon
+    const findProjectByNameStub: SinonStub = sinon
       .stub(mockedFileHelper, "findProjectByName")
       .resolves(undefined);
 
-    const initProjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "initProject").resolves({
+    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves({
       meta: {
         host: "github.com",
         port: 443,
@@ -277,13 +277,13 @@ describe.only("ProjectHelper", () => {
       name: "test_mocked",
       records: [],
     } as IProject);
-    const saveProjectObjectStub: SinonInspectable = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-    const commitChangesStub: SinonInspectable = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -314,17 +314,17 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should fail to add record to non existing project", async () => {
-    const exitStub: SinonInspectable = sinon.stub(process, "exit");
-    const findProjectByNameStub: SinonInspectable = sinon
+    const exitStub: SinonStub = sinon.stub(process, "exit");
+    const findProjectByNameStub: SinonStub = sinon
       .stub(mockedFileHelper, "findProjectByName")
       .resolves(undefined);
-    const initProjectStub: SinonInspectable = sinon
+    const initProjectStub: SinonStub = sinon
       .stub(mockedFileHelper, "initProject")
       .rejects(new Error("Mocked error"));
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,
@@ -353,7 +353,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should get total numbers of hours for project", async () => {
-    const findProjectByNameStub: SinonInspectable = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
       meta: {
         host: "github.com",
         port: 443,
@@ -383,7 +383,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should get total numbers of hours for project", async () => {
-    const findProjectByNameStub: SinonInspectable = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
       meta: {
         host: "github.com",
         port: 443,
@@ -412,7 +412,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should fail to get total numbers of hours for non existing project", async () => {
-    const findProjectByNameStub: SinonInspectable = sinon
+    const findProjectByNameStub: SinonStub = sinon
       .stub(mockedFileHelper, "findProjectByName")
       .resolves(undefined);
 
@@ -429,7 +429,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should get project from git", () => {
-    const shellExecStub: SinonInspectable = sinon.stub()
+    const shellExecStub: SinonStub = sinon.stub()
       .onCall(0).returns({
         code: 0,
         stderr: "",
@@ -459,7 +459,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should get project from git [multiple remotes]", () => {
-    const shellExecStub: SinonInspectable = sinon.stub()
+    const shellExecStub: SinonStub = sinon.stub()
       .onCall(0).returns({
         code: 0,
         stderr: "",
@@ -489,7 +489,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should fail to get project from git [no origin remote]", () => {
-    const shellExecStub: SinonInspectable = sinon.stub()
+    const shellExecStub: SinonStub = sinon.stub()
       .onCall(0).returns({
         code: 0,
         stderr: "",
@@ -514,7 +514,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should fail to get project from git [shell exec fails]", () => {
-    const shellExecStub: SinonInspectable = sinon.stub()
+    const shellExecStub: SinonStub = sinon.stub()
       .onCall(0).returns({
         code: 1337,
         stderr: "",
@@ -539,7 +539,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should fail to get project from git [shell exec fails]", () => {
-    const shellExecStub: SinonInspectable = sinon.stub()
+    const shellExecStub: SinonStub = sinon.stub()
       .onCall(0).returns({
         code: 0,
         stderr: "",
@@ -569,7 +569,7 @@ describe.only("ProjectHelper", () => {
   });
 
   it("should fail to get project from git [invalid stdout]", () => {
-    const shellExecStub: SinonInspectable = sinon.stub()
+    const shellExecStub: SinonStub = sinon.stub()
       .onCall(0).returns({
         code: 0,
         stderr: "",
@@ -606,7 +606,7 @@ describe.only("ProjectHelper", () => {
 
     const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const getProjectFromGitStub: SinonInspectable = sinon.stub(instance, "getProjectFromGit").returns({
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
       meta: {
         host: "github.com",
         port: 443,

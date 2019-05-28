@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import { DefaultLogFields } from "simple-git/typings/response";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 
@@ -13,7 +13,7 @@ describe("Log test", () => {
 
   it("should log local changes", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const logChangesStub: SinonInspectable = sinon.stub().resolves([
+    const logChangesStub: SinonStub = sinon.stub().resolves([
       {
         author_email: "mock@mail.com",
         author_name: "mockAuthor",
@@ -62,7 +62,7 @@ describe("Log test", () => {
 
   it("should log everything up to date", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const logChangesStub: SinonInspectable = sinon.stub().resolves([]);
+    const logChangesStub: SinonStub = sinon.stub().resolves([]);
 
     const proxy: any = proxyquire("../../app", {
       "./helper": {

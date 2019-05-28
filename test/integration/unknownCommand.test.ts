@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 
@@ -12,7 +12,7 @@ describe("Unknown command test", () => {
 
   it("should show help", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const helpStub: SinonInspectable = sinon.stub(mockedCommander, "help");
+    const helpStub: SinonStub = sinon.stub(mockedCommander, "help");
 
     const proxy: any = proxyquire("../../app", {
       "./helper": {

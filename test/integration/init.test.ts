@@ -1,6 +1,6 @@
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 import { IInitProjectAnswers } from "../../interfaces";
@@ -12,7 +12,7 @@ describe("Init test", () => {
 
   it("should init project", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const initProjectStub: SinonInspectable = sinon.stub().resolves();
+    const initProjectStub: SinonStub = sinon.stub().resolves();
 
     const proxy: any = proxyquire("../../app", {
       "./helper": {

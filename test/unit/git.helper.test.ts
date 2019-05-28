@@ -3,7 +3,7 @@ import path from "path";
 import proxyquire from "proxyquire";
 import { StatusResult } from "simple-git/promise";
 import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonSpy, SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper } from "../../helper/index";
 import { IOverrideAnswers } from "../../interfaces";
 
@@ -87,8 +87,8 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const pullSpy: SinonInspectable = sinon.spy();
-    const pushSpy: SinonInspectable = sinon.spy();
+    const pullSpy: SinonSpy = sinon.spy();
+    const pushSpy: SinonSpy = sinon.spy();
     const proxy: any = proxyquire("../../helper/git", {
       "simple-git/promise": (): any => {
         return {
@@ -111,9 +111,9 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const pullSpy: SinonInspectable = sinon.spy();
-    const addSpy: SinonInspectable = sinon.spy();
-    const commitSpy: SinonInspectable = sinon.spy();
+    const pullSpy: SinonSpy = sinon.spy();
+    const addSpy: SinonSpy = sinon.spy();
+    const commitSpy: SinonSpy = sinon.spy();
     const proxy: any = proxyquire("../../helper/git", {
       "simple-git/promise": (): any => {
         return {
@@ -138,9 +138,9 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const pullSpy: SinonInspectable = sinon.spy();
-    const addSpy: SinonInspectable = sinon.spy();
-    const commitSpy: SinonInspectable = sinon.spy();
+    const pullSpy: SinonSpy = sinon.spy();
+    const addSpy: SinonSpy = sinon.spy();
+    const commitSpy: SinonSpy = sinon.spy();
     const proxy: any = proxyquire("../../helper/git", {
       "simple-git/promise": (): any => {
         return {
@@ -165,8 +165,8 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const initSpy: SinonInspectable = sinon.spy();
-    const addRemoteSpy: SinonInspectable = sinon.spy();
+    const initSpy: SinonSpy = sinon.spy();
+    const addRemoteSpy: SinonSpy = sinon.spy();
     const proxy: any = proxyquire("../../helper/git", {
       "simple-git/promise": (): any => {
         return {
@@ -190,10 +190,10 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const invalidateCacheSpy: SinonInspectable = sinon.spy(mockedFileHelper, "invalidateCache");
+    const invalidateCacheSpy: SinonSpy = sinon.spy(mockedFileHelper, "invalidateCache");
 
-    const resetSpy: SinonInspectable = sinon.spy();
-    const pullSpy: SinonInspectable = sinon.stub()
+    const resetSpy: SinonSpy = sinon.spy();
+    const pullSpy: SinonStub = sinon.stub()
       .onCall(0).rejects(new Error("Mocked error"))
       .onCall(1).resolves();
 
@@ -226,11 +226,11 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const invalidateCacheSpy: SinonInspectable = sinon.spy(mockedFileHelper, "invalidateCache");
+    const invalidateCacheSpy: SinonSpy = sinon.spy(mockedFileHelper, "invalidateCache");
 
-    const addSpy: SinonInspectable = sinon.spy();
-    const commitSpy: SinonInspectable = sinon.spy();
-    const rawSpy: SinonInspectable = sinon.spy();
+    const addSpy: SinonSpy = sinon.spy();
+    const commitSpy: SinonSpy = sinon.spy();
+    const rawSpy: SinonSpy = sinon.spy();
     const proxy: any = proxyquire("../../helper/git", {
       "inquirer": {
         prompt: sinon.stub().resolves({
@@ -264,10 +264,10 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const invalidateCacheSpy: SinonInspectable = sinon.spy(mockedFileHelper, "invalidateCache");
+    const invalidateCacheSpy: SinonSpy = sinon.spy(mockedFileHelper, "invalidateCache");
 
-    const resetSpy: SinonInspectable = sinon.spy();
-    const pullSpy: SinonInspectable = sinon.spy();
+    const resetSpy: SinonSpy = sinon.spy();
+    const pullSpy: SinonSpy = sinon.spy();
     const proxy: any = proxyquire("../../helper/git", {
       "inquirer": {
         prompt: sinon.stub().resolves({
@@ -298,14 +298,14 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const invalidateCacheSpy: SinonInspectable = sinon.spy(mockedFileHelper, "invalidateCache");
+    const invalidateCacheSpy: SinonSpy = sinon.spy(mockedFileHelper, "invalidateCache");
 
     sinon.stub(mockedFileHelper, "initReadme").resolves();
 
-    const addSpy: SinonInspectable = sinon.spy();
-    const commitSpy: SinonInspectable = sinon.spy();
-    const rawSpy: SinonInspectable = sinon.spy();
-    const pullSpy: SinonInspectable = sinon.stub()
+    const addSpy: SinonSpy = sinon.spy();
+    const commitSpy: SinonSpy = sinon.spy();
+    const rawSpy: SinonSpy = sinon.spy();
+    const pullSpy: SinonSpy = sinon.stub()
       .onCall(0).rejects(new Error("fatal: couldn't find remote ref master\n"))
       .onCall(1).resolves();
 
@@ -365,7 +365,7 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const exitStub: SinonInspectable = sinon.stub(process, "exit");
+    const exitStub: SinonStub = sinon.stub(process, "exit");
     const proxy: any = proxyquire("../../helper/git", {
       "inquirer": {
         prompt: sinon.stub().resolves({
