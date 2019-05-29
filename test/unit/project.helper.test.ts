@@ -2,7 +2,7 @@ import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
-import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "../../helper/index";
+import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from "../../helper/index";
 import { IIntegrationLink, IProject } from "../../interfaces";
 
 const sandboxDir: string = "./sandbox";
@@ -43,14 +43,14 @@ describe("ProjectHelper", () => {
     })).to.eq("mocked.json");
   });
 
-  it.only("should return project meta from domain", async () => {
+  it("should return project meta from domain", async () => {
     expect(ProjectHelper.domainToProjectMeta("gitlab_com_10022")).to.deep.eq({
       host: "gitlab.com",
       port: 10022,
     });
   });
 
-  it.only("should return project meta from domain [no port]", async () => {
+  it("should return project meta from domain [no port]", async () => {
     expect(ProjectHelper.domainToProjectMeta("gitlab_com")).to.deep.eq({
       host: "gitlab.com",
       port: 0,
@@ -316,6 +316,7 @@ describe("ProjectHelper", () => {
     const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
     const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -347,6 +348,7 @@ describe("ProjectHelper", () => {
     commitChangesStub.restore();
     saveProjectObjectStub.restore();
     getProjectFromGitStub.restore();
+    confirmMigrationStub.restore();
   });
 
   it("should fail to add record to non existing project", async () => {
@@ -357,6 +359,8 @@ describe("ProjectHelper", () => {
     const initProjectStub: SinonStub = sinon
       .stub(mockedFileHelper, "initProject")
       .rejects(new Error("Mocked error"));
+
+    const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
     const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -386,6 +390,7 @@ describe("ProjectHelper", () => {
     getProjectFromGitStub.restore();
     initProjectStub.restore();
     exitStub.restore();
+    confirmMigrationStub.restore();
   });
 
   it("should get total numbers of hours for project", async () => {
@@ -634,7 +639,7 @@ describe("ProjectHelper", () => {
     assert.isDefined(thrownError);
   });
 
-  it.only("should migrate project [only project in domain]", async () => {
+  it("should migrate project [only project in domain]", async () => {
     const fromProject: IProject = {
       meta: {
         host: "github.com",
@@ -696,7 +701,7 @@ describe("ProjectHelper", () => {
     findLinkByProjectStub.restore();
   });
 
-  it.only("should migrate project [more projects in domain]", async () => {
+  it("should migrate project [more projects in domain]", async () => {
     const additionalProject: IProject = {
       meta: {
         host: "bitbucket.com",
@@ -774,7 +779,7 @@ describe("ProjectHelper", () => {
     findLinkByProjectStub.restore();
   });
 
-  it.only("should fail migrate project [project not found]", async () => {
+  it("should fail migrate project [project not found]", async () => {
     const fromProject: IProject = {
       meta: {
         host: "github.com",
@@ -815,7 +820,7 @@ describe("ProjectHelper", () => {
     findProjectByNameStub.restore();
   });
 
-  it.only("should migrate project [only project in domain, with link]", async () => {
+  it("should migrate project [only project in domain, with link]", async () => {
     const fromProject: IProject = {
       meta: {
         host: "github.com",
@@ -894,7 +899,7 @@ describe("ProjectHelper", () => {
     addOrUpdateLinkStub.restore();
   });
 
-  it.only("should migrate project [only project in domain, invalid link]", async () => {
+  it("should migrate project [only project in domain, invalid link]", async () => {
     const fromProject: IProject = {
       meta: {
         host: "github.com",
