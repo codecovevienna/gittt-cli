@@ -348,7 +348,7 @@ export class QuestionHelper {
     return choice.choice;
   }
 
-  public static chooseProject = async (projects: IProject[]): Promise<IProject> => {
+  public static chooseProject = async (projects: IProject[]): Promise<string> => {
     const question: Question = {
       choices: projects.map((project: IProject) => {
         const {host, port} = project.meta;
@@ -360,6 +360,18 @@ export class QuestionHelper {
       message: "Choose a project",
       name: "choice",
       type: "list",
+    };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmMigration = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `Do you want to migrate from an existing project?`,
+      name: "choice",
+      type: "confirm",
     };
 
     const choice: any = await inquirer.prompt([question]);

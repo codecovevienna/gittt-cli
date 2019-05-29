@@ -3,11 +3,30 @@ import shelljs, { ExecOutputReturnValue } from "shelljs";
 import uuid from "uuid/v1";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
+import { QuestionHelper } from "./question";
 
 export class ProjectHelper {
   public static projectMetaToDomain = (projectMeta: IProjectMeta): string => {
     const { host, port } = projectMeta;
     return `${host.replace(/\./gi, "_")}${port ? "_" + port : ""}`;
+  }
+  public static domainToProjectMeta = (domain: string): IProjectMeta => {
+    const split: string[] = domain.split("_");
+    const potentialPort: number = parseInt(split[split.length - 1], 10);
+    let port: number = 0;
+    let splitClean: string[] = [];
+
+    if (!isNaN(potentialPort)) {
+      port = potentialPort;
+      splitClean = split.slice(0, split.length - 1);
+    } else {
+      splitClean = split;
+    }
+
+    return {
+      host: splitClean.join("."),
+      port,
+    };
   }
   public static projectToProjectFilename = (project: IProject): string => {
     return `${project.name}.json`;
@@ -52,11 +71,30 @@ export class ProjectHelper {
       LogHelper.warn(`Project "${projectName}" not found`);
       try {
 
-        // TODO ask user if he wants to create this project?
-        // TODO add something like "migrate project"-dialog here
-        LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
-        LogHelper.info(`Initializing project "${projectName}"`);
-        foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
+        const migrate: boolean = await QuestionHelper.confirmMigration();
+        if (migrate) {
+          const fromDomainProject: string = await QuestionHelper.chooseProject(await this.fileHelper.findAllProjects());
+
+          const [domain, name] = fromDomainProject.split("/");
+          const fromProject: IProject | undefined = await this.fileHelper.findProjectByName(
+            // TODO find a better way?
+            name.replace(".json", ""),
+            ProjectHelper.domainToProjectMeta(domain),
+          );
+
+          if (!fromProject) {
+            throw new Error("Unable to find project on disk");
+          }
+
+          const toProject: IProject = this.getProjectFromGit();
+
+          foundProject = await this.migrate(fromProject, toProject);
+        } else {
+          // TODO ask user if he wants to create this project?
+          LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
+          LogHelper.info(`Initializing project "${projectName}"`);
+          foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
+        }
       } catch (err) {
         LogHelper.error("Unable to initialize project, exiting...");
         return process.exit(1);
@@ -144,9 +182,8 @@ export class ProjectHelper {
     return parseProjectNameFromGitUrl(originUrl);
   }
 
-  public migrate = async (from: IProject, to: IProject): Promise<void> => {
+  public migrate = async (from: IProject, to: IProject): Promise<IProject> => {
     LogHelper.info("Starting migrate procedure");
-
     LogHelper.info(`${from.name} -> ${to.name}`);
 
     // Ensure all records are present in the "from" project
@@ -195,5 +232,7 @@ export class ProjectHelper {
     } catch (err) {
       LogHelper.debug(`No link found for project "${from.name}"`);
     }
+
+    return migratedProject;
   }
 }

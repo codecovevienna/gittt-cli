@@ -43,6 +43,20 @@ describe("ProjectHelper", () => {
     })).to.eq("mocked.json");
   });
 
+  it.only("should return project meta from domain", async () => {
+    expect(ProjectHelper.domainToProjectMeta("gitlab_com_10022")).to.deep.eq({
+      host: "gitlab.com",
+      port: 10022,
+    });
+  });
+
+  it.only("should return project meta from domain [no port]", async () => {
+    expect(ProjectHelper.domainToProjectMeta("gitlab_com")).to.deep.eq({
+      host: "gitlab.com",
+      port: 0,
+    });
+  });
+
   it("should return project file path", async () => {
     expect(ProjectHelper.getProjectPath({
       meta: {
