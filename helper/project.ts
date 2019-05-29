@@ -1,7 +1,7 @@
 import fs, { WriteOptions } from "fs-extra";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import uuid from "uuid/v1";
-import { IProject, IProjectMeta, IRecord } from "../interfaces";
+import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 
 export class ProjectHelper {
@@ -145,9 +145,9 @@ export class ProjectHelper {
   }
 
   public migrate = async (from: IProject, to: IProject): Promise<void> => {
-    LogHelper.debug("Starting migrate procedure");
+    LogHelper.info("Starting migrate procedure");
 
-    LogHelper.debug(`${from.name} -> ${to.name}`);
+    LogHelper.info(`${from.name} -> ${to.name}`);
 
     // Ensure all records are present in the "from" project
     const populatedFrom: IProject | undefined = await this.fileHelper.findProjectByName(from.name, from.meta);
@@ -162,19 +162,38 @@ export class ProjectHelper {
     };
 
     await this.fileHelper.initProject(migratedProject);
+    LogHelper.info(`✓ Migrated Project`);
 
     const fromDomainProjects: IProject[] = await this.fileHelper.findProjectsForDomain(from.meta);
 
     // TODO check if really the same project object?
     if (fromDomainProjects.length === 1) {
-      LogHelper.debug(`"from" is only member of domain, remove dir`);
       // we know that it is not empty, force delete it
       await this.fileHelper.removeDomainDirectory(from.meta, true);
+      LogHelper.info(`✓ Removed old domain directory`);
     } else {
-      LogHelper.debug(`"from" is not the only member of domain, remove project file`);
       await this.fileHelper.removeProjectFile(from);
+      LogHelper.info(`✓ Removed old project file`);
     }
 
-    // TODO migrate links?
+    try {
+      const link: IIntegrationLink = await this.fileHelper.findLinkByProject(from);
+
+      switch (link.linkType) {
+        case "Jira":
+          const migratedLink: IJiraLink = link as IJiraLink;
+          migratedLink.projectName = to.name;
+
+          await this.fileHelper.addOrUpdateLink(migratedLink);
+          LogHelper.info(`✓ Updated jira link`);
+          break;
+
+        default:
+          LogHelper.error("✗ Invalid link type");
+          break;
+      }
+    } catch (err) {
+      LogHelper.debug(`No link found for project "${from.name}"`);
+    }
   }
 }

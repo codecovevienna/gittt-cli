@@ -1,6 +1,5 @@
 import fs, { WriteOptions } from "fs-extra";
 import path from "path";
-import { async } from "rxjs/internal/scheduler/async";
 import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
 import { LogHelper } from "./";
 import { ProjectHelper } from "./project";
@@ -56,6 +55,25 @@ export class FileHelper {
     await this.saveConfigObject(configObject);
 
     return configObject;
+  }
+
+  public findLinkByProject = async (project: IProject): Promise<IIntegrationLink> => {
+    const configObject: IConfigFile = await this.getConfigObject();
+
+    const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
+      // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
+      return li.projectName === project.name;
+    });
+
+    if (foundLinks.length === 0) {
+      throw new Error(`Unable to find link for project "${project.name}"`);
+    }
+
+    if (foundLinks.length > 1) {
+      throw new Error(`Found more than one link for project "${project.name}"`);
+    }
+
+    return foundLinks[0];
   }
 
   public initProject = async (project: IProject): Promise<IProject> => {

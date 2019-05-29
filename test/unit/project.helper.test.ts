@@ -1,9 +1,9 @@
 import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
-import sinon, { SinonSpy, SinonStub } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "../../helper/index";
-import { IProject } from "../../interfaces";
+import { IIntegrationLink, IProject } from "../../interfaces";
 
 const sandboxDir: string = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -620,7 +620,7 @@ describe("ProjectHelper", () => {
     assert.isDefined(thrownError);
   });
 
-  it("should migrate project [only project in domain]", async () => {
+  it.only("should migrate project [only project in domain]", async () => {
     LogHelper.DEBUG = true;
     LogHelper.silence = false;
 
@@ -655,6 +655,7 @@ describe("ProjectHelper", () => {
     const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
     const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
     const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").throws();
 
     const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -681,9 +682,10 @@ describe("ProjectHelper", () => {
     findProjectByNameStub.restore();
     initProjectStub.restore();
     removeDomainStub.restore();
+    findLinkByProjectStub.restore();
   });
 
-  it("should migrate project [more projects in domain]", async () => {
+  it.only("should migrate project [more projects in domain]", async () => {
     LogHelper.DEBUG = true;
     LogHelper.silence = false;
 
@@ -733,6 +735,7 @@ describe("ProjectHelper", () => {
     const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
     const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
     const removeProjectFileStub: SinonStub = sinon.stub(mockedFileHelper, "removeProjectFile").resolves();
+    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").throws();
 
     const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -754,14 +757,16 @@ describe("ProjectHelper", () => {
       ],
     }));
     assert.isTrue(removeProjectFileStub.calledOnce);
+    assert.isTrue(findLinkByProjectStub.calledOnce);
 
     findProjectsForDomainStub.restore();
     findProjectByNameStub.restore();
     initProjectStub.restore();
     removeProjectFileStub.restore();
+    findLinkByProjectStub.restore();
   });
 
-  it("should fail migrate project [project not found]", async () => {
+  it.only("should fail migrate project [project not found]", async () => {
     LogHelper.DEBUG = true;
     LogHelper.silence = false;
 
@@ -803,5 +808,162 @@ describe("ProjectHelper", () => {
     assert.isTrue(findProjectByNameStub.calledOnce);
 
     findProjectByNameStub.restore();
+  });
+
+  it.only("should migrate project [only project in domain, with link]", async () => {
+    LogHelper.DEBUG = true;
+    LogHelper.silence = false;
+
+    const fromProject: IProject = {
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "test_mocked",
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    };
+
+    const toProject: IProject = {
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [],
+    };
+
+    const projectProxy: any = proxyquire("../../helper/project", {});
+
+    const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      fromProject,
+    ]);
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+    const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
+      endpoint: "https://jira.com/rest/gittt/latest/",
+      hash: "caetaep2gaediWea",
+      key: "GITTT",
+      linkType: "Jira",
+      projectName: "test_mocked",
+      username: "gittt",
+    } as IIntegrationLink);
+    const addOrUpdateLinkStub: SinonStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    await instance.migrate(fromProject, toProject);
+
+    assert.isTrue(findProjectsForDomainStub.calledOnce);
+    assert.isTrue(findProjectByNameStub.calledOnce);
+    assert.isTrue(initProjectStub.calledWith({
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    }));
+    assert.isTrue(removeDomainStub.calledOnce);
+    assert.isTrue(addOrUpdateLinkStub.calledWith({
+      endpoint: "https://jira.com/rest/gittt/latest/",
+      hash: "caetaep2gaediWea",
+      key: "GITTT",
+      linkType: "Jira",
+      projectName: "migrated_mocked",
+      username: "gittt",
+    }));
+
+    findProjectsForDomainStub.restore();
+    findProjectByNameStub.restore();
+    initProjectStub.restore();
+    removeDomainStub.restore();
+    findLinkByProjectStub.restore();
+    addOrUpdateLinkStub.restore();
+  });
+
+  it.only("should migrate project [only project in domain, invalid link]", async () => {
+    LogHelper.DEBUG = true;
+    LogHelper.silence = false;
+
+    const fromProject: IProject = {
+      meta: {
+        host: "github.com",
+        port: 443,
+      },
+      name: "test_mocked",
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    };
+
+    const toProject: IProject = {
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [],
+    };
+
+    const projectProxy: any = proxyquire("../../helper/project", {});
+
+    const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      fromProject,
+    ]);
+    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+    const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
+      endpoint: "https://jira.com/rest/gittt/latest/",
+      hash: "caetaep2gaediWea",
+      key: "GITTT",
+      linkType: "Invalid",
+      projectName: "test_mocked",
+      username: "gittt",
+    } as IIntegrationLink);
+    const addOrUpdateLinkStub: SinonStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
+
+    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+    await instance.migrate(fromProject, toProject);
+
+    assert.isTrue(findProjectsForDomainStub.calledOnce);
+    assert.isTrue(findProjectByNameStub.calledOnce);
+    assert.isTrue(initProjectStub.calledWith({
+      meta: {
+        host: "gitlab.com",
+        port: 443,
+      },
+      name: "migrated_mocked",
+      records: [
+        {
+          amount: 1337,
+          type: "Time",
+        },
+      ],
+    }));
+    assert.isTrue(removeDomainStub.calledOnce);
+    assert.isTrue(addOrUpdateLinkStub.notCalled);
+
+    findProjectsForDomainStub.restore();
+    findProjectByNameStub.restore();
+    initProjectStub.restore();
+    removeDomainStub.restore();
+    findLinkByProjectStub.restore();
+    addOrUpdateLinkStub.restore();
   });
 });
