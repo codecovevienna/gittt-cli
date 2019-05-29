@@ -635,9 +635,6 @@ describe("ProjectHelper", () => {
   });
 
   it.only("should migrate project [only project in domain]", async () => {
-    LogHelper.DEBUG = true;
-    LogHelper.silence = false;
-
     const fromProject: IProject = {
       meta: {
         host: "github.com",
@@ -700,9 +697,6 @@ describe("ProjectHelper", () => {
   });
 
   it.only("should migrate project [more projects in domain]", async () => {
-    LogHelper.DEBUG = true;
-    LogHelper.silence = false;
-
     const additionalProject: IProject = {
       meta: {
         host: "bitbucket.com",
@@ -781,9 +775,6 @@ describe("ProjectHelper", () => {
   });
 
   it.only("should fail migrate project [project not found]", async () => {
-    LogHelper.DEBUG = true;
-    LogHelper.silence = false;
-
     const fromProject: IProject = {
       meta: {
         host: "github.com",
@@ -825,9 +816,6 @@ describe("ProjectHelper", () => {
   });
 
   it.only("should migrate project [only project in domain, with link]", async () => {
-    LogHelper.DEBUG = true;
-    LogHelper.silence = false;
-
     const fromProject: IProject = {
       meta: {
         host: "github.com",
@@ -907,9 +895,6 @@ describe("ProjectHelper", () => {
   });
 
   it.only("should migrate project [only project in domain, invalid link]", async () => {
-    LogHelper.DEBUG = true;
-    LogHelper.silence = false;
-
     const fromProject: IProject = {
       meta: {
         host: "github.com",
