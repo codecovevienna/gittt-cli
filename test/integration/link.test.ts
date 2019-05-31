@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 
@@ -38,7 +38,7 @@ describe("Link test", () => {
     sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
     sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    const linkActionStub: SinonInspectable = sinon.stub(mockedApp, "linkAction").resolves();
+    const linkActionStub: SinonStub = sinon.stub(mockedApp, "linkAction").resolves();
 
     await mockedApp.setup();
 

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 
@@ -12,7 +12,7 @@ describe("List test", () => {
 
   it("should list projects", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const findAllProjectsStub: SinonInspectable = sinon.stub().resolves([
+    const findAllProjectsStub: SinonStub = sinon.stub().resolves([
       {
         meta: {
           host: "github.com",

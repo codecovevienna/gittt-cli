@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 
@@ -12,7 +12,7 @@ describe("Kill test", () => {
 
   it("should kill time tracking", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const killTimerStub: SinonInspectable = sinon.stub().resolves();
+    const killTimerStub: SinonStub = sinon.stub().resolves();
 
     const proxy: any = proxyquire("../../app", {
       "./helper": {
