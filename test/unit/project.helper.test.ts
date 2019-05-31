@@ -393,6 +393,137 @@ describe("ProjectHelper", () => {
     confirmMigrationStub.restore();
   });
 
+  it("should add record to migrated project", async () => {
+    const findProjectByNameStub: SinonStub = sinon
+      .stub(mockedFileHelper, "findProjectByName")
+      // No project found to add record to
+      .onCall(0).resolves(undefined)
+      // Return project to migrate from
+      .onCall(1).resolves({
+        meta: {
+          host: "from.com",
+          port: 1337,
+        },
+        name: "migrate_from",
+        records: [],
+      } as IProject);
+
+    const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(true);
+    const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
+    const chooseProjectFileStub: SinonStub = sinon.stub(QuestionHelper, "chooseProjectFile")
+      .resolves("from_com/migrate_from.json");
+    const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+
+    const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      meta: {
+        host: "to.com",
+        port: 2212,
+      },
+      name: "migrate_to",
+      records: [],
+    } as IProject);
+
+    const migrateStub: SinonStub = sinon.stub(instance, "migrate").resolves({
+      meta: {
+        host: "to.com",
+        port: 2212,
+      },
+      name: "migrate_to",
+      records: [],
+    } as IProject);
+
+    await instance.addRecordToProject({
+      amount: 1337,
+      created: 69,
+      message: "test",
+      type: "Time",
+    });
+
+    assert.isTrue(confirmMigrationStub.calledOnce);
+    assert.isTrue(findAllProjectsStub.calledOnce);
+    assert.isTrue(findProjectByNameStub.calledTwice);
+    assert.isTrue(getProjectFromGitStub.calledTwice);
+    assert.isTrue(migrateStub.calledOnce);
+    assert.isTrue(saveProjectObjectStub.calledOnce);
+    assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to migrate_to: "test"`));
+
+    findProjectByNameStub.restore();
+    confirmMigrationStub.restore();
+    findAllProjectsStub.restore();
+    chooseProjectFileStub.restore();
+    getProjectFromGitStub.restore();
+    migrateStub.restore();
+    saveProjectObjectStub.restore();
+    commitChangesStub.restore();
+  });
+
+  it("should fail to add record to migrated project [project not found]", async () => {
+    const exitStub: SinonStub = sinon.stub(process, "exit");
+    const findProjectByNameStub: SinonStub = sinon
+      .stub(mockedFileHelper, "findProjectByName")
+      // No project found to add record to
+      .onCall(0).resolves(undefined)
+      // Unable to find project on disk
+      .onCall(1).resolves(undefined);
+
+    const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(true);
+    const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
+    const chooseProjectFileStub: SinonStub = sinon.stub(QuestionHelper, "chooseProjectFile")
+      .resolves("from_com/migrate_from.json");
+    const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+
+    const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+    const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      meta: {
+        host: "to.com",
+        port: 2212,
+      },
+      name: "migrate_to",
+      records: [],
+    } as IProject);
+
+    const migrateStub: SinonStub = sinon.stub(instance, "migrate").resolves({
+      meta: {
+        host: "to.com",
+        port: 2212,
+      },
+      name: "migrate_to",
+      records: [],
+    } as IProject);
+
+    try {
+      await instance.addRecordToProject({
+        amount: 1337,
+        created: 69,
+        message: "test",
+        type: "Time",
+      });
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(confirmMigrationStub.calledOnce);
+    assert.isTrue(findAllProjectsStub.calledOnce);
+    assert.isTrue(findProjectByNameStub.calledTwice);
+    assert.isTrue(getProjectFromGitStub.calledOnce);
+    assert.isTrue(migrateStub.notCalled);
+    assert.isTrue(saveProjectObjectStub.notCalled);
+    assert.isTrue(commitChangesStub.notCalled);
+
+    findProjectByNameStub.restore();
+    confirmMigrationStub.restore();
+    findAllProjectsStub.restore();
+    chooseProjectFileStub.restore();
+    getProjectFromGitStub.restore();
+    migrateStub.restore();
+    saveProjectObjectStub.restore();
+    commitChangesStub.restore();
+    exitStub.restore();
+  });
+
   it("should get total numbers of hours for project", async () => {
     const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
       meta: {
@@ -671,7 +802,7 @@ describe("ProjectHelper", () => {
     const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
     const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
     const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").throws();
+    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
 
     const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -748,7 +879,7 @@ describe("ProjectHelper", () => {
     const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
     const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
     const removeProjectFileStub: SinonStub = sinon.stub(mockedFileHelper, "removeProjectFile").resolves();
-    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").throws();
+    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
 
     const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 

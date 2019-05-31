@@ -71,9 +71,10 @@ export class ProjectHelper {
       LogHelper.warn(`Project "${projectName}" not found`);
       try {
 
-        const migrate: boolean = await QuestionHelper.confirmMigration();
-        if (migrate) {
-          const fromDomainProject: string = await QuestionHelper.chooseProject(await this.fileHelper.findAllProjects());
+        const shouldMigrate: boolean = await QuestionHelper.confirmMigration();
+        if (shouldMigrate) {
+          const fromDomainProject: string = await QuestionHelper
+          .chooseProjectFile(await this.fileHelper.findAllProjects());
 
           const [domain, name] = fromDomainProject.split("/");
           const fromProject: IProject | undefined = await this.fileHelper.findProjectByName(
@@ -213,9 +214,10 @@ export class ProjectHelper {
       LogHelper.info(`✓ Removed old project file`);
     }
 
-    try {
-      const link: IIntegrationLink = await this.fileHelper.findLinkByProject(from);
-
+    const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from);
+    if (!link) {
+      LogHelper.debug(`No link found for project "${from.name}"`);
+    } else {
       switch (link.linkType) {
         case "Jira":
           const migratedLink: IJiraLink = link as IJiraLink;
@@ -229,8 +231,6 @@ export class ProjectHelper {
           LogHelper.error("✗ Invalid link type");
           break;
       }
-    } catch (err) {
-      LogHelper.debug(`No link found for project "${from.name}"`);
     }
 
     return migratedProject;

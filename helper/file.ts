@@ -57,7 +57,7 @@ export class FileHelper {
     return configObject;
   }
 
-  public findLinkByProject = async (project: IProject): Promise<IIntegrationLink> => {
+  public findLinkByProject = async (project: IProject): Promise<IIntegrationLink | undefined> => {
     const configObject: IConfigFile = await this.getConfigObject();
 
     const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
@@ -66,11 +66,11 @@ export class FileHelper {
     });
 
     if (foundLinks.length === 0) {
-      throw new Error(`Unable to find link for project "${project.name}"`);
+      return undefined;
     }
 
     if (foundLinks.length > 1) {
-      throw new Error(`Found more than one link for project "${project.name}"`);
+      return undefined;
     }
 
     return foundLinks[0];

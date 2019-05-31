@@ -348,7 +348,7 @@ export class QuestionHelper {
     return choice.choice;
   }
 
-  public static chooseProject = async (projects: IProject[]): Promise<string> => {
+  public static chooseProjectFile = async (projects: IProject[]): Promise<string> => {
     const question: Question = {
       choices: projects.map((project: IProject) => {
         const {host, port} = project.meta;

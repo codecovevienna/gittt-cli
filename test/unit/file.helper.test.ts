@@ -3,7 +3,7 @@ import path from "path";
 import proxyquire from "proxyquire";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
-import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
+import { IConfigFile, IIntegrationLink, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
 
 const configDir: string = path.join("mocked", ".git-time-tracker");
 const configFileName: string = "config.json";
@@ -137,6 +137,100 @@ describe("FileHelper", () => {
     expect(updatedConfigFile.links.length).to.eq(1);
 
     assert.isTrue(writeJsonSpy.calledOnce);
+    assert.isTrue(getConfigObjectStub.calledOnce);
+  });
+
+  it("should find link by project", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
+      created: 1234,
+      gitRepo: "ssh://mocked",
+      links: [
+        {
+          linkType: "mock",
+          projectName: "mocked",
+        },
+      ],
+    });
+
+    const foundLink: IIntegrationLink | undefined = await instance.findLinkByProject({
+      meta: {
+        host: "github.com",
+        port: 10022,
+      },
+      name: "mocked",
+      records: [],
+    } as IProject);
+
+    assert.isDefined(foundLink);
+
+    assert.isTrue(getConfigObjectStub.calledOnce);
+  });
+
+  it("should fail to find link by project [unknown project name]", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
+      created: 1234,
+      gitRepo: "ssh://mocked",
+      links: [
+        {
+          linkType: "mock",
+          projectName: "mocked",
+        },
+      ],
+    });
+
+    const foundLink: IIntegrationLink | undefined = await instance.findLinkByProject({
+      meta: {
+        host: "github.com",
+        port: 10022,
+      },
+      name: "unknown",
+      records: [],
+    } as IProject);
+
+    assert.isUndefined(foundLink);
+
+    assert.isTrue(getConfigObjectStub.calledOnce);
+  });
+
+  it("should fail to find link by project [more links for same project name]", async () => {
+    const fileProxy: any = proxyquire("../../helper/file", {});
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
+      created: 1234,
+      gitRepo: "ssh://mocked",
+      links: [
+        {
+          linkType: "mock",
+          projectName: "mocked",
+        },
+        {
+          linkType: "mock1",
+          projectName: "mocked",
+        },
+      ],
+    });
+
+    const foundLink: IIntegrationLink | undefined = await instance.findLinkByProject({
+      meta: {
+        host: "github.com",
+        port: 10022,
+      },
+      name: "mocked",
+      records: [],
+    } as IProject);
+
+    assert.isUndefined(foundLink);
+
     assert.isTrue(getConfigObjectStub.calledOnce);
   });
 
@@ -878,5 +972,109 @@ describe("FileHelper", () => {
     });
 
     expect(allProjects.length).to.eq(0);
+  });
+
+  it("should remove domain directory", async () => {
+    const removeStub: SinonStub = sinon.stub().resolves();
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        remove: removeStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const findProjectsForDomainStub: SinonStub = sinon.stub(instance, "findProjectsForDomain").resolves([]);
+
+    await instance.removeDomainDirectory({
+      host: "github.com",
+      port:  443,
+    } as IProjectMeta);
+
+    assert.isTrue(findProjectsForDomainStub.calledOnce);
+    assert.isTrue(removeStub.calledOnce);
+  });
+
+  it("should remove domain directory [force]", async () => {
+    const removeStub: SinonStub = sinon.stub().resolves();
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        remove: removeStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const findProjectsForDomainStub: SinonStub = sinon.stub(instance, "findProjectsForDomain").resolves([
+      {
+        meta: {
+          host: "github.com",
+          port:  443,
+        },
+        name: "mocked_test",
+      } as IProject,
+    ]);
+
+    await instance.removeDomainDirectory({
+      host: "github.com",
+      port:  443,
+    } as IProjectMeta, true);
+
+    assert.isTrue(findProjectsForDomainStub.calledOnce);
+    assert.isTrue(removeStub.calledOnce);
+  });
+
+  it("should fail to remove domain directory [not empty]", async () => {
+    const removeStub: SinonStub = sinon.stub().resolves();
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        remove: removeStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    const findProjectsForDomainStub: SinonStub = sinon.stub(instance, "findProjectsForDomain").resolves([
+      {
+        meta: {
+          host: "github.com",
+          port:  443,
+        },
+        name: "mocked_test",
+      } as IProject,
+    ]);
+
+    try {
+      await instance.removeDomainDirectory({
+        host: "github.com",
+        port:  443,
+      } as IProjectMeta);
+    } catch (err) {
+      assert.isDefined(err);
+    }
+
+    assert.isTrue(findProjectsForDomainStub.calledOnce);
+    assert.isTrue(removeStub.notCalled);
+  });
+
+  it("should remove project file", async () => {
+    const removeStub: SinonStub = sinon.stub().resolves();
+    const fileProxy: any = proxyquire("../../helper/file", {
+      "fs-extra": {
+        remove: removeStub,
+      },
+    });
+
+    const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+    await instance.removeProjectFile({
+      meta: {
+        host: "github.com",
+        port:  443,
+      },
+      name: "mocked_test",
+    } as IProject);
+
+    assert.isTrue(removeStub.calledOnce);
   });
 });
