@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonSpy, SinonStub } from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
 import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
 
@@ -24,7 +24,7 @@ describe("FileHelper", () => {
   });
 
   it("should create config directories", async () => {
-    const ensureDirSyncSpy: SinonInspectable = sinon.spy();
+    const ensureDirSyncSpy: SinonSpy = sinon.spy();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         ensureDirSync: ensureDirSyncSpy,
@@ -40,7 +40,7 @@ describe("FileHelper", () => {
   });
 
   it("should init config file", async () => {
-    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
+    const writeJsonSpy: SinonStub = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonSpy,
@@ -57,7 +57,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to init config file", async () => {
-    const writeJsonSpy: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const writeJsonSpy: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonSpy,
@@ -78,7 +78,7 @@ describe("FileHelper", () => {
   });
 
   it("should add link to config file", async () => {
-    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
+    const writeJsonSpy: SinonStub = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonSpy,
@@ -87,7 +87,7 @@ describe("FileHelper", () => {
 
     const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const getConfigObjectStub: SinonInspectable = sinon.stub(instance, "getConfigObject").resolves({
+    const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
       created: 1234,
       gitRepo: "ssh://mocked",
       links: [],
@@ -105,7 +105,7 @@ describe("FileHelper", () => {
   });
 
   it("should update link in config file", async () => {
-    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
+    const writeJsonSpy: SinonStub = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonSpy,
@@ -114,7 +114,7 @@ describe("FileHelper", () => {
 
     const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const getConfigObjectStub: SinonInspectable = sinon.stub(instance, "getConfigObject").resolves({
+    const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
       created: 1234,
       gitRepo: "ssh://mocked",
       links: [
@@ -141,8 +141,8 @@ describe("FileHelper", () => {
   });
 
   it("should init project", async () => {
-    const ensureDirSpy: SinonInspectable = sinon.spy();
-    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
+    const ensureDirSpy: SinonSpy = sinon.spy();
+    const writeJsonSpy: SinonStub = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         ensureDir: ensureDirSpy,
@@ -168,7 +168,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to init project", async () => {
-    const ensureDirSpy: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const ensureDirSpy: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         ensureDir: ensureDirSpy,
@@ -196,7 +196,7 @@ describe("FileHelper", () => {
   });
 
   it("should init timer file", async () => {
-    const writeJsonStub: SinonInspectable = sinon.stub().resolves(true);
+    const writeJsonStub: SinonStub = sinon.stub().resolves(true);
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonStub,
@@ -211,7 +211,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to init timer file", async () => {
-    const writeJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const writeJsonStub: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonStub,
@@ -230,7 +230,7 @@ describe("FileHelper", () => {
   });
 
   it("should check existence of config file", async () => {
-    const pathExistsSpy: SinonInspectable = sinon.stub().resolves(true);
+    const pathExistsSpy: SinonStub = sinon.stub().resolves(true);
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         pathExists: pathExistsSpy,
@@ -246,7 +246,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to check existence of config file", async () => {
-    const pathExistsSpy: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const pathExistsSpy: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         pathExists: pathExistsSpy,
@@ -268,7 +268,7 @@ describe("FileHelper", () => {
       links: [],
     };
 
-    const readJsonSpy: SinonInspectable = sinon.stub().resolves(mockedConfig);
+    const readJsonSpy: SinonStub = sinon.stub().resolves(mockedConfig);
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         readJson: readJsonSpy,
@@ -283,8 +283,8 @@ describe("FileHelper", () => {
   });
 
   it("should get config file as IConfigFile from cache", async () => {
-    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
-    const readJsonSpy: SinonInspectable = sinon.stub();
+    const writeJsonSpy: SinonStub = sinon.stub().resolves();
+    const readJsonSpy: SinonStub = sinon.stub();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         readJson: readJsonSpy,
@@ -307,7 +307,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to get config file as IConfigFile", async () => {
-    const readJsonSpy: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const readJsonSpy: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         readJson: readJsonSpy,
@@ -326,7 +326,7 @@ describe("FileHelper", () => {
   });
 
   it("should check if timer file exists [true]", async () => {
-    const existsSyncStub: SinonInspectable = sinon.stub().returns(true);
+    const existsSyncStub: SinonStub = sinon.stub().returns(true);
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         existsSync: existsSyncStub,
@@ -342,7 +342,7 @@ describe("FileHelper", () => {
   });
 
   it("should check if timer file exists [false]", async () => {
-    const existsSyncStub: SinonInspectable = sinon.stub().returns(false);
+    const existsSyncStub: SinonStub = sinon.stub().returns(false);
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         existsSync: existsSyncStub,
@@ -358,7 +358,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to check if timer file exists", async () => {
-    const existsSyncStub: SinonInspectable = sinon.stub().throws(new Error("Mocked error"));
+    const existsSyncStub: SinonStub = sinon.stub().throws(new Error("Mocked error"));
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         existsSync: existsSyncStub,
@@ -377,7 +377,7 @@ describe("FileHelper", () => {
   });
 
   it("should save project object", async () => {
-    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
+    const writeJsonSpy: SinonStub = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonSpy,
@@ -410,7 +410,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to save project object", async () => {
-    const writeJsonSpy: SinonInspectable = sinon.stub().rejects();
+    const writeJsonSpy: SinonStub = sinon.stub().rejects();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonSpy,
@@ -447,8 +447,8 @@ describe("FileHelper", () => {
   });
 
   it("should invalidate cache", async () => {
-    const writeJsonSpy: SinonInspectable = sinon.stub().resolves();
-    const readJsonSpy: SinonInspectable = sinon.stub().resolves();
+    const writeJsonSpy: SinonStub = sinon.stub().resolves();
+    const readJsonSpy: SinonStub = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         readJson: readJsonSpy,
@@ -483,7 +483,7 @@ describe("FileHelper", () => {
       stop: 9,
     };
 
-    const readJsonStub: SinonInspectable = sinon.stub().resolves(mockedTimerFile);
+    const readJsonStub: SinonStub = sinon.stub().resolves(mockedTimerFile);
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         readJson: readJsonStub,
@@ -499,7 +499,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to get timer object", async () => {
-    const readJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const readJsonStub: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         readJson: readJsonStub,
@@ -518,7 +518,7 @@ describe("FileHelper", () => {
   });
 
   it("should initialize readme", async () => {
-    const writeFileSpy: SinonInspectable = sinon.stub().resolves();
+    const writeFileSpy: SinonStub = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeFile: writeFileSpy,
@@ -533,7 +533,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to initialize readme", async () => {
-    const writeFileSpy: SinonInspectable = sinon.stub().rejects();
+    const writeFileSpy: SinonStub = sinon.stub().rejects();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeFile: writeFileSpy,
@@ -560,7 +560,7 @@ describe("FileHelper", () => {
       records: [],
     };
 
-    const readdirSyncSpy: SinonInspectable = sinon.stub()
+    const readdirSyncSpy: SinonStub = sinon.stub()
       .onCall(0).returns([
         "domain_one_1",
         "domain_one_2",
@@ -572,7 +572,7 @@ describe("FileHelper", () => {
       .onCall(2).returns([
         "mock_project_3",
       ]);
-    const readJsonSpy: SinonInspectable = sinon.stub()
+    const readJsonSpy: SinonStub = sinon.stub()
       .onCall(0).resolves({
         meta: {
           host: "domain.one",
@@ -617,11 +617,11 @@ describe("FileHelper", () => {
       records: [],
     };
 
-    const readdirSyncSpy: SinonInspectable = sinon.stub()
+    const readdirSyncSpy: SinonStub = sinon.stub()
       .onCall(0).returns([
         "mock_project_3",
       ]);
-    const readJsonSpy: SinonInspectable = sinon.stub()
+    const readJsonSpy: SinonStub = sinon.stub()
       .onCall(0).resolves(projectToFind);
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
@@ -645,14 +645,14 @@ describe("FileHelper", () => {
   });
 
   it("should get no project", async () => {
-    const readdirSyncSpy: SinonInspectable = sinon.stub()
+    const readdirSyncSpy: SinonStub = sinon.stub()
       .onCall(0).returns([
         "domain_one_1",
       ])
       .onCall(1).returns([
         "mock_project_1",
       ]);
-    const readJsonSpy: SinonInspectable = sinon.stub()
+    const readJsonSpy: SinonStub = sinon.stub()
       .onCall(0).resolves({
         meta: {
           host: "domain.one",
@@ -680,7 +680,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to get duplicated project by name", async () => {
-    const readdirSyncSpy: SinonInspectable = sinon.stub()
+    const readdirSyncSpy: SinonStub = sinon.stub()
       .onCall(0).returns([
         "domain_one_1",
       ])
@@ -688,7 +688,7 @@ describe("FileHelper", () => {
         "mock_project_1",
         "mock_project_1",
       ]);
-    const readJsonSpy: SinonInspectable = sinon.stub()
+    const readJsonSpy: SinonStub = sinon.stub()
       .onCall(0).resolves({
         meta: {
           host: "domain.one",
@@ -725,7 +725,7 @@ describe("FileHelper", () => {
   });
 
   it("should save timer object", async () => {
-    const writeJsonStub: SinonInspectable = sinon.stub().resolves();
+    const writeJsonStub: SinonStub = sinon.stub().resolves();
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonStub,
@@ -743,7 +743,7 @@ describe("FileHelper", () => {
   });
 
   it("should fail to save timer object", async () => {
-    const writeJsonStub: SinonInspectable = sinon.stub().rejects(new Error("Mocked error"));
+    const writeJsonStub: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
     const fileProxy: any = proxyquire("../../helper/file", {
       "fs-extra": {
         writeJson: writeJsonStub,
@@ -765,7 +765,7 @@ describe("FileHelper", () => {
   });
 
   it("should get all projects", async () => {
-    const readdirSyncSpy: SinonInspectable = sinon.stub()
+    const readdirSyncSpy: SinonStub = sinon.stub()
       .onCall(0).returns([
         "domain_one_1",
         "domain_one_2",
@@ -777,7 +777,7 @@ describe("FileHelper", () => {
       .onCall(2).returns([
         "mock_project_3",
       ]);
-    const readJsonSpy: SinonInspectable = sinon.stub()
+    const readJsonSpy: SinonStub = sinon.stub()
       .onCall(0).resolves({
         meta: {
           host: "domain.one",
@@ -820,12 +820,12 @@ describe("FileHelper", () => {
   });
 
   it("should get all projects of one domain", async () => {
-    const readdirSyncSpy: SinonInspectable = sinon.stub()
+    const readdirSyncSpy: SinonStub = sinon.stub()
       .onCall(0).returns([
         "mock_project_1",
         "mock_project_2",
       ]);
-    const readJsonSpy: SinonInspectable = sinon.stub()
+    const readJsonSpy: SinonStub = sinon.stub()
       .onCall(0).resolves({
         meta: {
           host: "domain.one",
