@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonInspectable } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 
@@ -12,7 +12,7 @@ describe("Commit test", () => {
 
   it("should commit hours", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const addRecordStub: SinonInspectable = sinon.stub().resolves();
+    const addRecordStub: SinonStub = sinon.stub().resolves();
 
     const proxy: any = proxyquire("../../app", {
       "./helper": {
@@ -77,7 +77,7 @@ describe("Commit test", () => {
     sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
     sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
-    const exitStub: SinonInspectable = sinon.stub(mockedApp, "exit");
+    const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
     await mockedApp.setup();
 
