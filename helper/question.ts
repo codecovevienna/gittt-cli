@@ -1,4 +1,4 @@
-import inquirer, { Question } from "inquirer";
+import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
 import { parseProjectNameFromGitUrl } from ".";
@@ -301,7 +301,7 @@ export class QuestionHelper {
       },
     ];
 
-    const question: Question = {
+    const question: ListQuestion = {
       choices,
       message: "Type",
       name: "choice",
@@ -322,7 +322,7 @@ export class QuestionHelper {
       "Jira",
     ];
 
-    const question: Question = {
+    const question: ListQuestion = {
       choices,
       message: "What integration should be used?",
       name: "choice",
