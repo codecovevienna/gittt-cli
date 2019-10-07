@@ -1,4 +1,5 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
+import { isNullOrUndefined } from "util";
 import uuid from "uuid/v1";
 import { IProject, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
@@ -27,11 +28,8 @@ export class ProjectHelper {
     }
   }
 
-  public addRecordToProject = async (record: IRecord): Promise<void> => {
+  public findOrInitProjectByName = async (projectName: string): Promise<IProject> => {
     let foundProject: IProject;
-
-    const projectFromGit: IProject = this.getProjectFromGit();
-    const projectName: string = projectFromGit.name;
 
     // Try to find project in projects directory
     const project: IProject | undefined = await this.fileHelper.findProjectByName(projectName);
@@ -52,28 +50,83 @@ export class ProjectHelper {
       foundProject = project;
     }
 
-    LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}) to ${foundProject.name}`);
+    return foundProject;
+  }
 
-    // Add unique identifier to each record
-    if (!record.guid) {
-      record.guid = uuid();
+  public addRecordsToProject = async (
+    records: IRecord[],
+    uniqueOnly?: boolean,
+    nonOverlappingOnly?: boolean,
+  ): Promise<void> => {
+    const project: IProject = await this.findOrInitProjectByName(this.getProjectFromGit().name);
+
+    records = records.filter((record: IRecord) => {
+      let addRecord: boolean = true;
+
+      if (uniqueOnly === true) {
+        addRecord = this.findUnique(record, project.records);
+      }
+      if (nonOverlappingOnly === true) {
+        addRecord = this.findOverlapping(record, project.records);
+      }
+
+      if (addRecord) {
+        return record;
+      }
+
+      LogHelper.warn(
+        `Could not add record (amount: ${record.amount}, end: ${record.end}, type: ${record.type}) to ${project.name}`,
+      );
+    });
+
+    if (records.length > 0) {
+      records.forEach((record: IRecord) => {
+
+        record = this.setRecordDefaults(record);
+        project.records.push(record);
+      });
+
+      LogHelper.info(`Adding (${records.length}) records to ${project.name}`);
+      await this.fileHelper.saveProjectObject(project);
+      await this.gitHelper.commitChanges(`Added ${records.length} to ${project.name}`);
+    }
+  }
+
+  public addRecordToProject = async (
+    record: IRecord,
+    uniqueOnly?: boolean,
+    nonOverlappingOnly?: boolean,
+  ): Promise<void> => {
+    const project: IProject = await this.findOrInitProjectByName(this.getProjectFromGit().name);
+
+    let addRecord: boolean = true;
+
+    if (uniqueOnly === true) {
+      addRecord = this.findUnique(record, project.records);
+    }
+    if (nonOverlappingOnly === true) {
+      addRecord = this.findOverlapping(record, project.records);
     }
 
-    if (!record.created) {
-      const now: number = Date.now();
-      record.created = now;
-      record.updated = now;
-    }
+    if (addRecord) {
+      LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}) to ${project.name}`);
 
-    foundProject.records.push(record);
-    await this.fileHelper.saveProjectObject(foundProject);
+      record = this.setRecordDefaults(record);
 
-    // TODO differ between types
-    const hourString: string = record.amount === 1 ? "hour" : "hours";
-    if (record.message) {
-      await this.gitHelper.commitChanges(`Added ${record.amount} ${hourString} to ${projectName}: "${record.message}"`);
+      project.records.push(record);
+      await this.fileHelper.saveProjectObject(project);
+
+      // TODO differ between types
+      const hourString: string = record.amount === 1 ? "hour" : "hours";
+      if (record.message) {
+        await this.gitHelper.commitChanges(
+          `Added ${record.amount} ${hourString} to ${project.name}: "${record.message}"`,
+        );
+      } else {
+        await this.gitHelper.commitChanges(`Added ${record.amount} ${hourString} to ${project.name}`);
+      }
     } else {
-      await this.gitHelper.commitChanges(`Added ${record.amount} ${hourString} to ${projectName}`);
+      LogHelper.warn(`Could not add record (amount: ${record.amount}, type: ${record.type}) to ${project.name}`);
     }
   }
 
@@ -129,5 +182,49 @@ export class ProjectHelper {
     const originUrl: string = gitConfigExec.stdout.trim();
 
     return parseProjectNameFromGitUrl(originUrl);
+  }
+
+  private findUnique = (record: IRecord, records: IRecord[]): boolean => {
+    // check if amount, end, message and type is found in records
+    return isNullOrUndefined(records.find((existingRecord: IRecord) =>
+      existingRecord.amount === record.amount &&
+      existingRecord.end === record.end &&
+      existingRecord.message === record.message &&
+      existingRecord.type === record.type));
+  }
+
+  private findOverlapping = (record: IRecord, records: IRecord[]): boolean => {
+    // check if any overlapping records are present
+    return isNullOrUndefined(records.find((existingRecord: IRecord) => {
+      if (isNullOrUndefined(existingRecord.end)) {
+        return false;
+      }
+      if (isNullOrUndefined(record.end)) {
+        return false;
+      }
+      const startExisting: number = existingRecord.end - existingRecord.amount;
+      const startAdd: number = record.end - record.amount;
+      const endExisting: number = existingRecord.end;
+      const endAdd: number = record.end;
+      if ((startAdd < startExisting && endAdd <= endExisting) || (startAdd >= startExisting && endAdd > endExisting)) {
+        return true;
+      }
+      return false;
+    }));
+  }
+
+  private setRecordDefaults = (record: IRecord): IRecord => {
+    // Add unique identifier to each record
+    if (!record.guid) {
+      record.guid = uuid();
+    }
+
+    if (!record.created) {
+      const now: number = Date.now();
+      record.created = now;
+      record.updated = now;
+    }
+
+    return record;
   }
 }

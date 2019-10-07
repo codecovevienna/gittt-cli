@@ -1,6 +1,8 @@
+import fs from "fs";
 import inquirer, { Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
+import { isString } from "util";
 import { parseProjectNameFromGitUrl } from ".";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
@@ -94,6 +96,22 @@ export class QuestionHelper {
     } else {
       return "The key has to be longer than one character";
     }
+  }
+
+  public static validateFile = (input: any): boolean => {
+    if (isString(input)) {
+      const inputFilePath: string = input;
+      const stats: fs.Stats = fs.statSync(inputFilePath);
+      if (stats.isFile) {
+        try {
+          fs.accessSync(inputFilePath, fs.constants.R_OK | fs.constants.W_OK);
+        } catch (e) {
+          return false;
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {

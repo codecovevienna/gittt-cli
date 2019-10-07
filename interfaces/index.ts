@@ -48,3 +48,9 @@ export interface ITimerFile {
   stop: number;
   // TODO add projects as structure
 }
+
+export interface ICsvRow {
+  MESSAGE: string;
+  END: number;
+  AMOUNT: number;
+}

@@ -8,6 +8,7 @@ import { DefaultLogFields } from "simple-git/typings/response";
 import {
   FileHelper,
   GitHelper,
+  ImportHelper,
   LogHelper,
   parseProjectNameFromGitUrl,
   ProjectHelper,
@@ -39,6 +40,7 @@ export class App {
   private timerHelper: TimerHelper;
   private gitHelper: GitHelper;
   private projectHelper: ProjectHelper;
+  private importHelper: ImportHelper;
 
   public start(): void {
     if (process.argv.length === 2) {
@@ -96,6 +98,7 @@ export class App {
     this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
     this.projectHelper = new ProjectHelper(this.gitHelper, this.fileHelper);
     this.timerHelper = new TimerHelper(this.fileHelper, this.projectHelper);
+    this.importHelper = new ImportHelper(this.projectHelper);
 
     this.initCommander();
   }
@@ -636,6 +639,19 @@ New type: ${updatedRecord.type}`;
     await this.projectHelper.addRecordToProject(newRecord);
   }
 
+  public async importCsv(cmd: Command): Promise<void> {
+
+    let filePath: string;
+
+    if (cmd.file != null) {
+      filePath = (cmd.file && QuestionHelper.validateFile(cmd.file)) ? cmd.file : null;
+      if (filePath != null) {
+        const records: IRecord[] = await this.importHelper.importCsv(filePath);
+        await this.projectHelper.addRecordsToProject(records, true, false);
+      }
+    }
+  }
+
   public initCommander(): CommanderStatic {
     commander.on("command:*", () => {
       commander.help();
@@ -813,6 +829,14 @@ New type: ${updatedRecord.type}`;
       .option("-g, --guid [guid]", "GUID of the record to remove")
       .action(async (cmd: Command): Promise<void> => {
         await this.removeAction(cmd);
+      });
+
+    commander
+      .command("import")
+      .description("Import records from csv to current project")
+      .option("-f, --file [file]", "CSV file with format (Description;Start Date;Start Time;End Date;End Time)")
+      .action(async (cmd: Command): Promise<void> => {
+        await this.importCsv(cmd);
       });
 
     return commander;
