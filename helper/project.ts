@@ -6,10 +6,23 @@ import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./
 import { QuestionHelper } from "./question";
 
 export class ProjectHelper {
+  /**
+   * Extracts the domain from a IProjectMetaData object
+   *
+   * @param projectMeta - MetaData object
+   * @returns Domain of the meta data as formatted string
+   */
   public static projectMetaToDomain = (projectMeta: IProjectMeta): string => {
     const { host, port } = projectMeta;
     return `${host.replace(/\./gi, "_")}${port ? "_" + port : ""}`;
   }
+
+  /**
+   * Constructs a meta data object from a formatted domain string
+   *
+   * @param domain - formatted domain string
+   * @returns Meta data object based on the formatted string
+   */
   public static domainToProjectMeta = (domain: string): IProjectMeta => {
     const split: string[] = domain.split("_");
     const potentialPort: number = parseInt(split[split.length - 1], 10);
@@ -28,9 +41,19 @@ export class ProjectHelper {
       port,
     };
   }
+
+  /**
+   * @param project - IProject object
+   * @returns Filename of the project file
+   */
   public static projectToProjectFilename = (project: IProject): string => {
     return `${project.name}.json`;
   }
+
+  /**
+   * @param project - IProject object
+   * @returns Path of the project file
+   */
   public static getProjectPath = (project: IProject): string => {
     return `${ProjectHelper.projectMetaToDomain(project.meta)}/${ProjectHelper.projectToProjectFilename(project)}`;
   }
