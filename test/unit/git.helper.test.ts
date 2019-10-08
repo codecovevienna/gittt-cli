@@ -305,7 +305,7 @@ describe("GitHelper", () => {
     const addSpy: SinonSpy = sinon.spy();
     const commitSpy: SinonSpy = sinon.spy();
     const rawSpy: SinonSpy = sinon.spy();
-    const pullStub: SinonSpy = sinon.stub()
+    const pullStub: SinonStub = sinon.stub()
       .onCall(0).rejects(new Error("fatal: couldn't find remote ref master\n"))
       .onCall(1).resolves();
 
