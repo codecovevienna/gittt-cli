@@ -74,7 +74,7 @@ export class ProjectHelper {
         const shouldMigrate: boolean = await QuestionHelper.confirmMigration();
         if (shouldMigrate) {
           const fromDomainProject: string = await QuestionHelper
-          .chooseProjectFile(await this.fileHelper.findAllProjects());
+            .chooseProjectFile(await this.fileHelper.findAllProjects());
 
           const [domain, name] = fromDomainProject.split("/");
           const fromProject: IProject | undefined = await this.fileHelper.findProjectByName(
@@ -193,25 +193,31 @@ export class ProjectHelper {
       throw new Error(`Unable to get records from ${from.name}`);
     }
 
+    // Create instance of new project with records from old project
     const migratedProject: IProject = {
       meta: to.meta,
       name: to.name,
       records: populatedFrom.records,
     };
 
+    // Initialize new project
     await this.fileHelper.initProject(migratedProject);
     LogHelper.info(`✓ Migrated Project`);
 
+    // Removing old project file
+    await this.fileHelper.removeProjectFile(from);
+    LogHelper.info(`✓ Removed old project file`);
+
+    // Get all projects associated with the old meta information
     const fromDomainProjects: IProject[] = await this.fileHelper.findProjectsForDomain(from.meta);
 
+    // Remove the domain directory if old project was the only one with this meta data
     // TODO check if really the same project object?
-    if (fromDomainProjects.length === 1) {
+    if (fromDomainProjects.length === 0) {
       // we know that it is not empty, force delete it
+      LogHelper.debug(`${from.name} is the only project on ${from.meta.host}, domain directory will be removed`);
       await this.fileHelper.removeDomainDirectory(from.meta, true);
       LogHelper.info(`✓ Removed old domain directory`);
-    } else {
-      await this.fileHelper.removeProjectFile(from);
-      LogHelper.info(`✓ Removed old project file`);
     }
 
     const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from);

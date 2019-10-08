@@ -770,335 +770,334 @@ describe("ProjectHelper", () => {
     assert.isDefined(thrownError);
   });
 
-  it("should migrate project [only project in domain]", async () => {
-    const fromProject: IProject = {
-      meta: {
-        host: "github.com",
-        port: 443,
-      },
-      name: "test_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
+  describe("Migration", () => {
+    it("should migrate project [only project in domain]", async () => {
+      const fromProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
         },
-      ],
-    };
+        name: "test_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      };
 
-    const toProject: IProject = {
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [],
-    };
-
-    const projectProxy: any = proxyquire("../../helper/project", {});
-
-    const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
-      fromProject,
-    ]);
-    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
-    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-    const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
-
-    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
-
-    await instance.migrate(fromProject, toProject);
-
-    assert.isTrue(findProjectsForDomainStub.calledOnce);
-    assert.isTrue(findProjectByNameStub.calledOnce);
-    assert.isTrue(initProjectStub.calledWith({
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
+      const toProject: IProject = {
+        meta: {
+          host: "gitlab.com",
+          port: 443,
         },
-      ],
-    }));
-    assert.isTrue(removeDomainStub.calledOnce);
+        name: "migrated_mocked",
+        records: [],
+      };
 
-    findProjectsForDomainStub.restore();
-    findProjectByNameStub.restore();
-    initProjectStub.restore();
-    removeDomainStub.restore();
-    findLinkByProjectStub.restore();
-  });
+      const projectProxy: any = proxyquire("../../helper/project", {});
 
-  it("should migrate project [more projects in domain]", async () => {
-    const additionalProject: IProject = {
-      meta: {
-        host: "bitbucket.com",
-        port: 443,
-      },
-      name: "add_mocked",
-      records: [
-        {
-          amount: 69,
-          type: "Time",
-        },
-      ],
-    };
+      const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      ]);
+      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+      const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
 
-    const fromProject: IProject = {
-      meta: {
-        host: "github.com",
-        port: 443,
-      },
-      name: "test_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
-        },
-      ],
-    };
+      const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    const toProject: IProject = {
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [],
-    };
-
-    const projectProxy: any = proxyquire("../../helper/project", {});
-
-    const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
-      fromProject,
-      additionalProject,
-    ]);
-    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
-    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-    const removeProjectFileStub: SinonStub = sinon.stub(mockedFileHelper, "removeProjectFile").resolves();
-    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
-
-    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
-
-    await instance.migrate(fromProject, toProject);
-
-    assert.isTrue(findProjectsForDomainStub.calledOnce);
-    assert.isTrue(findProjectByNameStub.calledOnce);
-    assert.isTrue(initProjectStub.calledWith({
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
-        },
-      ],
-    }));
-    assert.isTrue(removeProjectFileStub.calledOnce);
-    assert.isTrue(findLinkByProjectStub.calledOnce);
-
-    findProjectsForDomainStub.restore();
-    findProjectByNameStub.restore();
-    initProjectStub.restore();
-    removeProjectFileStub.restore();
-    findLinkByProjectStub.restore();
-  });
-
-  it("should fail migrate project [project not found]", async () => {
-    const fromProject: IProject = {
-      meta: {
-        host: "github.com",
-        port: 443,
-      },
-      name: "test_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
-        },
-      ],
-    };
-
-    const toProject: IProject = {
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [],
-    };
-
-    const projectProxy: any = proxyquire("../../helper/project", {});
-
-    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(undefined);
-
-    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
-
-    try {
       await instance.migrate(fromProject, toProject);
-    } catch (err) {
-      assert.isDefined(err);
-    }
 
-    assert.isTrue(findProjectByNameStub.calledOnce);
-
-    findProjectByNameStub.restore();
-  });
-
-  it("should migrate project [only project in domain, with link]", async () => {
-    const fromProject: IProject = {
-      meta: {
-        host: "github.com",
-        port: 443,
-      },
-      name: "test_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
+      assert.isTrue(findProjectsForDomainStub.calledOnce);
+      assert.isTrue(findProjectByNameStub.calledOnce);
+      assert.isTrue(initProjectStub.calledWith({
+        meta: {
+          host: "gitlab.com",
+          port: 443,
         },
-      ],
-    };
+        name: "migrated_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      }));
+      assert.isTrue(removeDomainStub.calledOnce);
 
-    const toProject: IProject = {
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [],
-    };
+      findProjectsForDomainStub.restore();
+      findProjectByNameStub.restore();
+      initProjectStub.restore();
+      removeDomainStub.restore();
+      findLinkByProjectStub.restore();
+    });
 
-    const projectProxy: any = proxyquire("../../helper/project", {});
-
-    const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
-      fromProject,
-    ]);
-    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
-    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-    const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
-      endpoint: "https://jira.com/rest/gittt/latest/",
-      hash: "caetaep2gaediWea",
-      key: "GITTT",
-      linkType: "Jira",
-      projectName: "test_mocked",
-      username: "gittt",
-    } as IIntegrationLink);
-    const addOrUpdateLinkStub: SinonStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
-
-    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
-
-    await instance.migrate(fromProject, toProject);
-
-    assert.isTrue(findProjectsForDomainStub.calledOnce);
-    assert.isTrue(findProjectByNameStub.calledOnce);
-    assert.isTrue(initProjectStub.calledWith({
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
+    it("should migrate project [more projects in domain]", async () => {
+      const additionalProject: IProject = {
+        meta: {
+          host: "bitbucket.com",
+          port: 443,
         },
-      ],
-    }));
-    assert.isTrue(removeDomainStub.calledOnce);
-    assert.isTrue(addOrUpdateLinkStub.calledWith({
-      endpoint: "https://jira.com/rest/gittt/latest/",
-      hash: "caetaep2gaediWea",
-      key: "GITTT",
-      linkType: "Jira",
-      projectName: "migrated_mocked",
-      username: "gittt",
-    }));
+        name: "add_mocked",
+        records: [
+          {
+            amount: 69,
+            type: "Time",
+          },
+        ],
+      };
 
-    findProjectsForDomainStub.restore();
-    findProjectByNameStub.restore();
-    initProjectStub.restore();
-    removeDomainStub.restore();
-    findLinkByProjectStub.restore();
-    addOrUpdateLinkStub.restore();
-  });
-
-  it("should migrate project [only project in domain, invalid link]", async () => {
-    const fromProject: IProject = {
-      meta: {
-        host: "github.com",
-        port: 443,
-      },
-      name: "test_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
+      const fromProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
         },
-      ],
-    };
+        name: "test_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      };
 
-    const toProject: IProject = {
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [],
-    };
-
-    const projectProxy: any = proxyquire("../../helper/project", {});
-
-    const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
-      fromProject,
-    ]);
-    const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
-    const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-    const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-    const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
-      endpoint: "https://jira.com/rest/gittt/latest/",
-      hash: "caetaep2gaediWea",
-      key: "GITTT",
-      linkType: "Invalid",
-      projectName: "test_mocked",
-      username: "gittt",
-    } as IIntegrationLink);
-    const addOrUpdateLinkStub: SinonStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
-
-    const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
-
-    await instance.migrate(fromProject, toProject);
-
-    assert.isTrue(findProjectsForDomainStub.calledOnce);
-    assert.isTrue(findProjectByNameStub.calledOnce);
-    assert.isTrue(initProjectStub.calledWith({
-      meta: {
-        host: "gitlab.com",
-        port: 443,
-      },
-      name: "migrated_mocked",
-      records: [
-        {
-          amount: 1337,
-          type: "Time",
+      const toProject: IProject = {
+        meta: {
+          host: "gitlab.com",
+          port: 443,
         },
-      ],
-    }));
-    assert.isTrue(removeDomainStub.calledOnce);
-    assert.isTrue(addOrUpdateLinkStub.notCalled);
+        name: "migrated_mocked",
+        records: [],
+      };
 
-    findProjectsForDomainStub.restore();
-    findProjectByNameStub.restore();
-    initProjectStub.restore();
-    removeDomainStub.restore();
-    findLinkByProjectStub.restore();
-    addOrUpdateLinkStub.restore();
+      const projectProxy: any = proxyquire("../../helper/project", {});
+
+      const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+        fromProject,
+        additionalProject,
+      ]);
+      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const removeProjectFileStub: SinonStub = sinon.stub(mockedFileHelper, "removeProjectFile").resolves();
+      const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
+
+      const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      await instance.migrate(fromProject, toProject);
+
+      assert.isTrue(findProjectsForDomainStub.calledOnce);
+      assert.isTrue(findProjectByNameStub.calledOnce);
+      assert.isTrue(initProjectStub.calledWith({
+        meta: {
+          host: "gitlab.com",
+          port: 443,
+        },
+        name: "migrated_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      }));
+      assert.isTrue(removeProjectFileStub.calledOnce);
+      assert.isTrue(findLinkByProjectStub.calledOnce);
+
+      findProjectsForDomainStub.restore();
+      findProjectByNameStub.restore();
+      initProjectStub.restore();
+      removeProjectFileStub.restore();
+      findLinkByProjectStub.restore();
+    });
+
+    it("should fail migrate project [project not found]", async () => {
+      const fromProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      };
+
+      const toProject: IProject = {
+        meta: {
+          host: "gitlab.com",
+          port: 443,
+        },
+        name: "migrated_mocked",
+        records: [],
+      };
+
+      const projectProxy: any = proxyquire("../../helper/project", {});
+
+      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(undefined);
+
+      const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      try {
+        await instance.migrate(fromProject, toProject);
+      } catch (err) {
+        assert.isDefined(err);
+      }
+
+      assert.isTrue(findProjectByNameStub.calledOnce);
+
+      findProjectByNameStub.restore();
+    });
+
+    it("should migrate project [only project in domain, with link]", async () => {
+      const fromProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      };
+
+      const toProject: IProject = {
+        meta: {
+          host: "gitlab.com",
+          port: 443,
+        },
+        name: "migrated_mocked",
+        records: [],
+      };
+
+      const projectProxy: any = proxyquire("../../helper/project", {});
+
+      const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      ]);
+      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+      const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
+        endpoint: "https://jira.com/rest/gittt/latest/",
+        hash: "caetaep2gaediWea",
+        key: "GITTT",
+        linkType: "Jira",
+        projectName: "test_mocked",
+        username: "gittt",
+      } as IIntegrationLink);
+      const addOrUpdateLinkStub: SinonStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
+
+      const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      await instance.migrate(fromProject, toProject);
+
+      assert.isTrue(findProjectsForDomainStub.calledOnce);
+      assert.isTrue(findProjectByNameStub.calledOnce);
+      assert.isTrue(initProjectStub.calledWith({
+        meta: {
+          host: "gitlab.com",
+          port: 443,
+        },
+        name: "migrated_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      }));
+      assert.isTrue(removeDomainStub.calledOnce);
+      assert.isTrue(addOrUpdateLinkStub.calledWith({
+        endpoint: "https://jira.com/rest/gittt/latest/",
+        hash: "caetaep2gaediWea",
+        key: "GITTT",
+        linkType: "Jira",
+        projectName: "migrated_mocked",
+        username: "gittt",
+      }));
+
+      findProjectsForDomainStub.restore();
+      findProjectByNameStub.restore();
+      initProjectStub.restore();
+      removeDomainStub.restore();
+      findLinkByProjectStub.restore();
+      addOrUpdateLinkStub.restore();
+    });
+
+    it("should migrate project [only project in domain, invalid link]", async () => {
+      const fromProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      };
+
+      const toProject: IProject = {
+        meta: {
+          host: "gitlab.com",
+          port: 443,
+        },
+        name: "migrated_mocked",
+        records: [],
+      };
+
+      const projectProxy: any = proxyquire("../../helper/project", {});
+
+      const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      ]);
+      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+      const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
+        endpoint: "https://jira.com/rest/gittt/latest/",
+        hash: "caetaep2gaediWea",
+        key: "GITTT",
+        linkType: "Invalid",
+        projectName: "test_mocked",
+        username: "gittt",
+      } as IIntegrationLink);
+      const addOrUpdateLinkStub: SinonStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
+
+      const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      await instance.migrate(fromProject, toProject);
+
+      assert.isTrue(findProjectsForDomainStub.calledOnce);
+      assert.isTrue(findProjectByNameStub.calledOnce);
+      assert.isTrue(initProjectStub.calledWith({
+        meta: {
+          host: "gitlab.com",
+          port: 443,
+        },
+        name: "migrated_mocked",
+        records: [
+          {
+            amount: 1337,
+            type: "Time",
+          },
+        ],
+      }));
+      assert.isTrue(removeDomainStub.calledOnce);
+      assert.isTrue(addOrUpdateLinkStub.notCalled);
+
+      findProjectsForDomainStub.restore();
+      findProjectByNameStub.restore();
+      initProjectStub.restore();
+      removeDomainStub.restore();
+      findLinkByProjectStub.restore();
+      addOrUpdateLinkStub.restore();
+    });
   });
 });
