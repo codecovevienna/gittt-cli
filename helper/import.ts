@@ -21,16 +21,22 @@ export class ImportHelper {
 
     const result: IRecord[] = Array<IRecord>();
 
-    return new Promise<IRecord[]>((resolve: (value?: IRecord[]) => void
-      ,                            reject: (reason?: any) => void): void => {
+    return new Promise<IRecord[]>((resolve: (value?: IRecord[]) => void,
+      reject: (reason?: any) => void): void => {
       parser.on("data", (data: any) => {
-        const row: ICsvRow = {
-          AMOUNT: parseFloat(data.AMOUNT),
-          END: parseInt(data.END, 10),
-          MESSAGE: data.MESSAGE.toString().replace(/\"/gi, ""),
-        };
-
         try {
+          assert(data.AMOUNT != null && isString(data.AMOUNT));
+          assert(data.END != null && isString(data.END) && data.END > -1);
+          assert(data.MESSAGE != null &&
+            isString(data.MESSAGE) &&
+            data.MESSAGE.length > 0);
+
+          const row: ICsvRow = {
+            AMOUNT: parseFloat(data.AMOUNT),
+            END: parseInt(data.END, 10),
+            MESSAGE: data.MESSAGE.toString().replace(/\"/gi, ""),
+          };
+
           assert(row.AMOUNT != null && isNumber(row.AMOUNT));
           assert(row.END != null && isNumber(row.END) && row.END > -1);
           assert(row.MESSAGE != null &&
