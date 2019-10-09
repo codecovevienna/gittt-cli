@@ -99,6 +99,10 @@ export class ProjectHelper {
   ): Promise<void> => {
     const project: IProject = await this.findOrInitProjectByName(this.getProjectFromGit().name);
 
+    if (!project) {
+      return;
+    }
+
     let addRecord: boolean = true;
 
     if (uniqueOnly === true) {
