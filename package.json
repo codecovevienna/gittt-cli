@@ -7,6 +7,7 @@
   "scripts": {
     "start": "./node_modules/.bin/ts-node index.ts",
     "test": "TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true ./node_modules/.bin/mocha test ./test/**/*.test.ts",
+    "test:bail": "TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true ./node_modules/.bin/mocha test -b ./test/**/*.test.ts",
     "test:ci": "./node_modules/.bin/nyc npm run test",
     "lint": "./node_modules/.bin/tslint --project ./tsconfig.json",
     "lint:fix": "./node_modules/.bin/tslint --fix --project ./tsconfig.json",
