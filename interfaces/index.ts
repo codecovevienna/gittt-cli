@@ -7,7 +7,7 @@ export interface IRecord {
   guid?: string;
   created?: number;
   updated?: number;
-  end?: number;
+  end: number;
   amount: number;
   message?: string;
   type: RECORD_TYPES;

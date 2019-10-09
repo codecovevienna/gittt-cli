@@ -65,6 +65,7 @@ export class TimerHelper {
 
       await this.projectHelper.addRecordToProject({
         amount: moment.duration(diff).asHours(),
+        end: now.valueOf(),
         message: _.isEmpty(finalCommitMessage) ? undefined : finalCommitMessage,
         type: "Time",
       });

@@ -1,11 +1,11 @@
-import fs from "fs";
-import inquirer, { Question } from "inquirer";
+import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
 import { isString } from "util";
 import { parseProjectNameFromGitUrl } from ".";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
+import fs from "fs";
 
 export class QuestionHelper {
   public static validateNumber = (input: any, from?: number, to?: number): boolean => {
@@ -319,7 +319,7 @@ export class QuestionHelper {
       },
     ];
 
-    const question: Question = {
+    const question: ListQuestion<string> = {
       choices,
       message: "Type",
       name: "choice",
@@ -340,7 +340,7 @@ export class QuestionHelper {
       "Jira",
     ];
 
-    const question: Question = {
+    const question: ListQuestion<string> = {
       choices,
       message: "What integration should be used?",
       name: "choice",
