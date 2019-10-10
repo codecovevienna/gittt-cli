@@ -41,7 +41,7 @@ describe("Unknown command test", () => {
 
     await mockedApp.setup();
 
-    process.argv = ["mocked", "unknownOption"];
+    process.argv = ["namespace", "mocked", "unknown"];
     mockedApp.start();
 
     assert.isTrue(helpStub.called);

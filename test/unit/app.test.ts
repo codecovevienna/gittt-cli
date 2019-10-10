@@ -10,7 +10,6 @@ import {
   IConfigFile, IInitAnswers,
   IJiraLink, IJiraPublishResult, IProject, IRecord,
 } from "../../interfaces";
-import { RECORD_TYPES } from "../../types";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;

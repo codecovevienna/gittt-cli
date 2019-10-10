@@ -1,4 +1,4 @@
-import inquirer, { Question } from "inquirer";
+import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
 import { parseProjectNameFromGitUrl } from ".";
@@ -302,7 +302,7 @@ export class QuestionHelper {
       },
     ];
 
-    const question: Question = {
+    const question: ListQuestion = {
       choices,
       message: "Type",
       name: "choice",
@@ -323,7 +323,7 @@ export class QuestionHelper {
       "Jira",
     ];
 
-    const question: Question = {
+    const question: ListQuestion = {
       choices,
       message: "What integration should be used?",
       name: "choice",
@@ -336,7 +336,7 @@ export class QuestionHelper {
   }
 
   public static chooseDomain = async (domains: string[]): Promise<string> => {
-    const question: Question = {
+    const question: ListQuestion = {
       choices: domains,
       message: "What domain should be used?",
       name: "choice",
@@ -349,9 +349,9 @@ export class QuestionHelper {
   }
 
   public static chooseProjectFile = async (projects: IProject[]): Promise<string> => {
-    const question: Question = {
+    const question: ListQuestion = {
       choices: projects.map((project: IProject) => {
-        const {host, port} = project.meta;
+        const { host, port } = project.meta;
         return {
           name: `${host}:${port} ${project.name}`,
           value: ProjectHelper.getProjectPath(project),

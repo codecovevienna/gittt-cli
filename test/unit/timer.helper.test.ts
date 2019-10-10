@@ -119,6 +119,7 @@ describe("TimerHelper", () => {
     assert.isTrue(getTimerObjectStub.calledOnce);
     assert.isTrue(addRecordToProjectStub.calledOnceWith({
       amount: moment.duration(10).asHours(),
+      end: now,
       message: "test",
       type: "Time",
     }));
@@ -153,6 +154,7 @@ describe("TimerHelper", () => {
     assert.isTrue(getTimerObjectStub.calledOnce);
     assert.isTrue(addRecordToProjectStub.calledOnceWith({
       amount: moment.duration(10).asHours(),
+      end: now,
       message: "Test",
       type: "Time",
     }));
@@ -189,6 +191,7 @@ describe("TimerHelper", () => {
     assert.isTrue(getTimerObjectStub.calledOnce);
     assert.isTrue(addRecordToProjectStub.calledOnceWith({
       amount: moment.duration(10).asHours(),
+      end: now,
       message: undefined,
       type: "Time",
     }));

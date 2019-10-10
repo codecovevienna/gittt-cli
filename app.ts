@@ -637,6 +637,10 @@ New type: ${updatedRecord.type}`;
   }
 
   public initCommander(): CommanderStatic {
+    commander.on("command:*", () => {
+      commander.help();
+    });
+
     commander
       .version(APP_VERSION);
 

@@ -193,7 +193,7 @@ describe("GitHelper", () => {
     const invalidateCacheSpy: SinonSpy = sinon.spy(mockedFileHelper, "invalidateCache");
 
     const resetSpy: SinonSpy = sinon.spy();
-    const pullSpy: SinonStub = sinon.stub()
+    const pullStub: SinonStub = sinon.stub()
       .onCall(0).rejects(new Error("Mocked error"))
       .onCall(1).resolves();
 
@@ -205,7 +205,7 @@ describe("GitHelper", () => {
       },
       "simple-git/promise": (): any => {
         return {
-          pull: pullSpy,
+          pull: pullStub,
           reset: resetSpy,
         };
       },
@@ -216,7 +216,7 @@ describe("GitHelper", () => {
     await instance.pullRepo();
 
     assert.isTrue(resetSpy.calledWith(["--hard", "origin/master"]));
-    expect(pullSpy.callCount).to.eq(2);
+    expect(pullStub.callCount).to.eq(2);
 
     assert.isTrue(invalidateCacheSpy.calledOnce);
   });
@@ -305,7 +305,7 @@ describe("GitHelper", () => {
     const addSpy: SinonSpy = sinon.spy();
     const commitSpy: SinonSpy = sinon.spy();
     const rawSpy: SinonSpy = sinon.spy();
-    const pullSpy: SinonSpy = sinon.stub()
+    const pullStub: SinonStub = sinon.stub()
       .onCall(0).rejects(new Error("fatal: couldn't find remote ref master\n"))
       .onCall(1).resolves();
 
@@ -314,7 +314,7 @@ describe("GitHelper", () => {
         return {
           add: addSpy,
           commit: commitSpy,
-          pull: pullSpy,
+          pull: pullStub,
           raw: rawSpy,
           status: sinon.stub().resolves({} as StatusResult),
         };
@@ -325,7 +325,7 @@ describe("GitHelper", () => {
 
     await instance.pullRepo();
 
-    assert.isTrue(pullSpy.calledWith("origin", "master"));
+    assert.isTrue(pullStub.calledWith("origin", "master"));
     assert.isTrue(addSpy.calledWith("./*"));
     assert.isTrue(commitSpy.calledWith("Setup commit"));
     assert.isTrue(rawSpy.calledWith(["push", "origin", "master", "--force"]));
