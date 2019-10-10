@@ -39,7 +39,7 @@ const csvMissingColumnInput: string = "AMOUNT,MESSAGE\n10,Message Text\n1,Messag
 
 const expectedEmptyArray: IRecord[] = [];
 
-describe.only("ImportHelper", () => {
+describe("ImportHelper", () => {
   let mockedFileHelper: FileHelper;
   let mockedProjectHelper: ProjectHelper;
   let mockedGitHelper: GitHelper;

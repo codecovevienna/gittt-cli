@@ -319,7 +319,7 @@ export class QuestionHelper {
       },
     ];
 
-    const question: ListQuestion<string> = {
+    const question: ListQuestion = {
       choices,
       message: "Type",
       name: "choice",
@@ -340,7 +340,7 @@ export class QuestionHelper {
       "Jira",
     ];
 
-    const question: ListQuestion<string> = {
+    const question: ListQuestion = {
       choices,
       message: "What integration should be used?",
       name: "choice",
