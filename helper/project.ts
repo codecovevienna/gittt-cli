@@ -111,7 +111,7 @@ export class ProjectHelper {
 
         LogHelper.info(`Adding (${records.length}) records to ${project.name}`);
         await this.fileHelper.saveProjectObject(project);
-        await this.gitHelper.commitChanges(`Added ${records.length} to ${project.name}`);
+        await this.gitHelper.commitChanges(`Added ${records.length} records to ${project.name}`);
       }
     }
   }
@@ -182,18 +182,12 @@ export class ProjectHelper {
       existingRecord.amount === record.amount &&
       existingRecord.end === record.end &&
       existingRecord.message === record.message &&
-      existingRecord.type === record.type) === undefined;
+      existingRecord.type === record.type) !== undefined;
   }
 
   private findOverlapping = (record: IRecord, records: IRecord[]): boolean => {
     // check if any overlapping records are present
     return records.find((existingRecord: IRecord) => {
-      if (!existingRecord.end) {
-        return false;
-      }
-      if (!record.end) {
-        return false;
-      }
       const startExisting: number = existingRecord.end - existingRecord.amount;
       const startAdd: number = record.end - record.amount;
       const endExisting: number = existingRecord.end;
@@ -202,7 +196,7 @@ export class ProjectHelper {
         return true;
       }
       return false;
-    }) === undefined;
+    }) !== undefined;
   }
 
   private setRecordDefaults = (record: IRecord): IRecord => {
