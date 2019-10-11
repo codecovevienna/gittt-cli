@@ -122,7 +122,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
-      created: 69,
+      end: 12054,
       message: "test",
       type: "Time",
     });
@@ -165,7 +165,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
-      created: 69,
+      end: 12054,
       type: "Time",
     });
 
@@ -207,6 +207,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
+      end: 12054,
       type: "Time",
     });
 
@@ -248,7 +249,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1,
-      created: 69,
+      end: 12054,
       type: "Time",
     });
 
@@ -294,7 +295,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
-      created: 69,
+      end: 12054,
       message: "test",
       type: "Time",
     });
@@ -335,7 +336,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
-      created: 69,
+      end: 12054,
       message: "test",
       type: "Time",
     });

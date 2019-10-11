@@ -31,6 +31,9 @@ describe("Unknown command test", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "commander": mockedCommander,
     });

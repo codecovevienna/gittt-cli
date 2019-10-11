@@ -33,6 +33,9 @@ describe("Stop test", () => {
             stopTimer: stopTimerStub,
           };
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "commander": mockedCommander,
     });

@@ -7,6 +7,7 @@
   "scripts": {
     "start": "./node_modules/.bin/ts-node index.ts",
     "test": "TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true ./node_modules/.bin/mocha test ./test/**/*.test.ts",
+    "test:bail": "TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true ./node_modules/.bin/mocha test -b ./test/**/*.test.ts",
     "test:ci": "./node_modules/.bin/nyc npm run test",
     "lint": "./node_modules/.bin/tslint --project ./tsconfig.json",
     "lint:fix": "./node_modules/.bin/tslint --fix --project ./tsconfig.json",
@@ -51,12 +52,14 @@
     "chai": "^4.2.0",
     "chalk": "^2.4.2",
     "commander": "^3.0.2",
+    "csv-parser": "^2.3.1",
     "fs-extra": "^8.1.0",
     "inquirer": "^7.0.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "shelljs": "^0.8.3",
     "simple-git": "^1.126.0",
+    "stream-mock": "^2.0.5",
     "ts-node": "^8.4.1",
     "typescript": "^3.6.3",
     "uuid": "^3.3.3"
