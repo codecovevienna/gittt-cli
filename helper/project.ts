@@ -1,5 +1,4 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
-import { isNullOrUndefined } from "util";
 import uuid from "uuid/v1";
 import { IProject, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
@@ -179,20 +178,20 @@ export class ProjectHelper {
 
   private findUnique = (record: IRecord, records: IRecord[]): boolean => {
     // check if amount, end, message and type is found in records
-    return isNullOrUndefined(records.find((existingRecord: IRecord) =>
+    return records.find((existingRecord: IRecord) =>
       existingRecord.amount === record.amount &&
       existingRecord.end === record.end &&
       existingRecord.message === record.message &&
-      existingRecord.type === record.type));
+      existingRecord.type === record.type) === undefined;
   }
 
   private findOverlapping = (record: IRecord, records: IRecord[]): boolean => {
     // check if any overlapping records are present
-    return isNullOrUndefined(records.find((existingRecord: IRecord) => {
-      if (isNullOrUndefined(existingRecord.end)) {
+    return records.find((existingRecord: IRecord) => {
+      if (!existingRecord.end) {
         return false;
       }
-      if (isNullOrUndefined(record.end)) {
+      if (!record.end) {
         return false;
       }
       const startExisting: number = existingRecord.end - existingRecord.amount;
@@ -203,7 +202,7 @@ export class ProjectHelper {
         return true;
       }
       return false;
-    }));
+    }) === undefined;
   }
 
   private setRecordDefaults = (record: IRecord): IRecord => {

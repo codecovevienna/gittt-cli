@@ -98,7 +98,7 @@ describe.only("ProjectHelper", () => {
     });
   });
 
-  describe("Adding records", () => {
+  describe.only("Adding records", () => {
     it("should add record to project", async () => {
       const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
