@@ -14,7 +14,7 @@ const projectsDir: string = "projects";
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
 
-describe.only("ProjectHelper", () => {
+describe("ProjectHelper", () => {
   let mockedFileHelper: FileHelper;
   let mockedGitHelper: GitHelper;
   before(() => {
@@ -98,7 +98,7 @@ describe.only("ProjectHelper", () => {
     });
   });
 
-  describe.only("Adding records", () => {
+  describe("Adding records", () => {
     it("should add record to project", async () => {
       const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
