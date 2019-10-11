@@ -33,6 +33,9 @@ describe("Start test", () => {
             startTimer: startTimerStub,
           };
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "commander": mockedCommander,
     });

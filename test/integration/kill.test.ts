@@ -33,6 +33,9 @@ describe("Kill test", () => {
             killTimer: killTimerStub,
           };
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "commander": mockedCommander,
     });

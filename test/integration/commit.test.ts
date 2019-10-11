@@ -33,6 +33,9 @@ describe("Commit test", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "commander": mockedCommander,
     });
@@ -67,6 +70,9 @@ describe("Commit test", () => {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },

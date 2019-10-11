@@ -196,6 +196,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
 
@@ -225,6 +228,9 @@ describe("App", () => {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -263,6 +269,9 @@ describe("App", () => {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -305,6 +314,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
 
@@ -338,6 +350,9 @@ describe("App", () => {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -396,6 +411,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
 
@@ -443,6 +461,9 @@ describe("App", () => {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -493,6 +514,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -550,6 +574,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -597,6 +624,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -654,6 +684,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -701,6 +734,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -756,6 +792,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -975,6 +1014,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -1028,6 +1070,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -1076,6 +1121,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -1133,6 +1181,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -1209,6 +1260,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -1281,6 +1335,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -1357,6 +1414,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -1430,6 +1490,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -1501,6 +1564,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -1585,6 +1651,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -1632,6 +1701,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -1685,6 +1757,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -1747,6 +1822,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -1825,6 +1903,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -1895,6 +1976,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -1968,6 +2052,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -2024,6 +2111,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
     });
     const mockedApp: App = new proxy.App();
@@ -2067,6 +2157,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         parseProjectNameFromGitUrl: sinon.stub(),
       },
     });
@@ -2104,6 +2197,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -2145,6 +2241,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
         parseProjectNameFromGitUrl: sinon.stub().throws(new Error("Mocked Error")),
@@ -2209,6 +2308,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "commander": mockedCommander,
     });
@@ -2250,6 +2352,9 @@ describe("App", () => {
           chooseIntegration: sinon.stub().resolves("Jira"),
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -2311,6 +2416,9 @@ describe("App", () => {
           chooseIntegration: sinon.stub().resolves("Jira"),
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -2392,6 +2500,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -2478,6 +2589,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -2581,6 +2695,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "axios": {
         post: axiosPostStub,
@@ -2677,6 +2794,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "axios": {
         post: axiosPostStub,
@@ -2729,6 +2849,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -2791,6 +2914,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -2872,6 +2998,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "axios": {
         post: axiosPostStub,
@@ -2949,6 +3078,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -3034,6 +3166,9 @@ describe("App", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "axios": {
         post: axiosPostStub,
@@ -3115,6 +3250,9 @@ describe("App", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
+          return {};
+        },
+        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },

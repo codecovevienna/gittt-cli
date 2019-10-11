@@ -158,7 +158,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
-      end: 69,
+      end: 12054,
       message: "test",
       type: "Time",
     });
@@ -201,7 +201,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
-      end: 69,
+      end: 12054,
       type: "Time",
     });
 
@@ -242,12 +242,12 @@ describe("ProjectHelper", () => {
     } as IProject);
 
     await instance.addRecordToProject({
-      amount: 1,
-      end: 69,
+      amount: 1337,
+      end: 12054,
       type: "Time",
     });
 
-    assert.isTrue(commitChangesStub.calledWith(`Added 1 hour to test_mocked`));
+    assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked`));
 
     assert.isTrue(findProjectByNameStub.calledOnce);
     assert.isTrue(saveProjectObjectStub.calledOnce);
@@ -289,13 +289,12 @@ describe("ProjectHelper", () => {
     } as IProject);
 
     await instance.addRecordToProject({
-      amount: 1337,
-      end: 69,
-      message: "test",
+      amount: 1,
+      end: 12054,
       type: "Time",
     });
 
-    assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked: "test"`));
+    assert.isTrue(commitChangesStub.calledWith(`Added 1 hour to test_mocked`));
 
     assert.isTrue(findProjectByNameStub.calledOnce);
     assert.isTrue(initProjectStub.calledOnce);
@@ -334,7 +333,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
-      end: 69,
+      end: 12054,
       message: "test",
       type: "Time",
     });
@@ -395,7 +394,7 @@ describe("ProjectHelper", () => {
 
     await instance.addRecordToProject({
       amount: 1337,
-      end: 69,
+      end: 12054,
       message: "test",
       type: "Time",
     });

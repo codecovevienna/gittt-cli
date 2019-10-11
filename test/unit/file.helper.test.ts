@@ -491,7 +491,7 @@ describe("FileHelper", () => {
       records: [
         {
           amount: 1337,
-          created: Date.now(),
+          end: Date.now(),
           message: "TestMessage",
           type: "Time",
         },
@@ -524,7 +524,7 @@ describe("FileHelper", () => {
       records: [
         {
           amount: 1337,
-          created: Date.now(),
+          end: Date.now(),
           message: "TestMessage",
           type: "Time",
         },

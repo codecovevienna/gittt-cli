@@ -79,6 +79,9 @@ describe("Status test", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
       },
       "commander": mockedCommander,
     });
