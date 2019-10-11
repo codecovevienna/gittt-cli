@@ -24,6 +24,9 @@ describe("Commit test", () => {
         GitHelper: function GitHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {
@@ -31,9 +34,6 @@ describe("Commit test", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -65,14 +65,14 @@ describe("Commit test", () => {
         GitHelper: function GitHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },

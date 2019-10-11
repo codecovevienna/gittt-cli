@@ -24,6 +24,9 @@ describe("Stop test", () => {
         GitHelper: function GitHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {};
@@ -32,9 +35,6 @@ describe("Stop test", () => {
           return {
             stopTimer: stopTimerStub,
           };
-        },
-        ImportHelper: function ImportHelper(): any {
-          return {};
         },
       },
       "commander": mockedCommander,

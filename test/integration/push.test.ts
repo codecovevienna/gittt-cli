@@ -33,9 +33,6 @@ describe("Push test", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
-        ImportHelper: function ImportHelper(): any {
-          return {};
-        },
       },
       "commander": mockedCommander,
     });

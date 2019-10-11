@@ -44,9 +44,6 @@ describe("Log test", () => {
         TimerHelper: function TimerHelper(): any {
           return {};
         },
-        ImportHelper: function ImportHelper(): any {
-          return {};
-        },
       },
       "commander": mockedCommander,
     });
@@ -84,9 +81,6 @@ describe("Log test", () => {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
