@@ -60,6 +60,10 @@ export class ProjectHelper {
   ): Promise<void> => {
     const project: IProject = await this.findOrInitProjectByName(this.getProjectFromGit().name);
 
+    if (!project) {
+      return;
+    }
+
     records = records.filter((record: IRecord) => {
       let addRecord: boolean = true;
 
@@ -79,40 +83,9 @@ export class ProjectHelper {
       );
     });
 
-    if (records.length > 0) {
-      records.forEach((record: IRecord) => {
+    if (records.length === 1) {
+      let record: IRecord = records[0];
 
-        record = this.setRecordDefaults(record);
-        project.records.push(record);
-      });
-
-      LogHelper.info(`Adding (${records.length}) records to ${project.name}`);
-      await this.fileHelper.saveProjectObject(project);
-      await this.gitHelper.commitChanges(`Added ${records.length} to ${project.name}`);
-    }
-  }
-
-  public addRecordToProject = async (
-    record: IRecord,
-    uniqueOnly?: boolean,
-    nonOverlappingOnly?: boolean,
-  ): Promise<void> => {
-    const project: IProject = await this.findOrInitProjectByName(this.getProjectFromGit().name);
-
-    if (!project) {
-      return;
-    }
-
-    let addRecord: boolean = true;
-
-    if (uniqueOnly === true) {
-      addRecord = this.findUnique(record, project.records);
-    }
-    if (nonOverlappingOnly === true) {
-      addRecord = this.findOverlapping(record, project.records);
-    }
-
-    if (addRecord) {
       LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}) to ${project.name}`);
 
       record = this.setRecordDefaults(record);
@@ -129,10 +102,26 @@ export class ProjectHelper {
       } else {
         await this.gitHelper.commitChanges(`Added ${record.amount} ${hourString} to ${project.name}`);
       }
-    } else {
-      LogHelper.warn(`Could not add record (amount: ${record.amount}, type: ${record.type}) to ${project.name}`);
+    } else if (records.length > 1) {
+      if (records.length > 1) {
+        records.forEach((record: IRecord) => {
+
+          record = this.setRecordDefaults(record);
+          project.records.push(record);
+        });
+
+        LogHelper.info(`Adding (${records.length}) records to ${project.name}`);
+        await this.fileHelper.saveProjectObject(project);
+        await this.gitHelper.commitChanges(`Added ${records.length} to ${project.name}`);
+      }
     }
   }
+
+  public addRecordToProject = async (
+    record: IRecord,
+    uniqueOnly?: boolean,
+    nonOverlappingOnly?: boolean,
+  ): Promise<void> => this.addRecordsToProject([record], uniqueOnly, nonOverlappingOnly)
 
   // TODO projectName optional? find it by .git folder
   public getTotalHours = async (projectName: string): Promise<number> => {
