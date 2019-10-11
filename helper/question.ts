@@ -1,3 +1,4 @@
+import fs from "fs";
 import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
@@ -5,7 +6,6 @@ import { isString } from "util";
 import { parseProjectNameFromGitUrl } from ".";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
-import fs from "fs";
 
 export class QuestionHelper {
   public static validateNumber = (input: any, from?: number, to?: number): boolean => {
@@ -104,7 +104,7 @@ export class QuestionHelper {
       const stats: fs.Stats = fs.statSync(inputFilePath);
       if (stats.isFile) {
         try {
-          // eslint-disable-next-line no-bitwise
+          // tslint:disable-next-line no-bitwise
           fs.accessSync(inputFilePath, fs.constants.R_OK | fs.constants.W_OK);
         } catch (e) {
           return false;
