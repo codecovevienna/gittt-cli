@@ -834,7 +834,7 @@ New type: ${updatedRecord.type}`;
     commander
       .command("import")
       .description("Import records from csv to current project")
-      .option("-f, --file [file]", "CSV file with format (Description;Start Date;Start Time;End Date;End Time)")
+      .option("-f, --file [file]", "CSV file with format (MESSAGE,END[int],AMOUNT[double])")
       .action(async (cmd: Command): Promise<void> => {
         await this.importCsv(cmd);
       });

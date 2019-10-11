@@ -38,6 +38,23 @@ $ gittt commit 3 -m "Spent a great time with this code"
 $ gittt push
 ```
 
+## CSV Import to projects
+
+Use the CSV importer option to import a csv file to your project.
+
+The CSV file has to include a header with at least the columns `MESSAGE,END,AMOUNT` (any other columns will be ignored)
+
+```
+MESSAGE,END,AMOUNT
+"Added Production Build",1570298400000,0.5
+```
+
+Import data to your current project (aka. The git directory you are currently at) with
+
+```
+$ gittt -f [path_to_your_file].csv
+```
+
 ## Releases
 
 The binary releases can be found under the [Releases Tab](https://github.com/codecovevienna/gittt-cli/releases)
