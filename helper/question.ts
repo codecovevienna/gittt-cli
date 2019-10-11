@@ -104,6 +104,7 @@ export class QuestionHelper {
       const stats: fs.Stats = fs.statSync(inputFilePath);
       if (stats.isFile) {
         try {
+          // eslint-disable-next-line no-bitwise
           fs.accessSync(inputFilePath, fs.constants.R_OK | fs.constants.W_OK);
         } catch (e) {
           return false;

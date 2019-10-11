@@ -30,8 +30,7 @@
         // Needed for mocked helpers
         "function": false
       }
-    ],
-    "no-bitwise": false
+    ]
   },
   "rulesDirectory": []
 }
