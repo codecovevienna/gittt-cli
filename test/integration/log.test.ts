@@ -37,6 +37,9 @@ describe("Log test", () => {
             logChanges: logChangesStub,
           };
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {};
@@ -75,6 +78,9 @@ describe("Log test", () => {
           return {
             logChanges: logChangesStub,
           };
+        },
+        ImportHelper: function ImportHelper(): any {
+          return {};
         },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {

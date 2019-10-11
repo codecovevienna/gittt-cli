@@ -15,7 +15,7 @@ import { RECORD_TYPES } from "../../types";
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
 
-describe.only("App", () => {
+describe("App", () => {
   before(() => {
     proxyquire.noCallThru();
   });
