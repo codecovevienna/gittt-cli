@@ -10,6 +10,7 @@ import {
   IConfigFile, IInitAnswers,
   IJiraLink, IJiraPublishResult, IProject, IRecord,
 } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
@@ -2274,6 +2275,66 @@ describe.only("App", () => {
       const valid: boolean = await mockedApp.isConfigFileValid();
 
       assert.isFalse(valid);
+    });
+  });
+
+  describe("Import records from csv", () => {
+    it("should add records from csv", async () => {
+      const addRecordsToProjectStub: SinonStub = sinon.stub().resolves();
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": {
+          FileHelper: function FileHelper(): any {
+            return {
+              configDirExists: sinon.stub().resolves(true),
+            };
+          },
+          GitHelper: function GitHelper(): any {
+            return {};
+          },
+          ImportHelper: function ImportHelper(): any {
+            return {
+              importCsv: sinon.stub().resolves([
+                {
+                  amount: 1337,
+                  end: Date.now(),
+                  guid: "g-u-i-d",
+                  message: "Mocked record",
+                  type: "Time",
+                },
+              ] as IRecord[]),
+            };
+          },
+          LogHelper,
+          ProjectHelper: function ProjectHelper(): any {
+            return {
+              addRecordsToProject: addRecordsToProjectStub,
+            };
+          },
+          QuestionHelper: {
+            validateFile: sinon.stub().resolves("/path/mockedFile.csv"),
+          },
+          TimerHelper: function TimerHelper(): any {
+            return {};
+          },
+        },
+      });
+      const mockedApp: App = new proxy.App();
+
+      sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+      sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.file = "mockedFile.csv";
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.importCsv(mockedCommand);
+
+      assert.isTrue(addRecordsToProjectStub.calledOnce);
     });
   });
 
