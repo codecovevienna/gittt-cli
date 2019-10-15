@@ -98,6 +98,15 @@ export class QuestionHelper {
     }
   }
 
+  public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
+    // Ensure trailing slash
+    if (input[input.length - 1] !== "/") {
+      return input + "/";
+    } else {
+      return input;
+    }
+  }
+
   public static validateFile = (input: any): boolean => {
     if (isString(input)) {
       const inputFilePath: string = input;
@@ -113,15 +122,6 @@ export class QuestionHelper {
       }
     }
     return false;
-  }
-
-  public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
-    // Ensure trailing slash
-    if (input[input.length - 1] !== "/") {
-      return input + "/";
-    } else {
-      return input;
-    }
   }
 
   public static askYear = async (defaultValue?: number): Promise<number> => {
