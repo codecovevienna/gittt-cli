@@ -417,6 +417,66 @@ describe("ProjectHelper", () => {
         saveProjectObjectStub.restore();
       });
 
+      it("should fail to add overlapping record [same end and amount]", async () => {
+        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub: SinonStub = sinon
+          .stub(mockedFileHelper, "findProjectByName")
+          .resolves(undefined);
+        const initProjectStub: SinonStub = sinon
+          .stub(mockedFileHelper, "initProject")
+          .resolves(
+            {
+              meta: {
+                host: "github.com",
+                port: 443,
+              },
+              name: "test_mocked",
+              records: [
+                {
+                  amount: 2,
+                  end: 1000,
+                  message: "test",
+                  type: "Time",
+                },
+              ],
+            } as IProject,
+          );
+
+        const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "test_mocked",
+          records: [],
+        } as IProject);
+
+        await instance.addRecordsToProject(
+          [
+            {
+              amount: 2,
+              end: 1000,
+              message: "test1",
+              type: "Time",
+            },
+          ],
+          false,
+          true,
+        );
+
+        assert.isTrue(findProjectByNameStub.calledOnce);
+        assert.isTrue(initProjectStub.calledOnce);
+        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(saveProjectObjectStub.notCalled);
+
+        findProjectByNameStub.restore();
+        getProjectFromGitStub.restore();
+        initProjectStub.restore();
+        saveProjectObjectStub.restore();
+      });
+
       it("should fail to add overlapping record, but add non overlapping [with message]", async () => {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
@@ -625,6 +685,68 @@ describe("ProjectHelper", () => {
         initProjectStub.restore();
         saveProjectObjectStub.restore();
         commitChangesStub.restore();
+      });
+    });
+
+    describe("Unique records", () => {
+      it("should fail to add not unique record", async () => {
+        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub: SinonStub = sinon
+          .stub(mockedFileHelper, "findProjectByName")
+          .resolves(undefined);
+        const initProjectStub: SinonStub = sinon
+          .stub(mockedFileHelper, "initProject")
+          .resolves(
+            {
+              meta: {
+                host: "github.com",
+                port: 443,
+              },
+              name: "test_mocked",
+              records: [
+                {
+                  amount: 2,
+                  end: 1000,
+                  message: "test",
+                  type: "Time",
+                },
+              ],
+            } as IProject,
+          );
+
+        const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "test_mocked",
+          records: [],
+        } as IProject);
+
+        await instance.addRecordsToProject(
+          [
+            {
+              amount: 2,
+              end: 1000,
+              message: "test",
+              type: "Time",
+            },
+          ],
+          true,
+          false,
+        );
+
+        assert.isTrue(findProjectByNameStub.calledOnce);
+        assert.isTrue(initProjectStub.calledOnce);
+        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(saveProjectObjectStub.notCalled);
+
+        findProjectByNameStub.restore();
+        getProjectFromGitStub.restore();
+        initProjectStub.restore();
+        saveProjectObjectStub.restore();
       });
     });
   });

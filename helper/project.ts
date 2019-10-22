@@ -64,16 +64,16 @@ export class ProjectHelper {
     }
 
     records = records.filter((record: IRecord) => {
-      let addRecord: boolean = true;
+      let shouldAddRecord: boolean = true;
 
       if (uniqueOnly === true) {
-        addRecord = this.findUnique(record, project.records);
+        shouldAddRecord = this.isRecordUnique(record, project.records);
       }
       if (nonOverlappingOnly === true) {
-        addRecord = this.findOverlapping(record, project.records);
+        shouldAddRecord = this.isRecordOverlapping(record, project.records);
       }
 
-      if (addRecord) {
+      if (shouldAddRecord) {
         return record;
       }
 
@@ -176,27 +176,37 @@ export class ProjectHelper {
     return parseProjectNameFromGitUrl(originUrl);
   }
 
-  private findUnique = (record: IRecord, records: IRecord[]): boolean => {
+  /*
+   * returns {boolean} true if provided record is identical to any record in records
+   */
+  private isRecordUnique = (record: IRecord, records: IRecord[]): boolean => {
     // check if amount, end, message and type is found in records
-    return records.find((existingRecord: IRecord) =>
-      existingRecord.amount === record.amount &&
-      existingRecord.end === record.end &&
-      existingRecord.message === record.message &&
-      existingRecord.type === record.type) !== undefined;
+    return records.find((existingRecord: IRecord) => {
+      return existingRecord.amount === record.amount &&
+        existingRecord.end === record.end &&
+        existingRecord.message === record.message &&
+        existingRecord.type === record.type;
+    }) === undefined;
   }
 
-  private findOverlapping = (record: IRecord, records: IRecord[]): boolean => {
+  /*
+   * returns {boolean} true if provided record is overlapping any record in records
+   */
+  private isRecordOverlapping = (record: IRecord, records: IRecord[]): boolean => {
     // check if any overlapping records are present
     return records.find((existingRecord: IRecord) => {
       const startExisting: number = existingRecord.end - existingRecord.amount;
       const startAdd: number = record.end - record.amount;
       const endExisting: number = existingRecord.end;
       const endAdd: number = record.end;
-      if ((startAdd < startExisting && endAdd <= endExisting) || (startAdd >= startExisting && endAdd > endExisting)) {
-        return true;
+      if (
+        (startAdd < startExisting && endAdd <= endExisting) ||
+        (startAdd >= startExisting && endAdd > endExisting)
+      ) {
+        return false;
       }
-      return false;
-    }) !== undefined;
+      return true;
+    }) === undefined;
   }
 
   private setRecordDefaults = (record: IRecord): IRecord => {
