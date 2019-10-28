@@ -299,4 +299,63 @@ describe("QuestionHelper", () => {
     const choice: string = await proxy.QuestionHelper.chooseIntegration();
     expect(choice).to.eq("Jira");
   });
+
+  it("should choose domain", async () => {
+    const proxy: any = proxyquire("../../helper/question", {
+      inquirer: {
+        prompt: sinon.stub().resolves({
+          choice: "github.com",
+        }),
+      },
+    });
+
+    const choice: string = await proxy.QuestionHelper.chooseDomain([
+      "gitlab.com",
+      "github.com",
+    ]);
+    expect(choice).to.eq("github.com");
+  });
+
+  it("should choose project file", async () => {
+    const proxy: any = proxyquire("../../helper/question", {
+      inquirer: {
+        prompt: sinon.stub().resolves({
+          choice: "gitlab_com_443/codecovevienna_gittt-cli.json",
+        }),
+      },
+    });
+
+    const choice: string = await proxy.QuestionHelper.chooseProjectFile([
+      {
+        meta: {
+          host: "github.com",
+          port: 10022,
+        },
+        name: "codecovevienna_gittt-cli",
+        records: [],
+      } as IProject,
+      {
+        meta: {
+          host: "gitlab.com",
+          port: 443,
+        },
+        name: "codecovevienna_gittt-cli",
+        records: [],
+      } as IProject,
+    ]);
+    expect(choice).to.eq("gitlab_com_443/codecovevienna_gittt-cli.json");
+  });
+
+  it("should confirm migration", async () => {
+    const proxy: any = proxyquire("../../helper/question", {
+      inquirer: {
+        prompt: sinon.stub().resolves({
+          choice: true,
+        }),
+      },
+    });
+
+    const choice: string = await proxy.QuestionHelper.confirmMigration();
+    expect(choice).to.eq(true);
+  });
 });

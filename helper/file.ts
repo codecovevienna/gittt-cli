@@ -2,6 +2,7 @@ import fs, { WriteOptions } from "fs-extra";
 import path from "path";
 import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
 import { LogHelper } from "./";
+import { ProjectHelper } from "./project";
 
 export class FileHelper {
   private configFilePath: string;
@@ -54,6 +55,25 @@ export class FileHelper {
     await this.saveConfigObject(configObject);
 
     return configObject;
+  }
+
+  public findLinkByProject = async (project: IProject): Promise<IIntegrationLink | undefined> => {
+    const configObject: IConfigFile = await this.getConfigObject();
+
+    const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
+      // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
+      return li.projectName === project.name;
+    });
+
+    if (foundLinks.length === 0) {
+      return undefined;
+    }
+
+    if (foundLinks.length > 1) {
+      return undefined;
+    }
+
+    return foundLinks[0];
   }
 
   public initProject = async (project: IProject): Promise<IProject> => {
@@ -229,13 +249,29 @@ export class FileHelper {
     return projects;
   }
 
+  public removeDomainDirectory = async (projectMeta: IProjectMeta, force: boolean = false): Promise<void> => {
+    const projectsInDomain: IProject[] = await this.findProjectsForDomain(projectMeta);
+    if (projectsInDomain.length > 0) {
+      if (force) {
+        await fs.remove(this.projectMetaToPath(projectMeta));
+      } else {
+        throw new Error(`${this.projectMetaToPath(projectMeta)} is not empty`);
+      }
+    } else {
+      await fs.remove(this.projectMetaToPath(projectMeta));
+    }
+  }
+
+  public removeProjectFile = async (project: IProject): Promise<void> => {
+    return fs.remove(ProjectHelper.projectToProjectFilename(project));
+  }
+
   private setConfigObject = (config: IConfigFile): void => {
     this.configObject = config;
   }
 
   private projectMetaToPath = (projectMeta: IProjectMeta): string => {
-    const { host, port } = projectMeta;
-    return path.join(this.projectDir, `${host.replace(/\./gi, "_")}${port ? "_" + port : ""}`);
+    return path.join(this.projectDir, ProjectHelper.projectMetaToDomain(projectMeta));
   }
 
   private saveConfigObject = async (config: IConfigFile): Promise<void> => {

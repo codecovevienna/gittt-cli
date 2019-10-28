@@ -1,10 +1,64 @@
+import fs, { WriteOptions } from "fs-extra";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import { isNullOrUndefined } from "util";
 import uuid from "uuid/v1";
-import { IProject, IRecord } from "../interfaces";
+import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
+import { QuestionHelper } from "./question";
 
 export class ProjectHelper {
+  /**
+   * Extracts the domain from a IProjectMetaData object
+   *
+   * @param projectMeta - MetaData object
+   * @returns Domain of the meta data as formatted string
+   */
+  public static projectMetaToDomain = (projectMeta: IProjectMeta): string => {
+    const { host, port } = projectMeta;
+    return `${host.replace(/\./gi, "_")}${port ? "_" + port : ""}`;
+  }
+
+  /**
+   * Constructs a meta data object from a formatted domain string
+   *
+   * @param domain - formatted domain string
+   * @returns Meta data object based on the formatted string
+   */
+  public static domainToProjectMeta = (domain: string): IProjectMeta => {
+    const split: string[] = domain.split("_");
+    const potentialPort: number = parseInt(split[split.length - 1], 10);
+    let port: number = 0;
+    let splitClean: string[] = [];
+
+    if (!isNaN(potentialPort)) {
+      port = potentialPort;
+      splitClean = split.slice(0, split.length - 1);
+    } else {
+      splitClean = split;
+    }
+
+    return {
+      host: splitClean.join("."),
+      port,
+    };
+  }
+
+  /**
+   * @param project - IProject object
+   * @returns Filename of the project file
+   */
+  public static projectToProjectFilename = (project: IProject): string => {
+    return `${project.name}.json`;
+  }
+
+  /**
+   * @param project - IProject object
+   * @returns Path of the project file
+   */
+  public static getProjectPath = (project: IProject): string => {
+    return `${ProjectHelper.projectMetaToDomain(project.meta)}/${ProjectHelper.projectToProjectFilename(project)}`;
+  }
+
   private fileHelper: FileHelper;
   private gitHelper: GitHelper;
 
@@ -38,10 +92,31 @@ export class ProjectHelper {
       LogHelper.warn(`Project "${projectName}" not found`);
       try {
 
-        // TODO ask user if he wants to create this project?
-        LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
-        LogHelper.info(`Initializing project "${projectName}"`);
-        foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
+        const shouldMigrate: boolean = await QuestionHelper.confirmMigration();
+        if (shouldMigrate) {
+          const fromDomainProject: string = await QuestionHelper
+            .chooseProjectFile(await this.fileHelper.findAllProjects());
+
+          const [domain, name] = fromDomainProject.split("/");
+          const fromProject: IProject | undefined = await this.fileHelper.findProjectByName(
+            // TODO find a better way?
+            name.replace(".json", ""),
+            ProjectHelper.domainToProjectMeta(domain),
+          );
+
+          if (!fromProject) {
+            throw new Error("Unable to find project on disk");
+          }
+
+          const toProject: IProject = this.getProjectFromGit();
+
+          foundProject = await this.migrate(fromProject, toProject);
+        } else {
+          // TODO ask user if he wants to create this project?
+          LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
+          LogHelper.info(`Initializing project "${projectName}"`);
+          foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
+        }
       } catch (err) {
         LogHelper.error("Unable to initialize project, exiting...");
         return process.exit(1);
@@ -175,6 +250,65 @@ export class ProjectHelper {
     const originUrl: string = gitConfigExec.stdout.trim();
 
     return parseProjectNameFromGitUrl(originUrl);
+  }
+
+  public migrate = async (from: IProject, to: IProject): Promise<IProject> => {
+    LogHelper.info("Starting migrate procedure");
+    LogHelper.info(`${from.name} -> ${to.name}`);
+
+    // Ensure all records are present in the "from" project
+    const populatedFrom: IProject | undefined = await this.fileHelper.findProjectByName(from.name, from.meta);
+    if (!populatedFrom) {
+      throw new Error(`Unable to get records from ${from.name}`);
+    }
+
+    // Create instance of new project with records from old project
+    const migratedProject: IProject = {
+      meta: to.meta,
+      name: to.name,
+      records: populatedFrom.records,
+    };
+
+    // Initialize new project
+    await this.fileHelper.initProject(migratedProject);
+    LogHelper.info(`✓ Migrated Project`);
+
+    // Removing old project file
+    await this.fileHelper.removeProjectFile(from);
+    LogHelper.info(`✓ Removed old project file`);
+
+    // Get all projects associated with the old meta information
+    const fromDomainProjects: IProject[] = await this.fileHelper.findProjectsForDomain(from.meta);
+
+    // Remove the domain directory if old project was the only one with this meta data
+    // TODO check if really the same project object?
+    if (fromDomainProjects.length === 0) {
+      // we know that it is not empty, force delete it
+      LogHelper.debug(`${from.name} is the only project on ${from.meta.host}, domain directory will be removed`);
+      await this.fileHelper.removeDomainDirectory(from.meta, true);
+      LogHelper.info(`✓ Removed old domain directory`);
+    }
+
+    const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from);
+    if (!link) {
+      LogHelper.debug(`No link found for project "${from.name}"`);
+    } else {
+      switch (link.linkType) {
+        case "Jira":
+          const migratedLink: IJiraLink = link as IJiraLink;
+          migratedLink.projectName = to.name;
+
+          await this.fileHelper.addOrUpdateLink(migratedLink);
+          LogHelper.info(`✓ Updated jira link`);
+          break;
+
+        default:
+          LogHelper.error("✗ Invalid link type");
+          break;
+      }
+    }
+
+    return migratedProject;
   }
 
   private findUnique = (record: IRecord, records: IRecord[]): boolean => {

@@ -25,11 +25,11 @@ describe("App", () => {
   });
 
   it("should start app", async () => {
-    const parseStub: SinonSpy = sinon.spy();
+    const parseSpy: SinonSpy = sinon.spy();
 
     const proxy: any = proxyquire("../../app", {
       commander: {
-        parse: parseStub,
+        parse: parseSpy,
       },
     });
 
@@ -42,15 +42,15 @@ describe("App", () => {
     const app: App = new proxy.App();
     app.start();
 
-    assert.isTrue(parseStub.calledOnce);
+    assert.isTrue(parseSpy.calledOnce);
   });
 
   it("should start app and show help [unknown command]", async () => {
-    const helpStub: SinonSpy = sinon.spy();
+    const helpSpy: SinonSpy = sinon.spy();
 
     const proxy: any = proxyquire("../../app", {
       commander: {
-        help: helpStub,
+        help: helpSpy,
       },
     });
 
@@ -62,7 +62,7 @@ describe("App", () => {
     const app: App = new proxy.App();
     app.start();
 
-    assert.isTrue(helpStub.calledOnce);
+    assert.isTrue(helpSpy.calledOnce);
   });
 
   it("should exit without error", async () => {
