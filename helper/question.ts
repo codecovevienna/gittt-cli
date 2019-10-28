@@ -6,6 +6,7 @@ import { isString } from "util";
 import { parseProjectNameFromGitUrl } from ".";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
+import { ProjectHelper } from "./project";
 
 export class QuestionHelper {
   public static validateNumber = (input: any, from?: number, to?: number): boolean => {
@@ -346,6 +347,52 @@ export class QuestionHelper {
       message: "What integration should be used?",
       name: "choice",
       type: "list",
+    };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static chooseDomain = async (domains: string[]): Promise<string> => {
+    const question: ListQuestion = {
+      choices: domains,
+      message: "What domain should be used?",
+      name: "choice",
+      type: "list",
+    };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static chooseProjectFile = async (projects: IProject[]): Promise<string> => {
+    const question: ListQuestion = {
+      choices: projects.map((project: IProject) => {
+        const { host, port } = project.meta;
+        return {
+          name: `${host}:${port} ${project.name}`,
+          value: ProjectHelper.getProjectPath(project),
+        };
+      }),
+      message: "Choose a project",
+      name: "choice",
+      type: "list",
+    };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmMigration = async (): Promise<boolean> => {
+    console.log("REAL");
+
+    const question: Question = {
+      message: `Do you want to migrate from an existing project?`,
+      name: "choice",
+      type: "confirm",
     };
 
     const choice: any = await inquirer.prompt([question]);
