@@ -5,14 +5,13 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 
-describe("Kill test", () => {
+describe("Import test", () => {
   before(() => {
     proxyquire.noCallThru();
   });
 
-  it("should kill time tracking", async () => {
+  it("should import from csv", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const killTimerStub: SinonStub = sinon.stub().resolves();
 
     const proxy: any = proxyquire("../../app", {
       "./helper": {
@@ -31,10 +30,13 @@ describe("Kill test", () => {
         ProjectHelper: function ProjectHelper(): any {
           return {};
         },
-        TimerHelper: function TimerHelper(): any {
+        QuestionHelper: function QuestionHelper(): any {
           return {
-            killTimer: killTimerStub,
+            validateFile: sinon.stub().resolves("/path"),
           };
+        },
+        TimerHelper: function TimerHelper(): any {
+          return {};
         },
       },
       "commander": mockedCommander,
@@ -44,11 +46,13 @@ describe("Kill test", () => {
     sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
     sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
+    const importActionStub: SinonStub = sinon.stub(mockedApp, "importCsv").resolves();
+
     await mockedApp.setup();
 
-    process.argv = ["namespace", "mocked", "stop", "-k"];
+    process.argv = ["namespace", "mocked", "import"];
     mockedApp.start();
 
-    assert.isTrue(killTimerStub.calledOnce);
+    assert.isTrue(importActionStub.calledOnce);
   });
 });

@@ -37,14 +37,14 @@ describe("Log test", () => {
             logChanges: logChangesStub,
           };
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },
@@ -79,14 +79,14 @@ describe("Log test", () => {
             logChanges: logChangesStub,
           };
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {};
         },
         TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },

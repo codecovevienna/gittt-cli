@@ -24,6 +24,9 @@ describe("Start test", () => {
         GitHelper: function GitHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {};
@@ -32,9 +35,6 @@ describe("Start test", () => {
           return {
             startTimer: startTimerStub,
           };
-        },
-        ImportHelper: function ImportHelper(): any {
-          return {};
         },
       },
       "commander": mockedCommander,

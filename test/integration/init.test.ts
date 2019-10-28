@@ -24,6 +24,9 @@ describe("Init test", () => {
         GitHelper: function GitHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {
@@ -31,9 +34,6 @@ describe("Init test", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },

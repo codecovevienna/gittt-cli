@@ -70,6 +70,9 @@ describe("Status test", () => {
         GitHelper: function GitHelper(): any {
           return {};
         },
+        ImportHelper: function ImportHelper(): any {
+          return {};
+        },
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {
@@ -77,9 +80,6 @@ describe("Status test", () => {
           };
         },
         TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
           return {};
         },
       },

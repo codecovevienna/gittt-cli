@@ -440,22 +440,25 @@ export class App {
         return cmd.help();
       }
 
-      if (!cmd.amount || !QuestionHelper.validateNumber(cmd.amount)) {
+      console.log(!QuestionHelper.validateNumber(cmd.amount));
+      if (!QuestionHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
 
       amount = parseFloat(cmd.amount);
 
-      year = (cmd.year && QuestionHelper.validateNumber(cmd.year))
+      console.log(cmd.year, cmd.month, cmd.day, cmd.hour, cmd.minute);
+
+      year = QuestionHelper.validateNumber(cmd.year)
         ? parseInt(cmd.year, 10) : moment().year();
-      month = (cmd.month && QuestionHelper.validateNumber(cmd.month, 1, 12))
+      month = QuestionHelper.validateNumber(cmd.month, 1, 12)
         ? parseInt(cmd.month, 10) : moment().month() + 1;
-      day = (cmd.day && QuestionHelper.validateNumber(cmd.day, 1, 31))
+      day = QuestionHelper.validateNumber(cmd.day, 1, 31)
         ? parseInt(cmd.day, 10) : moment().date();
-      hour = (cmd.hour && QuestionHelper.validateNumber(cmd.hour, 0, 23))
+      hour = QuestionHelper.validateNumber(cmd.hour, 0, 23)
         ? parseInt(cmd.hour, 10) : moment().hour();
-      minute = (cmd.minute && QuestionHelper.validateNumber(cmd.minute, 0, 59))
+      minute = QuestionHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
@@ -582,7 +585,7 @@ New type: ${updatedRecord.type}`;
     let type: RECORD_TYPES;
 
     if (!interactiveMode) {
-      if (!cmd.amount || !QuestionHelper.validateNumber(cmd.amount)) {
+      if (!QuestionHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
@@ -594,15 +597,15 @@ New type: ${updatedRecord.type}`;
       amount = parseInt(cmd.amount, 10);
       type = cmd.type;
 
-      year = (cmd.year && QuestionHelper.validateNumber(cmd.year))
+      year = QuestionHelper.validateNumber(cmd.year)
         ? parseInt(cmd.year, 10) : moment().year();
-      month = (cmd.month && QuestionHelper.validateNumber(cmd.month, 1, 12))
+      month = QuestionHelper.validateNumber(cmd.month, 1, 12)
         ? parseInt(cmd.month, 10) : moment().month() + 1;
-      day = (cmd.day && QuestionHelper.validateNumber(cmd.day, 1, 31))
+      day = QuestionHelper.validateNumber(cmd.day, 1, 31)
         ? parseInt(cmd.day, 10) : moment().date();
-      hour = (cmd.hour && QuestionHelper.validateNumber(cmd.hour, 0, 23))
+      hour = QuestionHelper.validateNumber(cmd.hour, 0, 23)
         ? parseInt(cmd.hour, 10) : moment().hour();
-      minute = (cmd.minute && QuestionHelper.validateNumber(cmd.minute, 0, 59))
+      minute = QuestionHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
@@ -643,9 +646,9 @@ New type: ${updatedRecord.type}`;
 
     let filePath: string;
 
-    if (cmd.file != null) {
+    if (cmd.file !== null) {
       filePath = (cmd.file && QuestionHelper.validateFile(cmd.file)) ? cmd.file : null;
-      if (filePath != null) {
+      if (filePath !== null) {
         const records: IRecord[] = await this.importHelper.importCsv(filePath);
         await this.projectHelper.addRecordsToProject(records, true, false);
       }

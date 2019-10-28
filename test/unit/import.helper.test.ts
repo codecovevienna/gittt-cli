@@ -1,12 +1,11 @@
 import { assert, expect } from "chai";
-import proxyquire from "proxyquire";
-import { ImportHelper, ProjectHelper, FileHelper, GitHelper } from "../../helper";
 import path from "path";
+import proxyquire from "proxyquire";
 import { SinonSpy } from "sinon";
 import sinon from "sinon";
-import { ObjectReadableMock, ObjectWritableMock } from 'stream-mock';
+import { ObjectReadableMock, ObjectWritableMock } from "stream-mock";
+import { FileHelper, GitHelper, ImportHelper, ProjectHelper } from "../../helper";
 import { ICsvRow, IRecord } from "../../interfaces";
-
 
 const sandboxDir: string = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -20,13 +19,13 @@ const expectedCorrectOutput: IRecord[] = [{
   amount: 10,
   end: 1556727733,
   message: "Message Text",
-  type: "Time"
+  type: "Time",
 },
 {
   amount: 1,
   end: 1556723833,
   message: "Message new Text",
-  type: "Time"
+  type: "Time",
 }];
 
 const csvOnlyHeaderInput: string = "AMOUNT,END,MESSAGE";

@@ -1,6 +1,5 @@
 import fs, { WriteOptions } from "fs-extra";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
-import { isNullOrUndefined } from "util";
 import uuid from "uuid/v1";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
@@ -140,16 +139,16 @@ export class ProjectHelper {
     }
 
     records = records.filter((record: IRecord) => {
-      let addRecord: boolean = true;
+      let shouldAddRecord: boolean = true;
 
       if (uniqueOnly === true) {
-        addRecord = this.findUnique(record, project.records);
+        shouldAddRecord = this.isRecordUnique(record, project.records);
       }
       if (nonOverlappingOnly === true) {
-        addRecord = this.findOverlapping(record, project.records);
+        shouldAddRecord = this.isRecordOverlapping(record, project.records);
       }
 
-      if (addRecord) {
+      if (shouldAddRecord) {
         return record;
       }
 
@@ -187,7 +186,7 @@ export class ProjectHelper {
 
         LogHelper.info(`Adding (${records.length}) records to ${project.name}`);
         await this.fileHelper.saveProjectObject(project);
-        await this.gitHelper.commitChanges(`Added ${records.length} to ${project.name}`);
+        await this.gitHelper.commitChanges(`Added ${records.length} records to ${project.name}`);
       }
     }
   }
@@ -311,33 +310,38 @@ export class ProjectHelper {
     return migratedProject;
   }
 
-  private findUnique = (record: IRecord, records: IRecord[]): boolean => {
+  /*
+     * returns {boolean} true if provided record is identical to any record in records
+     */
+  private isRecordUnique = (record: IRecord, records: IRecord[]): boolean => {
     // check if amount, end, message and type is found in records
-    return isNullOrUndefined(records.find((existingRecord: IRecord) =>
-      existingRecord.amount === record.amount &&
-      existingRecord.end === record.end &&
-      existingRecord.message === record.message &&
-      existingRecord.type === record.type));
+    return records.find((existingRecord: IRecord) => {
+      return existingRecord.amount === record.amount &&
+        existingRecord.end === record.end &&
+        existingRecord.message === record.message &&
+        existingRecord.type === record.type;
+    }) === undefined;
   }
 
-  private findOverlapping = (record: IRecord, records: IRecord[]): boolean => {
+  /*
+   * returns {boolean} true if provided record is overlapping any record in records
+   */
+  private isRecordOverlapping = (record: IRecord, records: IRecord[]): boolean => {
     // check if any overlapping records are present
-    return isNullOrUndefined(records.find((existingRecord: IRecord) => {
-      if (isNullOrUndefined(existingRecord.end)) {
-        return false;
-      }
-      if (isNullOrUndefined(record.end)) {
-        return false;
-      }
+    return records.find((existingRecord: IRecord) => {
       const startExisting: number = existingRecord.end - existingRecord.amount;
       const startAdd: number = record.end - record.amount;
       const endExisting: number = existingRecord.end;
       const endAdd: number = record.end;
-      if ((startAdd < startExisting && endAdd <= endExisting) || (startAdd >= startExisting && endAdd > endExisting)) {
+      if (
+        (startAdd >= startExisting && startAdd < endExisting) ||
+        (endAdd > startAdd && endAdd <= endExisting) ||
+        (startAdd <= startExisting && endAdd >= endExisting)
+      ) {
         return true;
       }
       return false;
-    }));
+    }) === undefined;
   }
 
   private setRecordDefaults = (record: IRecord): IRecord => {

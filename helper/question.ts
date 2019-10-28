@@ -99,6 +99,15 @@ export class QuestionHelper {
     }
   }
 
+  public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
+    // Ensure trailing slash
+    if (input[input.length - 1] !== "/") {
+      return input + "/";
+    } else {
+      return input;
+    }
+  }
+
   public static validateFile = (input: any): boolean => {
     if (isString(input)) {
       const inputFilePath: string = input;
@@ -114,15 +123,6 @@ export class QuestionHelper {
       }
     }
     return false;
-  }
-
-  public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
-    // Ensure trailing slash
-    if (input[input.length - 1] !== "/") {
-      return input + "/";
-    } else {
-      return input;
-    }
   }
 
   public static askYear = async (defaultValue?: number): Promise<number> => {
@@ -387,6 +387,8 @@ export class QuestionHelper {
   }
 
   public static confirmMigration = async (): Promise<boolean> => {
+    console.log("REAL");
+
     const question: Question = {
       message: `Do you want to migrate from an existing project?`,
       name: "choice",

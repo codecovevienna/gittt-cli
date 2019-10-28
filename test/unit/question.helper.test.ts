@@ -88,6 +88,47 @@ describe("QuestionHelper", () => {
     expect(QuestionHelper.filterJiraEndpoint("http://test.com/")).to.eq("http://test.com/");
   });
 
+  describe("Validate file", () => {
+    it("should validate file", async () => {
+      const proxy: any = proxyquire("../../helper/question", {
+        fs: {
+          accessSync: sinon.stub().returns(true),
+          statSync: sinon.stub()
+            .returns({
+              isFile: true,
+            }),
+        },
+      });
+      assert.isTrue(proxy.QuestionHelper.validateFile("/tmp/mocked"));
+    });
+
+    it("should fail to validate file [path is number]", async () => {
+      const proxy: any = proxyquire("../../helper/question", {
+        fs: {
+          accessSync: sinon.stub().returns(true),
+          statSync: sinon.stub()
+            .returns({
+              isFile: true,
+            }),
+        },
+      });
+      assert.isFalse(proxy.QuestionHelper.validateFile(1337));
+    });
+
+    it("should fail to validate file [file not readable]", async () => {
+      const proxy: any = proxyquire("../../helper/question", {
+        fs: {
+          accessSync: sinon.stub().throws(new Error("File is not readable")),
+          statSync: sinon.stub()
+            .returns({
+              isFile: true,
+            }),
+        },
+      });
+      assert.isFalse(proxy.QuestionHelper.validateFile("/tmp/mocked"));
+    });
+  });
+
   it("should ask for year", async () => {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
