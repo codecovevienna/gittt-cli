@@ -1266,7 +1266,7 @@ describe("App", () => {
             };
           },
           QuestionHelper: {
-            validateNumber: sinon.stub().resolves(true),
+            validateNumber: sinon.stub().returns(true),
           },
           TimerHelper: function TimerHelper(): any {
             return {};
@@ -1497,6 +1497,9 @@ describe("App", () => {
             return {
               getProjectFromGit: getProjectFromGitStub,
             };
+          },
+          QuestionHelper: {
+            validateNumber: sinon.stub().returns(false),
           },
           TimerHelper: function TimerHelper(): any {
             return {};
@@ -2091,6 +2094,189 @@ describe("App", () => {
   });
 
   describe("Add records", () => {
+    it("should not add record [ no cmd amount ]", async () => {
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": {
+          FileHelper: function FileHelper(): any {
+            return {
+              configDirExists: sinon.stub().resolves(true),
+            };
+          },
+          GitHelper: function GitHelper(): any {
+            return {};
+          },
+          ImportHelper: function ImportHelper(): any {
+            return {};
+          },
+          LogHelper,
+          ProjectHelper: function ProjectHelper(): any {
+            return {};
+          },
+          QuestionHelper: {
+            validateNumber: sinon.stub().returns(false),
+          },
+          TimerHelper: function TimerHelper(): any {
+            return {};
+          },
+        },
+      });
+      const mockedApp: App = new proxy.App();
+
+      sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+      sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      const helpStub: SinonStub = sinon.stub(mockedCommand, "help");
+
+      await mockedApp.addAction(mockedCommand);
+
+      assert.isTrue(helpStub.calledOnce);
+    });
+
+    it("should not add record [ invalid number ]", async () => {
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": {
+          FileHelper: function FileHelper(): any {
+            return {
+              configDirExists: sinon.stub().resolves(true),
+            };
+          },
+          GitHelper: function GitHelper(): any {
+            return {};
+          },
+          ImportHelper: function ImportHelper(): any {
+            return {};
+          },
+          LogHelper,
+          ProjectHelper: function ProjectHelper(): any {
+            return {};
+          },
+          QuestionHelper: {
+            validateNumber: sinon.stub().returns(false),
+          },
+          TimerHelper: function TimerHelper(): any {
+            return {};
+          },
+        },
+      });
+      const mockedApp: App = new proxy.App();
+
+      sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+      sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.amount = 69;
+
+      const helpStub: SinonStub = sinon.stub(mockedCommand, "help");
+
+      await mockedApp.addAction(mockedCommand);
+
+      assert.isTrue(helpStub.calledOnce);
+    });
+
+    it("should not add record [ no cmd type ]", async () => {
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": {
+          FileHelper: function FileHelper(): any {
+            return {
+              configDirExists: sinon.stub().resolves(true),
+            };
+          },
+          GitHelper: function GitHelper(): any {
+            return {};
+          },
+          ImportHelper: function ImportHelper(): any {
+            return {};
+          },
+          LogHelper,
+          ProjectHelper: function ProjectHelper(): any {
+            return {};
+          },
+          QuestionHelper: {
+            validateNumber: sinon.stub().returns(true),
+          },
+          TimerHelper: function TimerHelper(): any {
+            return {};
+          },
+        },
+      });
+      const mockedApp: App = new proxy.App();
+
+      sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+      sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.amount = 69;
+
+      const helpStub: SinonStub = sinon.stub(mockedCommand, "help");
+
+      await mockedApp.addAction(mockedCommand);
+
+      assert.isTrue(helpStub.calledOnce);
+    });
+
+    it("should add record to project [ message is null ]", async () => {
+      const addRecordToProjectStub: SinonStub = sinon.stub().resolves();
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": {
+          FileHelper: function FileHelper(): any {
+            return {
+              configDirExists: sinon.stub().resolves(true),
+            };
+          },
+          GitHelper: function GitHelper(): any {
+            return {};
+          },
+          ImportHelper: function ImportHelper(): any {
+            return {};
+          },
+          LogHelper,
+          ProjectHelper: function ProjectHelper(): any {
+            return {
+              addRecordToProject: addRecordToProjectStub,
+            };
+          },
+          QuestionHelper: {
+            validateNumber: sinon.stub().returns(true),
+          },
+          TimerHelper: function TimerHelper(): any {
+            return {};
+          },
+        },
+      });
+      const mockedApp: App = new proxy.App();
+
+      sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+      sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.amount = 2;
+      mockedCommand.type = "Time";
+      mockedCommand.year = 2019;
+      mockedCommand.month = 5;
+      mockedCommand.day = 12;
+      mockedCommand.hour = 12;
+      mockedCommand.minute = 0;
+      mockedCommand.message = null;
+
+      await mockedApp.addAction(mockedCommand);
+
+      assert.isTrue(addRecordToProjectStub.calledOnce);
+    });
+
     it("should add record to the past", async () => {
       const addRecordToProjectStub: SinonStub = sinon.stub().resolves();
 
