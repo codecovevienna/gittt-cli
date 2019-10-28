@@ -357,7 +357,127 @@ describe("ProjectHelper", () => {
     });
 
     describe("Overlapping records", () => {
-      it("should fail to add overlapping record", async () => {
+      it("should fail to add overlapping record [start smaller end inside]", async () => {
+        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub: SinonStub = sinon
+          .stub(mockedFileHelper, "findProjectByName")
+          .resolves(undefined);
+        const initProjectStub: SinonStub = sinon
+          .stub(mockedFileHelper, "initProject")
+          .resolves(
+            {
+              meta: {
+                host: "github.com",
+                port: 443,
+              },
+              name: "test_mocked",
+              records: [
+                {
+                  amount: 10,
+                  end: 1000,
+                  message: "test",
+                  type: "Time",
+                },
+              ],
+            } as IProject,
+          );
+
+        const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "test_mocked",
+          records: [],
+        } as IProject);
+
+        await instance.addRecordsToProject(
+          [
+            {
+              amount: 10,
+              end: 999,
+              message: "test1",
+              type: "Time",
+            },
+          ],
+          false,
+          true,
+        );
+
+        assert.isTrue(findProjectByNameStub.calledOnce);
+        assert.isTrue(initProjectStub.calledOnce);
+        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(saveProjectObjectStub.notCalled);
+
+        findProjectByNameStub.restore();
+        getProjectFromGitStub.restore();
+        initProjectStub.restore();
+        saveProjectObjectStub.restore();
+      });
+
+      it("should fail to add overlapping record [start larger end inside]", async () => {
+        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub: SinonStub = sinon
+          .stub(mockedFileHelper, "findProjectByName")
+          .resolves(undefined);
+        const initProjectStub: SinonStub = sinon
+          .stub(mockedFileHelper, "initProject")
+          .resolves(
+            {
+              meta: {
+                host: "github.com",
+                port: 443,
+              },
+              name: "test_mocked",
+              records: [
+                {
+                  amount: 10,
+                  end: 1000,
+                  message: "test",
+                  type: "Time",
+                },
+              ],
+            } as IProject,
+          );
+
+        const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "test_mocked",
+          records: [],
+        } as IProject);
+
+        await instance.addRecordsToProject(
+          [
+            {
+              amount: 8,
+              end: 999,
+              message: "test1",
+              type: "Time",
+            },
+          ],
+          false,
+          true,
+        );
+
+        assert.isTrue(findProjectByNameStub.calledOnce);
+        assert.isTrue(initProjectStub.calledOnce);
+        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(saveProjectObjectStub.notCalled);
+
+        findProjectByNameStub.restore();
+        getProjectFromGitStub.restore();
+        initProjectStub.restore();
+        saveProjectObjectStub.restore();
+      });
+
+      it("should fail to add overlapping record [start smaller end outside]", async () => {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const findProjectByNameStub: SinonStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
@@ -417,7 +537,67 @@ describe("ProjectHelper", () => {
         saveProjectObjectStub.restore();
       });
 
-      it("should fail to add overlapping record [same end and amount]", async () => {
+      it("should fail to add overlapping record [start inside end outside]", async () => {
+        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub: SinonStub = sinon
+          .stub(mockedFileHelper, "findProjectByName")
+          .resolves(undefined);
+        const initProjectStub: SinonStub = sinon
+          .stub(mockedFileHelper, "initProject")
+          .resolves(
+            {
+              meta: {
+                host: "github.com",
+                port: 443,
+              },
+              name: "test_mocked",
+              records: [
+                {
+                  amount: 10,
+                  end: 1000,
+                  message: "test",
+                  type: "Time",
+                },
+              ],
+            } as IProject,
+          );
+
+        const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "test_mocked",
+          records: [],
+        } as IProject);
+
+        await instance.addRecordsToProject(
+          [
+            {
+              amount: 10,
+              end: 1005,
+              message: "test1",
+              type: "Time",
+            },
+          ],
+          false,
+          true,
+        );
+
+        assert.isTrue(findProjectByNameStub.calledOnce);
+        assert.isTrue(initProjectStub.calledOnce);
+        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(saveProjectObjectStub.notCalled);
+
+        findProjectByNameStub.restore();
+        getProjectFromGitStub.restore();
+        initProjectStub.restore();
+        saveProjectObjectStub.restore();
+      });
+
+      it("should fail to add overlapping record [start same end same]", async () => {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const findProjectByNameStub: SinonStub = sinon
           .stub(mockedFileHelper, "findProjectByName")

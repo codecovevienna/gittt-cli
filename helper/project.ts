@@ -200,12 +200,13 @@ export class ProjectHelper {
       const endExisting: number = existingRecord.end;
       const endAdd: number = record.end;
       if (
-        (startAdd < startExisting && endAdd <= endExisting) ||
-        (startAdd >= startExisting && endAdd > endExisting)
+        (startAdd >= startExisting && startAdd < endExisting) ||
+        (endAdd > startAdd && endAdd <= endExisting) ||
+        (startAdd <= startExisting && endAdd >= endExisting)
       ) {
-        return false;
+        return true;
       }
-      return true;
+      return false;
     }) === undefined;
   }
 
