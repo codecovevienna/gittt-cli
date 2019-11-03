@@ -55,7 +55,7 @@ jobs:
         skip_cleanup: true
         email: developer@eiabea.com
         api_key:
-          secure: nvry4+Z3QDqU5EbMthQDTbm+SjdMkSYiCS2S7JkC1v5wIGKeTl0nc2H5Ng9urvznnkSG83FUVDkv1v3F/PWfarscIPL8Vcbn2k2aLkR0dY/baUOXSbdwTNZR0Cc0yleey9PudpjVDrfhpXlCQlMLDtyM47nERmNOygLjKrZWZocyXADAy/9YSACsZ3/Dtaxg3eec8qSvt4RulK644nlcA1Y5WfqIQCRfaj236PACX1h+4RlVq+qOJd2H0mrwqYsR6/3uXjr5dWVoncAkQN0uyea3+sUB32MISlmvecFa60SYJBL5MQXWDPCHOkr4R5SlzE1sUkUsoQnb5zkgjJ5xAI/QWyDBMQquSwOocjQEBRLkVQ2bRjJ61mpie82yp3JNXgad3s4FHb+a1SwjdvySrM0fODp+4pfvetKDTLarTqL6iwn+3rAN7tioTx9wDvwZEqp5fnpE2KsgqiSzVyJsEMZRPBoBb47QB+arvnR1k9BuN4CorQrC67JdkO40YWTzUst9Sg80MUVtsKBLLA84G7nD32XGNBCJDJKTYlEIMWk/BjAwYMx5f4u1qQkV3X18kK5q0GA59BNEm7XWAFcyhICaMxG75FKuXNl00TxRqeuC6zodpvCbnGxE0XAP8Qt0Z1CwaSAcUTKZNZW0Sh5n6WZMgHxPCpkXQCbyUl7LyPY=
+          secure: vLG2W5wILT+06XtEr5VrEFLFplEJ+8u7me1Dpzoavx+Us3icE68l0aEp5VOBaVfAdtQqRtjdcdQEchwLjGJtKwNs8F90OC2escAMg+6BYFxYqkyo9WYaBRwIr3O1VmgQONebj8bvWpWjpv8by/d7zlJOPrDN7u6y1XzqOKmVRrCYUnJITA1KEq7nAepyx7632gBRsLX+Hem3PEWHBa/tkkzsrzZu/AuDpgJPR2cosXx8Gphj2Gm8aFxiOqbiqWihSBmySUIGajnFgWYvv+LzqK+roDEQ3+8VZE1MOzkf/1LCslLOANdhzPpgjFKUbFPChGHB7CMnIAG09M1aLkk7GG44ub3E4eVrTYOlJ+cAGluFVPImqAAgVKUNZFHfd77SDnWPYQswYyyKBVpA+mbizJQ97FYbeSfsE4swmFk+vUr1XlwWsadCPL+zVRqfTge4WH3A2AroZ9XwLiRHTRfsL17CGk7do0ifJ0gsCD4w3ed0v2iR3eZbNvjqeCRdTtZVmhmkOfyGJMQMVOwQM9Z3PKoYtUjlVsgmN4wlELXQXWD6V5kXReppaM+BtH3Dz7OiGSqb+WQiIk+amiTX1Hq/L+Uni/0oWm+sC/uRqTwOzre/tJMYZ1P8GYB1ZH4ZCHVWi9U+zfxaghSruv1PgAqKw3QznndF5gbJjULsQ+TyQ1w=
         on:
           tags: true
           repo: codecovevienna/gittt-cli
