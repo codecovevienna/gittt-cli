@@ -243,12 +243,12 @@ export class QuestionHelper {
   public static askJiraLink = async (project: IProject): Promise<IJiraLink> => {
     const jiraAnswers: any = await inquirer.prompt([
       {
+        default: "https://jira.gittt.org",
         filter: QuestionHelper.filterJiraEndpoint,
-        message: "Jira gittt plugin endpoint",
-        name: "endpoint",
+        message: "Jira host",
+        name: "host",
         type: "input",
         validate: QuestionHelper.validateJiraEndpoint,
-
       },
       {
         message: "Jira username",
@@ -269,7 +269,7 @@ export class QuestionHelper {
         validate: QuestionHelper.validateJiraKey,
       },
     ]);
-    const { endpoint, key, username, password } = jiraAnswers;
+    const { host, key, username, password } = jiraAnswers;
     const hash: string = Buffer
       .from(`${username}:${password}`)
       .toString("base64");
@@ -277,7 +277,8 @@ export class QuestionHelper {
     const projectName: string = project.name;
 
     const link: IJiraLink = {
-      endpoint,
+      // Tailing slash is ensured by the filter
+      endpoint: `${host}rest/gittt/latest/`,
       hash,
       key,
       linkType: "Jira",
@@ -387,8 +388,6 @@ export class QuestionHelper {
   }
 
   public static confirmMigration = async (): Promise<boolean> => {
-    console.log("REAL");
-
     const question: Question = {
       message: `Do you want to migrate from an existing project?`,
       name: "choice",

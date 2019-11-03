@@ -440,15 +440,12 @@ export class App {
         return cmd.help();
       }
 
-      console.log(!QuestionHelper.validateNumber(cmd.amount));
       if (!QuestionHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
 
       amount = parseFloat(cmd.amount);
-
-      console.log(cmd.year, cmd.month, cmd.day, cmd.hour, cmd.minute);
 
       year = QuestionHelper.validateNumber(cmd.year)
         ? parseInt(cmd.year, 10) : moment().year();
