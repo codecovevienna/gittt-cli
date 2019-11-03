@@ -387,8 +387,6 @@ export class QuestionHelper {
   }
 
   public static confirmMigration = async (): Promise<boolean> => {
-    console.log("REAL");
-
     const question: Question = {
       message: `Do you want to migrate from an existing project?`,
       name: "choice",
