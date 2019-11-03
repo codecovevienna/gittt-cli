@@ -2561,7 +2561,7 @@ describe("App", () => {
             },
             QuestionHelper: {
               askJiraLink: sinon.stub().resolves({
-                endpoint: "http://mocked.com/endpoint/",
+                endpoint: "http://mocked.com/rest/gittt/latest/",
                 hash: "shaHash",
                 key: "MOCKED",
                 linkType: "Jira",
@@ -2671,7 +2671,7 @@ describe("App", () => {
             },
             QuestionHelper: {
               askJiraLink: sinon.stub().resolves({
-                endpoint: "http://mocked.com/endpoint/",
+                endpoint: "http://mocked.com/rest/gittt/latest/",
                 hash: "shaHash",
                 key: "MOCKED",
                 linkType: "Jira",

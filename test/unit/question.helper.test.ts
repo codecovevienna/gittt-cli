@@ -250,7 +250,7 @@ describe("QuestionHelper", () => {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
-          endpoint: "http://mocked.com/endpoint/",
+          host: "http://mocked.com/",
           key: "MOCKED",
           password: "mocked",
           username: "mocked",
@@ -266,7 +266,7 @@ describe("QuestionHelper", () => {
       name: "mocked_project_1",
     } as IProject);
 
-    expect(choice.endpoint).to.eq("http://mocked.com/endpoint/");
+    expect(choice.endpoint).to.eq("http://mocked.com/rest/gittt/latest/");
     expect(choice.key).to.eq("MOCKED");
     expect(choice.username).to.eq("mocked");
     expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
