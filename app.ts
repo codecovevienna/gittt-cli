@@ -14,6 +14,7 @@ import {
   ProjectHelper,
   QuestionHelper,
   TimerHelper,
+  ValidationHelper,
 } from "./helper";
 import {
   IConfigFile,
@@ -440,22 +441,22 @@ export class App {
         return cmd.help();
       }
 
-      if (!QuestionHelper.validateNumber(cmd.amount)) {
+      if (!ValidationHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
 
       amount = parseFloat(cmd.amount);
 
-      year = QuestionHelper.validateNumber(cmd.year)
+      year = ValidationHelper.validateNumber(cmd.year)
         ? parseInt(cmd.year, 10) : moment().year();
-      month = QuestionHelper.validateNumber(cmd.month, 1, 12)
+      month = ValidationHelper.validateNumber(cmd.month, 1, 12)
         ? parseInt(cmd.month, 10) : moment().month() + 1;
-      day = QuestionHelper.validateNumber(cmd.day, 1, 31)
+      day = ValidationHelper.validateNumber(cmd.day, 1, 31)
         ? parseInt(cmd.day, 10) : moment().date();
-      hour = QuestionHelper.validateNumber(cmd.hour, 0, 23)
+      hour = ValidationHelper.validateNumber(cmd.hour, 0, 23)
         ? parseInt(cmd.hour, 10) : moment().hour();
-      minute = QuestionHelper.validateNumber(cmd.minute, 0, 59)
+      minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
@@ -582,7 +583,7 @@ New type: ${updatedRecord.type}`;
     let type: RECORD_TYPES;
 
     if (!interactiveMode) {
-      if (!QuestionHelper.validateNumber(cmd.amount)) {
+      if (!ValidationHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
@@ -594,15 +595,15 @@ New type: ${updatedRecord.type}`;
       amount = parseInt(cmd.amount, 10);
       type = cmd.type;
 
-      year = QuestionHelper.validateNumber(cmd.year)
+      year = ValidationHelper.validateNumber(cmd.year)
         ? parseInt(cmd.year, 10) : moment().year();
-      month = QuestionHelper.validateNumber(cmd.month, 1, 12)
+      month = ValidationHelper.validateNumber(cmd.month, 1, 12)
         ? parseInt(cmd.month, 10) : moment().month() + 1;
-      day = QuestionHelper.validateNumber(cmd.day, 1, 31)
+      day = ValidationHelper.validateNumber(cmd.day, 1, 31)
         ? parseInt(cmd.day, 10) : moment().date();
-      hour = QuestionHelper.validateNumber(cmd.hour, 0, 23)
+      hour = ValidationHelper.validateNumber(cmd.hour, 0, 23)
         ? parseInt(cmd.hour, 10) : moment().hour();
-      minute = QuestionHelper.validateNumber(cmd.minute, 0, 59)
+      minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;

@@ -18,6 +18,7 @@ export class QuestionHelper {
     }
   }
 
+  // TODO Move to file helper?
   public static validateFile = (input: any): boolean => {
     if (isString(input)) {
       const inputFilePath: string = input;

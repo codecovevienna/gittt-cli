@@ -1265,11 +1265,11 @@ describe("App", () => {
               getProjectFromGit: getProjectFromGitStub,
             };
           },
-          QuestionHelper: {
-            validateNumber: sinon.stub().returns(true),
-          },
           TimerHelper: function TimerHelper(): any {
             return {};
+          },
+          ValidationHelper: {
+            validateNumber: sinon.stub().returns(true),
           },
         },
       });
@@ -1498,11 +1498,11 @@ describe("App", () => {
               getProjectFromGit: getProjectFromGitStub,
             };
           },
-          QuestionHelper: {
-            validateNumber: sinon.stub().returns(false),
-          },
           TimerHelper: function TimerHelper(): any {
             return {};
+          },
+          ValidationHelper: {
+            validateNumber: sinon.stub().returns(false),
           },
         },
       });
@@ -2094,7 +2094,7 @@ describe("App", () => {
   });
 
   describe("Add records", () => {
-    it("should not add record [ no cmd amount ]", async () => {
+    it("should not add record [no cmd amount]", async () => {
 
       const proxy: any = proxyquire("../../app", {
         "./helper": {
@@ -2113,11 +2113,11 @@ describe("App", () => {
           ProjectHelper: function ProjectHelper(): any {
             return {};
           },
-          QuestionHelper: {
-            validateNumber: sinon.stub().returns(false),
-          },
           TimerHelper: function TimerHelper(): any {
             return {};
+          },
+          ValidationHelper: {
+            validateNumber: sinon.stub().returns(false),
           },
         },
       });
@@ -2137,7 +2137,7 @@ describe("App", () => {
       assert.isTrue(helpStub.calledOnce);
     });
 
-    it("should not add record [ invalid number ]", async () => {
+    it("should not add record [invalid number]", async () => {
 
       const proxy: any = proxyquire("../../app", {
         "./helper": {
@@ -2156,11 +2156,11 @@ describe("App", () => {
           ProjectHelper: function ProjectHelper(): any {
             return {};
           },
-          QuestionHelper: {
-            validateNumber: sinon.stub().returns(false),
-          },
           TimerHelper: function TimerHelper(): any {
             return {};
+          },
+          ValidationHelper: {
+            validateNumber: sinon.stub().returns(false),
           },
         },
       });
@@ -2181,7 +2181,7 @@ describe("App", () => {
       assert.isTrue(helpStub.calledOnce);
     });
 
-    it("should not add record [ no cmd type ]", async () => {
+    it("should not add record [no cmd type]", async () => {
 
       const proxy: any = proxyquire("../../app", {
         "./helper": {
@@ -2200,12 +2200,12 @@ describe("App", () => {
           ProjectHelper: function ProjectHelper(): any {
             return {};
           },
-          QuestionHelper: {
+          TimerHelper: function TimerHelper(): any {
+            return {};
+          },
+          ValidationHelper: {
             validateNumber: sinon.stub().returns(true),
           },
-          TimerHelper: function TimerHelper(): any {
-            return {};
-          },
         },
       });
       const mockedApp: App = new proxy.App();
@@ -2225,7 +2225,7 @@ describe("App", () => {
       assert.isTrue(helpStub.calledOnce);
     });
 
-    it("should add record to project [ message is null ]", async () => {
+    it("should add record to project [message is null]", async () => {
       const addRecordToProjectStub: SinonStub = sinon.stub().resolves();
 
       const proxy: any = proxyquire("../../app", {
@@ -2247,11 +2247,11 @@ describe("App", () => {
               addRecordToProject: addRecordToProjectStub,
             };
           },
-          QuestionHelper: {
-            validateNumber: sinon.stub().returns(true),
-          },
           TimerHelper: function TimerHelper(): any {
             return {};
+          },
+          ValidationHelper: {
+            validateNumber: sinon.stub().returns(true),
           },
         },
       });
