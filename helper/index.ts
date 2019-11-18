@@ -7,6 +7,8 @@ export { ProjectHelper } from "./project";
 export { TimerHelper } from "./timer";
 export { QuestionHelper } from "./question";
 export { ImportHelper } from "./import";
+export { ValidationHelper } from "./validation";
+export { RecordHelper } from "./record";
 
 export function parseProjectNameFromGitUrl(input: string): IProject {
   const split: RegExpMatchArray | null = input
