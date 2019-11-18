@@ -2,7 +2,6 @@ import fs from "fs";
 import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
-import { isString } from "util";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { ProjectHelper } from "./project";
@@ -16,24 +15,6 @@ export class QuestionHelper {
     } else {
       return input;
     }
-  }
-
-  // TODO Move to file helper?
-  public static validateFile = (input: any): boolean => {
-    if (isString(input)) {
-      const inputFilePath: string = input;
-      const stats: fs.Stats = fs.statSync(inputFilePath);
-      if (stats.isFile) {
-        try {
-          // tslint:disable-next-line no-bitwise
-          fs.accessSync(inputFilePath, fs.constants.R_OK | fs.constants.W_OK);
-        } catch (e) {
-          return false;
-        }
-        return true;
-      }
-    }
-    return false;
   }
 
   public static askYear = async (defaultValue?: number): Promise<number> => {

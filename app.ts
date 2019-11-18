@@ -642,10 +642,12 @@ New type: ${updatedRecord.type}`;
 
   public async importCsv(cmd: Command): Promise<void> {
 
+    console.log(FileHelper)
+
     let filePath: string;
 
     if (cmd.file !== null) {
-      filePath = (cmd.file && QuestionHelper.validateFile(cmd.file)) ? cmd.file : null;
+      filePath = (cmd.file && FileHelper.isFile(cmd.file)) ? cmd.file : null;
       if (filePath !== null) {
         const records: IRecord[] = await this.importHelper.importCsv(filePath);
         await this.projectHelper.addRecordsToProject(records, true, false);

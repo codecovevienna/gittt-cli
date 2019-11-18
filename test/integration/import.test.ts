@@ -18,6 +18,7 @@ describe("Import test", () => {
         FileHelper: function FileHelper(): any {
           return {
             configDirExists: sinon.stub().resolves(true),
+            isFile: sinon.stub().resolves("/path"),
           };
         },
         GitHelper: function GitHelper(): any {
@@ -29,11 +30,6 @@ describe("Import test", () => {
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {};
-        },
-        QuestionHelper: function QuestionHelper(): any {
-          return {
-            validateFile: sinon.stub().resolves("/path"),
-          };
         },
         TimerHelper: function TimerHelper(): any {
           return {};

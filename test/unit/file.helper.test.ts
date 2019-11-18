@@ -18,6 +18,47 @@ describe("FileHelper", () => {
     proxyquire.noCallThru();
   });
 
+  describe("Validate file", () => {
+    it("should validate file", async () => {
+      const proxy: any = proxyquire("../../helper/file", {
+        "fs-extra": {
+          accessSync: sinon.stub().returns(true),
+          statSync: sinon.stub()
+            .returns({
+              isFile: true,
+            }),
+        },
+      });
+      assert.isTrue(proxy.FileHelper.isFile("/tmp/mocked"));
+    });
+
+    it("should fail to validate file [path is number]", async () => {
+      const proxy: any = proxyquire("../../helper/file", {
+        "fs-extra": {
+          accessSync: sinon.stub().returns(true),
+          statSync: sinon.stub()
+            .returns({
+              isFile: true,
+            }),
+        },
+      });
+      assert.isFalse(proxy.FileHelper.isFile(1337));
+    });
+
+    it("should fail to validate file [file not readable]", async () => {
+      const proxy: any = proxyquire("../../helper/file", {
+        "fs-extra": {
+          accessSync: sinon.stub().throws(new Error("File is not readable")),
+          statSync: sinon.stub()
+            .returns({
+              isFile: true,
+            }),
+        },
+      });
+      assert.isFalse(proxy.FileHelper.isFile("/tmp/mocked"));
+    });
+  });
+
   it("should create instance", async () => {
     const fileHelper: FileHelper = new FileHelper(configDir, configFileName, timerFileName, projectsDir);
     expect(fileHelper).to.be.instanceOf(FileHelper);
@@ -988,7 +1029,7 @@ describe("FileHelper", () => {
 
     await instance.removeDomainDirectory({
       host: "github.com",
-      port:  443,
+      port: 443,
     } as IProjectMeta);
 
     assert.isTrue(findProjectsForDomainStub.calledOnce);
@@ -1009,7 +1050,7 @@ describe("FileHelper", () => {
       {
         meta: {
           host: "github.com",
-          port:  443,
+          port: 443,
         },
         name: "mocked_test",
       } as IProject,
@@ -1017,7 +1058,7 @@ describe("FileHelper", () => {
 
     await instance.removeDomainDirectory({
       host: "github.com",
-      port:  443,
+      port: 443,
     } as IProjectMeta, true);
 
     assert.isTrue(findProjectsForDomainStub.calledOnce);
@@ -1038,7 +1079,7 @@ describe("FileHelper", () => {
       {
         meta: {
           host: "github.com",
-          port:  443,
+          port: 443,
         },
         name: "mocked_test",
       } as IProject,
@@ -1047,7 +1088,7 @@ describe("FileHelper", () => {
     try {
       await instance.removeDomainDirectory({
         host: "github.com",
-        port:  443,
+        port: 443,
       } as IProjectMeta);
     } catch (err) {
       assert.isDefined(err);
@@ -1070,7 +1111,7 @@ describe("FileHelper", () => {
     await instance.removeProjectFile({
       meta: {
         host: "github.com",
-        port:  443,
+        port: 443,
       },
       name: "mocked_test",
     } as IProject);
