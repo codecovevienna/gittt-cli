@@ -642,8 +642,6 @@ New type: ${updatedRecord.type}`;
 
   public async importCsv(cmd: Command): Promise<void> {
 
-    console.log(FileHelper)
-
     let filePath: string;
 
     if (cmd.file !== null) {
