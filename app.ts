@@ -6,8 +6,8 @@ import moment, { Moment } from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
 import {
-  FileHelper,
   ChartHelper,
+  FileHelper,
   GitHelper,
   ImportHelper,
   LogHelper,
@@ -27,7 +27,6 @@ import {
   IRecord,
 } from "./interfaces";
 import { RECORD_TYPES } from "./types";
-import { fetchAsyncQuestionPropertyQuestionProperty } from "inquirer/lib/utils/utils";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
@@ -721,9 +720,7 @@ New type: ${updatedRecord.type}`;
 
     const projects: IProject[] = await this.fileHelper.findAllProjects();
 
-
-
-    const selectedProject: IProject | null = projects.find((p) => p.name === projectName) || null;
+    const selectedProject: IProject | null = projects.find((p: IProject) => p.name === projectName) || null;
 
     if (!selectedProject) {
       LogHelper.error(`Project ${projectName} not found`);
@@ -731,32 +728,32 @@ New type: ${updatedRecord.type}`;
     }
 
     const days: number = cmd.days || 14; // default is 14 days (2 weeks sprint)
-    let daysData: any = {};
-    let weekdayData: any = { "Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0 };
+    const daysData: any = {};
+    const weekdayData: any = { Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0 };
 
     // get tomorrow 00:00
-    const now = moment();
+    const now: moment.Moment = moment();
     now.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     now.add(1, "days");
 
     // get all records in timeframe
     for (const record of selectedProject.records) {
-      const startTime = moment(record.end).subtract(record.amount, "hours");
+      const startTime: moment.Moment = moment(record.end).subtract(record.amount, "hours");
 
       // the difference will be positive for every day into the past
-      const difference = moment.duration(now.diff(startTime));
+      const difference: moment.Duration = moment.duration(now.diff(startTime));
 
       // if difference is to great we skip the record
-      if (difference.asDays() > days && days != -1) {
+      if (difference.asDays() > days && days !== -1) {
         continue;
       }
 
       // add to daysData
-      const dayString = startTime.format("MMM DD, YYYY (ddd)");
+      const dayString: string = startTime.format("MMM DD, YYYY (ddd)");
       daysData[dayString] = daysData[dayString] ? daysData[dayString] + record.amount : record.amount;
 
       // add to weeklyData
-      const weekdayString = startTime.format("dddd");
+      const weekdayString: string = startTime.format("dddd");
       weekdayData[weekdayString] += record.amount;
     }
 
@@ -782,8 +779,6 @@ New type: ${updatedRecord.type}`;
     LogHelper.info("Weekday report");
     LogHelper.log("----------------------------------------------------------------------");
     LogHelper.log(ChartHelper.chart(weekdayData, true, 50, false, "h"));
-
-    return Promise.resolve();
   }
 
   public initCommander(): CommanderStatic {
