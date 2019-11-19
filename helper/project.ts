@@ -2,9 +2,9 @@ import fs, { WriteOptions } from "fs-extra";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import uuid from "uuid/v1";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
+import { RECORD_TYPES } from "../types";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 import { QuestionHelper } from "./question";
-import { RECORD_TYPES } from "../types";
 
 export class ProjectHelper {
   /**

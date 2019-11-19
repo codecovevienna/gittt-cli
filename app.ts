@@ -723,8 +723,8 @@ New type: ${updatedRecord.type}`;
           return this.exit(`No records found for "${projectFromGit.name}"`, 1);
         }
 
-        //sorting newest to latest
-        const records = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
+        // sorting newest to latest
+        const records: IRecord[] = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
           return (b.end - b.amount) - (a.end - a.amount);
         });
 
@@ -733,10 +733,10 @@ New type: ${updatedRecord.type}`;
         LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
 
         for (const record of records) {
-          let line = "";
+          let line: string = "";
           line += `${record.type}\t`;
           line += `${record.amount}h\t`;
-          line += `${moment(record.end - record.amount).format("DD.MM.YYYY HH:mm:ss")}\t`; //TODO should be date
+          line += `${moment(record.end - record.amount).format("DD.MM.YYYY HH:mm:ss")}\t`;
           line += `${record.message}`;
           LogHelper.info(line);
         }
