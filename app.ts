@@ -6,6 +6,7 @@ import moment, { Moment } from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
 import {
+  ChartHelper,
   FileHelper,
   GitHelper,
   ImportHelper,
@@ -733,6 +734,73 @@ export class App {
     }
   }
 
+  public async reportAction(cmd: Command): Promise<void> {
+    const project: IProject = this.projectHelper.getProjectFromGit();
+    const projectName: string = cmd.project ? cmd.project : (project ? project.name : "");
+
+    const projects: IProject[] = await this.fileHelper.findAllProjects();
+
+    const selectedProject: IProject | null = projects.find((p: IProject) => p.name === projectName) || null;
+
+    if (!selectedProject) {
+      LogHelper.error(`Project ${projectName} not found`);
+      return;
+    }
+
+    const days: number = parseInt(cmd.days, 10) || 14; // default is 14 days (2 weeks sprint)
+    const daysData: any = {};
+    const weekdayData: any = { Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0 };
+
+    // get tomorrow 00:00
+    const now: moment.Moment = moment();
+    now.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    now.add(1, "days");
+
+    // get all records in timeframe
+    for (const record of selectedProject.records) {
+      const startTime: moment.Moment = moment(record.end).subtract(record.amount, "hours");
+
+      // the difference will be positive for every day into the past
+      const difference: moment.Duration = moment.duration(now.diff(startTime));
+
+      // if difference is to great we skip the record
+      if (difference.asDays() > days && days !== -1) {
+        continue;
+      }
+
+      // add to daysData
+      const dayString: string = startTime.format("MMM DD, YYYY (ddd)");
+      daysData[dayString] = daysData[dayString] ? daysData[dayString] + record.amount : record.amount;
+
+      // add to weeklyData
+      const weekdayString: string = startTime.format("dddd");
+      weekdayData[weekdayString] += record.amount;
+    }
+
+    LogHelper.info("----------------------------------------------------------------------");
+    LogHelper.info(`Project: ${projectName}`);
+    LogHelper.info(`for the last ${days} days`);
+    LogHelper.info("----------------------------------------------------------------------");
+
+    // seperator
+    LogHelper.log("");
+
+    // print daysData
+    if (Object.keys(daysData).length > 0) {
+      LogHelper.info("Days report");
+      LogHelper.log("----------------------------------------------------------------------");
+      LogHelper.log(ChartHelper.chart(daysData, true, 50, false, "h"));
+    }
+
+    // seperator
+    LogHelper.log("");
+
+    // print weeklyData
+    LogHelper.info("Weekday report");
+    LogHelper.log("----------------------------------------------------------------------");
+    LogHelper.log(ChartHelper.chart(weekdayData, true, 50, false, "h"));
+  }
+
   public initCommander(): CommanderStatic {
     commander.on("command:*", () => {
       commander.help();
@@ -808,6 +876,15 @@ export class App {
           LogHelper.log(`- ${prj.name}`);
         }
       });
+
+    // report command
+    // will be changed in GITTT-85
+    commander
+      .command("report")
+      .description("Prints a small report")
+      .option("-d, --days <number>", "Specify for how many days the report should be printed.")
+      .option("-p, --project <project name>", "Specify the project the report should be printed for. Default is the project in the current directory.")
+      .action((cmd: Command) => this.reportAction(cmd));
 
     // log command
     // not needed anymore
