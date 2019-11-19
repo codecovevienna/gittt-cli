@@ -277,6 +277,23 @@ export class QuestionHelper {
     return choice.choice;
   }
 
+  public static chooseOverrideLocalChanges = async (): Promise<number> => {
+    const question: ListQuestion = {
+      choices: [
+        { name: "Override local config file", value: 0 },
+        { name: "Override remote config file", value: 1 },
+        { name: "Exit", value: 2 },
+      ],
+      message: `Remote repo is not empty, override local changes?`,
+      name: "choice",
+      type: "list",
+    };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return parseInt(choice.choice, 10);
+  }
+
   public static confirmMigration = async (): Promise<boolean> => {
     const question: Question = {
       message: `Do you want to migrate from an existing project?`,
