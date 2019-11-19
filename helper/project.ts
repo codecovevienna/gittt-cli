@@ -2,6 +2,7 @@ import fs, { WriteOptions } from "fs-extra";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import uuid from "uuid/v1";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
+import { RECORD_TYPES } from "../types";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 import { QuestionHelper } from "./question";
 
@@ -205,7 +206,7 @@ export class ProjectHelper {
     }
 
     return project.records.reduce((prev: number, curr: IRecord) => {
-      if (curr.type === "Time") {
+      if (curr.type === RECORD_TYPES.Time) {
         return prev + curr.amount;
       } else {
         return prev;

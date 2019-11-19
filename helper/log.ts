@@ -37,4 +37,10 @@ export class LogHelper {
       console.log(chalk.green.bold(msg));
     }
   }
+
+  public static print = (msg: any): void => {
+    if (!LogHelper.silence) {
+      console.log(msg);
+    }
+  }
 }

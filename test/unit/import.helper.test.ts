@@ -6,6 +6,7 @@ import sinon from "sinon";
 import { ObjectReadableMock, ObjectWritableMock } from "stream-mock";
 import { FileHelper, GitHelper, ImportHelper, ProjectHelper } from "../../helper";
 import { ICsvRow, IRecord } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 
 const sandboxDir: string = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -19,13 +20,13 @@ const expectedCorrectOutput: IRecord[] = [{
   amount: 10,
   end: 1556727733,
   message: "Message Text",
-  type: "Time",
+  type: RECORD_TYPES.Time,
 },
 {
   amount: 1,
   end: 1556723833,
   message: "Message new Text",
-  type: "Time",
+  type: RECORD_TYPES.Time,
 }];
 
 const csvOnlyHeaderInput: string = "AMOUNT,END,MESSAGE";

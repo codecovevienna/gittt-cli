@@ -4,6 +4,7 @@ import proxyquire from "proxyquire";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
 import { IConfigFile, IIntegrationLink, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 
 const configDir: string = path.join("mocked", ".git-time-tracker");
 const configFileName: string = "config.json";
@@ -493,7 +494,7 @@ describe("FileHelper", () => {
           amount: 1337,
           end: Date.now(),
           message: "TestMessage",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         },
       ],
     };
@@ -526,7 +527,7 @@ describe("FileHelper", () => {
           amount: 1337,
           end: Date.now(),
           message: "TestMessage",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         },
       ],
     };
@@ -988,7 +989,7 @@ describe("FileHelper", () => {
 
     await instance.removeDomainDirectory({
       host: "github.com",
-      port:  443,
+      port: 443,
     } as IProjectMeta);
 
     assert.isTrue(findProjectsForDomainStub.calledOnce);
@@ -1009,7 +1010,7 @@ describe("FileHelper", () => {
       {
         meta: {
           host: "github.com",
-          port:  443,
+          port: 443,
         },
         name: "mocked_test",
       } as IProject,
@@ -1017,7 +1018,7 @@ describe("FileHelper", () => {
 
     await instance.removeDomainDirectory({
       host: "github.com",
-      port:  443,
+      port: 443,
     } as IProjectMeta, true);
 
     assert.isTrue(findProjectsForDomainStub.calledOnce);
@@ -1038,7 +1039,7 @@ describe("FileHelper", () => {
       {
         meta: {
           host: "github.com",
-          port:  443,
+          port: 443,
         },
         name: "mocked_test",
       } as IProject,
@@ -1047,7 +1048,7 @@ describe("FileHelper", () => {
     try {
       await instance.removeDomainDirectory({
         host: "github.com",
-        port:  443,
+        port: 443,
       } as IProjectMeta);
     } catch (err) {
       assert.isDefined(err);
@@ -1070,7 +1071,7 @@ describe("FileHelper", () => {
     await instance.removeProjectFile({
       meta: {
         host: "github.com",
-        port:  443,
+        port: 443,
       },
       name: "mocked_test",
     } as IProject);

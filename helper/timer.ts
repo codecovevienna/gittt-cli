@@ -3,6 +3,7 @@ import _ from "lodash";
 import moment, { Moment } from "moment";
 import { isString } from "util";
 import { IGitCommitMessageAnswers, ITimerFile } from "../interfaces";
+import { RECORD_TYPES } from "../types";
 import { FileHelper, LogHelper } from "./index";
 import { ProjectHelper } from "./project";
 
@@ -67,7 +68,7 @@ export class TimerHelper {
         amount: moment.duration(diff).asHours(),
         end: now.valueOf(),
         message: _.isEmpty(finalCommitMessage) ? undefined : finalCommitMessage,
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       timer.stop = now.valueOf();
