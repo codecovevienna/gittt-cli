@@ -13,6 +13,8 @@ describe("Log test", () => {
 
   it("should log local changes", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
+    const mockedHelper: any = Object.assign({}, emptyHelper);
+
     const logChangesStub: SinonStub = sinon.stub().resolves([
       {
         author_email: "mock@mail.com",
@@ -25,34 +27,6 @@ describe("Log test", () => {
       } as DefaultLogFields,
     ]);
 
-    // const proxy: any = proxyquire("../../app", {
-    //   "./helper": {
-    //     FileHelper: function FileHelper(): any {
-    //       return {
-    //         configDirExists: sinon.stub().resolves(true),
-    //       };
-    //     },
-    //     GitHelper: function GitHelper(): any {
-    //       return {
-    //         logChanges: logChangesStub,
-    //       };
-    //     },
-    //     ImportHelper: function ImportHelper(): any {
-    //       return {};
-    //     },
-    //     LogHelper,
-    //     ProjectHelper: function ProjectHelper(): any {
-    //       return {};
-    //     },
-    //     TimerHelper: function TimerHelper(): any {
-    //       return {};
-    //     },
-    //   },
-    //   "commander": mockedCommander,
-    // });
-
-    const mockedHelper: any = Object.assign({}, emptyHelper);
-
     // tslint:disable
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
@@ -71,9 +45,6 @@ describe("Log test", () => {
     // tslint:enable
 
     const mockedApp: App = new proxy.App();
-
-    // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
     await mockedApp.setup();
 
@@ -85,35 +56,9 @@ describe("Log test", () => {
 
   it("should log everything up to date", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const logChangesStub: SinonStub = sinon.stub().resolves([]);
-
-    // const proxy: any = proxyquire("../../app", {
-    //   "./helper": {
-    //     FileHelper: function FileHelper(): any {
-    //       return {
-    //         configDirExists: sinon.stub().resolves(true),
-    //       };
-    //     },
-    //     GitHelper: function GitHelper(): any {
-    //       return {
-    //         logChanges: logChangesStub,
-    //       };
-    //     },
-    //     ImportHelper: function ImportHelper(): any {
-    //       return {};
-    //     },
-    //     LogHelper,
-    //     ProjectHelper: function ProjectHelper(): any {
-    //       return {};
-    //     },
-    //     TimerHelper: function TimerHelper(): any {
-    //       return {};
-    //     },
-    //   },
-    //   "commander": mockedCommander,
-    // });
-
     const mockedHelper: any = Object.assign({}, emptyHelper);
+
+    const logChangesStub: SinonStub = sinon.stub().resolves([]);
 
     // tslint:disable
     mockedHelper.FileHelper = class {
@@ -133,9 +78,6 @@ describe("Log test", () => {
     // tslint:enable
 
     const mockedApp: App = new proxy.App();
-
-    // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
     await mockedApp.setup();
 

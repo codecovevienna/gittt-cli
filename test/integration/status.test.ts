@@ -1,9 +1,7 @@
-import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
-import { LogHelper } from "../../helper";
 import { IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
@@ -14,6 +12,7 @@ describe("Status test", () => {
 
   it("should output project overview", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
+    const mockedHelper: any = Object.assign({}, emptyHelper);
 
     const findAllProjectsStub: SinonStub = sinon.stub().resolves([
       {
@@ -60,35 +59,6 @@ describe("Status test", () => {
       } as IProject,
     ]);
 
-    // const proxy: any = proxyquire("../../app", {
-    //   "./helper": {
-    //     FileHelper: function FileHelper(): any {
-    //       return {
-    //         configDirExists: sinon.stub().resolves(true),
-    //         findAllProjects: findAllProjectsStub,
-    //       };
-    //     },
-    //     GitHelper: function GitHelper(): any {
-    //       return {};
-    //     },
-    //     ImportHelper: function ImportHelper(): any {
-    //       return {};
-    //     },
-    //     LogHelper,
-    //     ProjectHelper: function ProjectHelper(): any {
-    //       return {
-    //         getTotalHours: sinon.stub(),
-    //       };
-    //     },
-    //     TimerHelper: function TimerHelper(): any {
-    //       return {};
-    //     },
-    //   },
-    //   "commander": mockedCommander,
-    // });
-
-    const mockedHelper: any = Object.assign({}, emptyHelper);
-
     // tslint:disable
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
@@ -108,9 +78,6 @@ describe("Status test", () => {
     // tslint:enable
 
     const mockedApp: App = new proxy.App();
-
-    // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
     await mockedApp.setup();
 

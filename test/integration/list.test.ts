@@ -12,6 +12,8 @@ describe("List test", () => {
 
   it("should list projects", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
+    const mockedHelper: any = Object.assign({}, emptyHelper);
+
     const findAllProjectsStub: SinonStub = sinon.stub().resolves([
       {
         meta: {
@@ -22,33 +24,6 @@ describe("List test", () => {
         records: [],
       },
     ]);
-
-    // const proxy: any = proxyquire("../../app", {
-    //   "./helper": {
-    //     FileHelper: function FileHelper(): any {
-    //       return {
-    //         configDirExists: sinon.stub().resolves(true),
-    //         findAllProjects: findAllProjectsStub,
-    //       };
-    //     },
-    //     GitHelper: function GitHelper(): any {
-    //       return {};
-    //     },
-    //     ImportHelper: function ImportHelper(): any {
-    //       return {};
-    //     },
-    //     LogHelper,
-    //     ProjectHelper: function ProjectHelper(): any {
-    //       return {};
-    //     },
-    //     TimerHelper: function TimerHelper(): any {
-    //       return {};
-    //     },
-    //   },
-    //   "commander": mockedCommander,
-    // });
-
-    const mockedHelper: any = Object.assign({}, emptyHelper);
 
     // tslint:disable
     mockedHelper.FileHelper = class {
@@ -65,9 +40,6 @@ describe("List test", () => {
     // tslint:enable
 
     const mockedApp: App = new proxy.App();
-
-    // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
     await mockedApp.setup();
 

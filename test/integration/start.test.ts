@@ -12,35 +12,9 @@ describe("Start test", () => {
 
   it("should start time tracking", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const startTimerStub: SinonStub = sinon.stub().resolves();
-
-    // const proxy: any = proxyquire("../../app", {
-    //   "./helper": {
-    //     FileHelper: function FileHelper(): any {
-    //       return {
-    //         configDirExists: sinon.stub().resolves(true),
-    //       };
-    //     },
-    //     GitHelper: function GitHelper(): any {
-    //       return {};
-    //     },
-    //     ImportHelper: function ImportHelper(): any {
-    //       return {};
-    //     },
-    //     LogHelper,
-    //     ProjectHelper: function ProjectHelper(): any {
-    //       return {};
-    //     },
-    //     TimerHelper: function TimerHelper(): any {
-    //       return {
-    //         startTimer: startTimerStub,
-    //       };
-    //     },
-    //   },
-    //   "commander": mockedCommander,
-    // });
-
     const mockedHelper: any = Object.assign({}, emptyHelper);
+
+    const startTimerStub: SinonStub = sinon.stub().resolves();
 
     // tslint:disable
     mockedHelper.FileHelper = class {
@@ -60,9 +34,6 @@ describe("Start test", () => {
     // tslint:enable
 
     const mockedApp: App = new proxy.App();
-
-    // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
     await mockedApp.setup();
 

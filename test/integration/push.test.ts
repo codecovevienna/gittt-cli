@@ -12,35 +12,9 @@ describe("Push test", () => {
 
   it("should push changes", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const pushChangesStub: SinonStub = sinon.stub().resolves();
-
-    // const proxy: any = proxyquire("../../app", {
-    //   "./helper": {
-    //     FileHelper: function FileHelper(): any {
-    //       return {
-    //         configDirExists: sinon.stub().resolves(true),
-    //       };
-    //     },
-    //     GitHelper: function GitHelper(): any {
-    //       return {
-    //         pushChanges: pushChangesStub,
-    //       };
-    //     },
-    //     ImportHelper: function ImportHelper(): any {
-    //       return {};
-    //     },
-    //     LogHelper,
-    //     ProjectHelper: function ProjectHelper(): any {
-    //       return {};
-    //     },
-    //     TimerHelper: function TimerHelper(): any {
-    //       return {};
-    //     },
-    //   },
-    //   "commander": mockedCommander,
-    // });
-
     const mockedHelper: any = Object.assign({}, emptyHelper);
+
+    const pushChangesStub: SinonStub = sinon.stub().resolves();
 
     // tslint:disable
     mockedHelper.FileHelper = class {
@@ -60,9 +34,6 @@ describe("Push test", () => {
     // tslint:enable
 
     const mockedApp: App = new proxy.App();
-
-    // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
     await mockedApp.setup();
 
