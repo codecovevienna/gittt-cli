@@ -1151,7 +1151,7 @@ describe("App", () => {
     // });
   });
 
-  describe.skip("Edit records", () => {
+  describe("Edit records", () => {
     it("should edit specific record", async () => {
       const mockedRecords: IRecord[] = [
         {
@@ -2026,7 +2026,7 @@ describe("App", () => {
     });
   });
 
-  describe.skip("Remove records", () => {
+  describe("Remove records", () => {
     it("should remove specific record", async () => {
       const mockedRecords: IRecord[] = [
         {
@@ -2678,7 +2678,7 @@ describe("App", () => {
     });
   });
 
-  describe.skip("Add records", () => {
+  describe("Add records", () => {
     it("should not add record [no cmd amount]", async () => {
 
       // const proxy: any = proxyquire("../../app", {
@@ -3189,7 +3189,7 @@ describe("App", () => {
     });
   });
 
-  describe.skip("Import records from csv", () => {
+  describe("Import records from csv", () => {
     it("should add records from csv", async () => {
       const addRecordsToProjectStub: SinonStub = sinon.stub().resolves();
 
@@ -3278,7 +3278,7 @@ describe("App", () => {
     });
   });
 
-  describe.skip("Links", () => {
+  describe("Links", () => {
     describe("Jira", () => {
       it("should add new JIRA link", async () => {
         const mockedCommander: CommanderStatic = proxyquire("commander", {});
@@ -3338,25 +3338,38 @@ describe("App", () => {
           public static getHomeDir = sinon.stub().returns("/home/test");
           public configDirExists = sinon.stub().resolves(true);
           public isConfigFileValid = sinon.stub().resolves(true);
+          public addOrUpdateLink = addOrUpdateLinkStub;
         }
 
         mockedHelper.ProjectHelper = class {
           public addLink = sinon.stub().resolves();
+          public getProjectFromGit = getProjectFromGitStub;
         }
 
         mockedHelper.QuestionHelper = class {
-          public static chooseRecord = sinon.stub().resolves(mockedRecords[0]);
+          public static askJiraLink = sinon.stub().resolves(
+            {
+              endpoint: "http://mocked.com/rest/gittt/latest/",
+              hash: "shaHash",
+              key: "MOCKED",
+              linkType: "Jira",
+              projectName: "mocked_,project_1",
+              username: "mocked",
+            } as IJiraLink
+          );
+          public static chooseIntegration = sinon.stub().resolves("Jira");
         }
 
         const proxy: any = proxyquire("../../app", {
           "./helper": mockedHelper,
+          "commander": mockedCommander,
         });
         // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         await mockedApp.setup();
 
@@ -3369,40 +3382,64 @@ describe("App", () => {
         const mockedCommander: CommanderStatic = proxyquire("commander", {});
         const getProjectFromGitStub: SinonStub = sinon.stub().returns(undefined);
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {};
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         addLink: sinon.stub().resolves(),
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     QuestionHelper: {
+        //       chooseIntegration: sinon.stub().resolves("Jira"),
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "commander": mockedCommander,
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public addLink = sinon.stub().resolves();
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
+        mockedHelper.QuestionHelper = class {
+          public static chooseIntegration = sinon.stub().resolves("Jira");
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {};
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                addLink: sinon.stub().resolves(),
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            QuestionHelper: {
-              chooseIntegration: sinon.stub().resolves("Jira"),
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "commander": mockedCommander,
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
@@ -3424,49 +3461,84 @@ describe("App", () => {
         } as IProject);
         const addOrUpdateLinkStub: SinonStub = sinon.stub().throws(new Error("Mocked Error"));
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         addOrUpdateLink: addOrUpdateLinkStub,
+        //         configDirExists: sinon.stub().resolves(true),
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {};
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         addLink: sinon.stub().resolves(),
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     QuestionHelper: {
+        //       askJiraLink: sinon.stub().resolves({
+        //         endpoint: "http://mocked.com/rest/gittt/latest/",
+        //         hash: "shaHash",
+        //         key: "MOCKED",
+        //         linkType: "Jira",
+        //         projectName: "mocked_,project_1",
+        //         username: "mocked",
+        //       } as IJiraLink),
+        //       chooseIntegration: sinon.stub().resolves("Jira"),
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "commander": mockedCommander,
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public addOrUpdateLink = addOrUpdateLinkStub;
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public addLink = sinon.stub().resolves();
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
+        mockedHelper.QuestionHelper = class {
+          public static askJiraLink = sinon.stub().resolves(
+            {
+              endpoint: "http://mocked.com/rest/gittt/latest/",
+              hash: "shaHash",
+              key: "MOCKED",
+              linkType: "Jira",
+              projectName: "mocked_,project_1",
+              username: "mocked",
+            } as IJiraLink
+          );
+          public static chooseIntegration = sinon.stub().resolves("Jira");
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                addOrUpdateLink: addOrUpdateLinkStub,
-                configDirExists: sinon.stub().resolves(true),
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {};
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                addLink: sinon.stub().resolves(),
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            QuestionHelper: {
-              askJiraLink: sinon.stub().resolves({
-                endpoint: "http://mocked.com/rest/gittt/latest/",
-                hash: "shaHash",
-                key: "MOCKED",
-                linkType: "Jira",
-                projectName: "mocked_,project_1",
-                username: "mocked",
-              } as IJiraLink),
-              chooseIntegration: sinon.stub().resolves("Jira"),
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "commander": mockedCommander,
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
@@ -3517,42 +3589,69 @@ describe("App", () => {
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         findProjectByName: findProjectByNameStub,
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {
+        //         logChanges: sinon.stub().resolves([]),
+        //       };
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findProjectByName = findProjectByNameStub;
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.GitHelper = class {
+          public logChanges = sinon.stub().resolves([]);
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                findProjectByName: findProjectByNameStub,
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {
-                logChanges: sinon.stub().resolves([]),
-              };
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         await mockedApp.setup();
 
@@ -3606,33 +3705,64 @@ describe("App", () => {
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         findProjectByName: findProjectByNameStub,
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {
+        //         logChanges: sinon.stub().resolves([]),
+        //       };
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        //   "inquirer": {
+        //     prompt: sinon.stub().resolves({
+        //       confirm: true,
+        //     }),
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findProjectByName = findProjectByNameStub;
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.GitHelper = class {
+          public logChanges = sinon.stub().resolves([]);
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                findProjectByName: findProjectByNameStub,
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {
-                logChanges: sinon.stub().resolves([]),
-              };
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
@@ -3642,11 +3772,12 @@ describe("App", () => {
             }),
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const linkActionStub: SinonStub = sinon.stub(mockedApp, "linkAction");
 
@@ -3691,6 +3822,18 @@ describe("App", () => {
           records: [],
         });
 
+        const logChangesStub: SinonStub = sinon.stub().resolves([
+          {
+            author_email: "mockedEmail",
+            author_name: "mockedAuthor",
+            body: "mockedBody",
+            date: "mockedDate",
+            hash: "mockedHash",
+            message: "mockedMessage",
+            refs: "mockedRefs",
+          } as DefaultLogFields,
+        ]);
+
         const pushChangesStub: SinonStub = sinon.stub().resolves();
 
         const axiosPostStub: SinonStub = sinon.stub().resolves({
@@ -3699,44 +3842,66 @@ describe("App", () => {
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         findProjectByName: findProjectByNameStub,
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {
+        //         logChanges: logChangesStub,
+        //         pushChanges: pushChangesStub,
+        //       };
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        //   "inquirer": {
+        //     prompt: sinon.stub().resolves({
+        //       push: true,
+        //     }),
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findProjectByName = findProjectByNameStub;
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.GitHelper = class {
+          public logChanges = logChangesStub;
+          public pushChanges = pushChangesStub;
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                findProjectByName: findProjectByNameStub,
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {
-                logChanges: sinon.stub().resolves([
-                  {
-                    author_email: "mockedEmail",
-                    author_name: "mockedAuthor",
-                    body: "mockedBody",
-                    date: "mockedDate",
-                    hash: "mockedHash",
-                    message: "mockedMessage",
-                    refs: "mockedRefs",
-                  } as DefaultLogFields,
-                ]),
-                pushChanges: pushChangesStub,
-              };
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
@@ -3746,11 +3911,12 @@ describe("App", () => {
             }),
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         await mockedApp.setup();
 
@@ -3793,49 +3959,82 @@ describe("App", () => {
           records: [],
         });
 
+        const logChangesStub: SinonStub = sinon.stub().resolves([
+          {
+            author_email: "mockedEmail",
+            author_name: "mockedAuthor",
+            body: "mockedBody",
+            date: "mockedDate",
+            hash: "mockedHash",
+            message: "mockedMessage",
+            refs: "mockedRefs",
+          } as DefaultLogFields,
+        ]);
+
         const axiosPostStub: SinonStub = sinon.stub().resolves({
           data: {
             success: true,
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         findProjectByName: findProjectByNameStub,
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {
+        //         logChanges: logChangesStub,
+        //       };
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        //   "inquirer": {
+        //     prompt: sinon.stub().resolves({
+        //       push: false,
+        //     }),
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findProjectByName = findProjectByNameStub;
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.GitHelper = class {
+          public logChanges = logChangesStub;
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                findProjectByName: findProjectByNameStub,
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {
-                logChanges: sinon.stub().resolves([
-                  {
-                    author_email: "mockedEmail",
-                    author_name: "mockedAuthor",
-                    body: "mockedBody",
-                    date: "mockedDate",
-                    hash: "mockedHash",
-                    message: "mockedMessage",
-                    refs: "mockedRefs",
-                  } as DefaultLogFields,
-                ]),
-              };
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
@@ -3845,11 +4044,12 @@ describe("App", () => {
             }),
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit").resolves();
 
@@ -3870,38 +4070,59 @@ describe("App", () => {
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {};
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {};
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
@@ -3934,30 +4155,56 @@ describe("App", () => {
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {};
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        //   "inquirer": {
+        //     prompt: sinon.stub().resolves({
+        //       confirm: false,
+        //     }),
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {};
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
@@ -3967,11 +4214,12 @@ describe("App", () => {
             }),
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
@@ -4015,40 +4263,63 @@ describe("App", () => {
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         findProjectByName: findProjectByNameStub,
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {};
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findProjectByName = findProjectByNameStub;
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                findProjectByName: findProjectByNameStub,
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {};
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
@@ -4095,42 +4366,68 @@ describe("App", () => {
 
         const axiosPostStub: SinonStub = sinon.stub().throws(new Error("Mocked Error"));
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         findProjectByName: findProjectByNameStub,
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {
+        //         logChanges: sinon.stub().resolves([]),
+        //       };
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findProjectByName = findProjectByNameStub;
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.GitHelper = class {
+          public logChanges = sinon.stub().resolves([]);
+        }
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                findProjectByName: findProjectByNameStub,
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {
-                logChanges: sinon.stub().resolves([]),
-              };
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
@@ -4181,42 +4478,68 @@ describe("App", () => {
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         findProjectByName: findProjectByNameStub,
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {
+        //         logChanges: sinon.stub().resolves([]),
+        //       };
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findProjectByName = findProjectByNameStub;
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.GitHelper = class {
+          public logChanges = sinon.stub().resolves([]);
+        }
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                findProjectByName: findProjectByNameStub,
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {
-                logChanges: sinon.stub().resolves([]),
-              };
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
@@ -4267,42 +4590,68 @@ describe("App", () => {
           } as IJiraPublishResult,
         });
 
+        // const proxy: any = proxyquire("../../app", {
+        //   "./helper": {
+        //     FileHelper: function FileHelper(): any {
+        //       return {
+        //         configDirExists: sinon.stub().resolves(true),
+        //         findProjectByName: findProjectByNameStub,
+        //         getConfigObject: getConfigObjectStub,
+        //       };
+        //     },
+        //     GitHelper: function GitHelper(): any {
+        //       return {
+        //         logChanges: sinon.stub().resolves([]),
+        //       };
+        //     },
+        //     ImportHelper: function ImportHelper(): any {
+        //       return {};
+        //     },
+        //     LogHelper,
+        //     ProjectHelper: function ProjectHelper(): any {
+        //       return {
+        //         getProjectFromGit: getProjectFromGitStub,
+        //       };
+        //     },
+        //     TimerHelper: function TimerHelper(): any {
+        //       return {};
+        //     },
+        //   },
+        //   "axios": {
+        //     post: axiosPostStub,
+        //   },
+        // });
+
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        // tslint:disable
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findProjectByName = findProjectByNameStub;
+          public getConfigObject = getConfigObjectStub;
+        }
+
+        mockedHelper.GitHelper = class {
+          public logChanges = sinon.stub().resolves([]);
+        }
+        mockedHelper.ProjectHelper = class {
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
         const proxy: any = proxyquire("../../app", {
-          "./helper": {
-            FileHelper: function FileHelper(): any {
-              return {
-                configDirExists: sinon.stub().resolves(true),
-                findProjectByName: findProjectByNameStub,
-                getConfigObject: getConfigObjectStub,
-              };
-            },
-            GitHelper: function GitHelper(): any {
-              return {
-                logChanges: sinon.stub().resolves([]),
-              };
-            },
-            ImportHelper: function ImportHelper(): any {
-              return {};
-            },
-            LogHelper,
-            ProjectHelper: function ProjectHelper(): any {
-              return {
-                getProjectFromGit: getProjectFromGitStub,
-              };
-            },
-            TimerHelper: function TimerHelper(): any {
-              return {};
-            },
-          },
+          "./helper": mockedHelper,
           "axios": {
             post: axiosPostStub,
           },
         });
+        // tslint:enable
 
         const mockedApp: App = new proxy.App();
 
-        sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-        sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+        // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+        // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
         const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
 
