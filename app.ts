@@ -425,7 +425,7 @@ export class App {
       chosenRecord = await QuestionHelper.chooseRecord(recordsToEdit);
     }
 
-    const updatedRecord: IRecord = chosenRecord;
+    const updatedRecord: IRecord = Object.assign({}, chosenRecord);
 
     let year: number;
     let month: number;
@@ -499,12 +499,29 @@ export class App {
 
     await this.fileHelper.saveProjectObject(updatedProject);
 
-    // TODO check if something really changed and take this in account in the message
-    const commitMessage: string = `Updated record ${updatedRecord.guid} in project ${updatedProject.name}
-New amount: ${updatedRecord.amount}
-New type: ${updatedRecord.type}`;
+    let changes: string = "";
+
+    if (updatedRecord.amount !== chosenRecord.amount) {
+      changes += `amount: ${updatedRecord.amount}, `;
+    }
+    if (updatedRecord.end !== chosenRecord.end) {
+      changes += `end: ${updatedRecord.end}, `;
+    }
+    if (updatedRecord.message !== chosenRecord.message) {
+      changes += `message: ${updatedRecord.message}, `;
+    }
+    if (updatedRecord.type !== chosenRecord.type) {
+      changes += `type: ${updatedRecord.type}, `;
+    }
+    if (changes.length > 0) {
+      changes = changes.slice(0, -2);
+    }
+
+    const commitMessage: string = changes.length > 0 ? `Updated record (${changes}) at ${updatedProject.name}` : `Updated record at ${updatedProject.name}`;
 
     await this.gitHelper.commitChanges(commitMessage);
+
+    LogHelper.info(commitMessage);
   }
 
   // TODO pretty much the same as editAction, refactor?
@@ -570,6 +587,9 @@ New type: ${updatedRecord.type}`;
     const commitMessage: string = `Removed record ${chosenRecord.guid} from project ${updatedProject.name}`;
 
     await this.gitHelper.commitChanges(commitMessage);
+
+    LogHelper.info(`Removed record (${moment(chosenRecord.end).format("DD.MM.YYYY, HH:mm:ss")
+      }: ${chosenRecord.amount} ${chosenRecord.type} - "${_.truncate(chosenRecord.message)}") from project ${updatedProject.name}`);
   }
 
   public async addAction(cmd: Command): Promise<void> {
