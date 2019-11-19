@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from "axios";
+import chalk from "chalk";
 import commander, { Command, CommanderStatic } from "commander";
 import inquirer from "inquirer";
 import _ from "lodash";
@@ -729,17 +730,23 @@ New type: ${updatedRecord.type}`;
         });
 
         LogHelper.info(`${projectWithRecords.name}`);
-        LogHelper.info(`--------------------------------------------------------------------------------`);
+        LogHelper.print(`--------------------------------------------------------------------------------`);
         LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
+        LogHelper.print(`--------------------------------------------------------------------------------`);
 
+        let sumOfTime: number = 0;
         for (const record of records) {
           let line: string = "";
           line += `${record.type}\t`;
-          line += `${record.amount}h\t`;
+          line += chalk.yellow.bold(`${record.amount}h\t`);
           line += `${moment(record.end - record.amount).format("DD.MM.YYYY HH:mm:ss")}\t`;
-          line += `${record.message}`;
-          LogHelper.info(line);
+          line += chalk.yellow.bold(`${record.message}`);
+          sumOfTime += record.amount;
+          LogHelper.print(line);
         }
+
+        LogHelper.print(`--------------------------------------------------------------------------------`);
+        LogHelper.info(`SUM:\t${sumOfTime}h`);
       });
 
     commander
