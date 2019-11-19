@@ -5,9 +5,8 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper";
 import { IProject, IRecord } from "../../interfaces";
-import { RECORD_TYPES } from "../../types";
 
-describe("Status test", () => {
+describe("Report test", () => {
   before(() => {
     proxyquire.noCallThru();
   });
@@ -27,13 +26,13 @@ describe("Status test", () => {
             amount: 1337,
             created: Date.now(),
             message: "Mocked message",
-            type: RECORD_TYPES.Time,
+            type: "Time",
           } as IRecord,
           {
             amount: 69,
             created: Date.now(),
             message: "Mocked message",
-            type: RECORD_TYPES.Time,
+            type: "Time",
           } as IRecord,
         ],
       } as IProject,
@@ -48,13 +47,13 @@ describe("Status test", () => {
             amount: 1234,
             created: Date.now(),
             message: "Mocked message",
-            type: RECORD_TYPES.Time,
+            type: "Time",
           } as IRecord,
           {
             amount: 1970,
             created: Date.now(),
             message: "Mocked message",
-            type: RECORD_TYPES.Time,
+            type: "Time",
           } as IRecord,
         ],
       } as IProject,
@@ -77,6 +76,9 @@ describe("Status test", () => {
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {
+            getProjectFromGit: sinon.stub().resolves({
+              name: "mocked_project_1",
+            }),
             getTotalHours: sinon.stub(),
           };
         },
@@ -93,7 +95,7 @@ describe("Status test", () => {
 
     await mockedApp.setup();
 
-    process.argv = ["namespace", "mocked", "status"];
+    process.argv = ["namespace", "mocked", "report"];
     mockedApp.start();
   });
 });
