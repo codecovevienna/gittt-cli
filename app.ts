@@ -726,7 +726,10 @@ New type: ${updatedRecord.type}`;
 
         // sorting newest to latest
         const records: IRecord[] = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
-          return (b.end - b.amount) - (a.end - a.amount);
+          const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
+          const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
+
+          return bStartTime.diff(aStartTime);
         });
 
         LogHelper.info(`${projectWithRecords.name}`);
@@ -739,7 +742,7 @@ New type: ${updatedRecord.type}`;
           let line: string = "";
           line += `${record.type}\t`;
           line += chalk.yellow.bold(`${record.amount}h\t`);
-          line += `${moment(record.end - record.amount).format("DD.MM.YYYY HH:mm:ss")}\t`;
+          line += `${moment(record.end).subtract(record.amount, "hours").format("DD.MM.YYYY HH:mm:ss")}\t`;
           line += chalk.yellow.bold(`${record.message}`);
           sumOfTime += record.amount;
           LogHelper.print(line);
