@@ -3,6 +3,7 @@ import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { QuestionHelper } from "../../helper";
 import { IJiraLink, IProject, IRecord } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 
 describe("QuestionHelper", () => {
   it("should filter jira endpoint", async () => {
@@ -169,13 +170,13 @@ describe("QuestionHelper", () => {
         amount: 69,
         created: 1234,
         guid: "mocked-guid-one",
-        type: "Time",
+        type: RECORD_TYPES.Time,
       } as IRecord,
       {
         amount: 1337,
         created: 1234,
         guid: "mocked-guid-two",
-        type: "Time",
+        type: RECORD_TYPES.Time,
       } as IRecord,
     ];
 
@@ -187,26 +188,26 @@ describe("QuestionHelper", () => {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
-          choice: "Time",
+          choice: RECORD_TYPES.Time,
         }),
       },
     });
 
     const choice: string = await proxy.QuestionHelper.chooseType();
-    expect(choice).to.eq("Time");
+    expect(choice).to.eq(RECORD_TYPES.Time);
   });
 
   it("should choose type [with old type]", async () => {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
-          choice: "Time",
+          choice: RECORD_TYPES.Time,
         }),
       },
     });
 
-    const choice: string = await proxy.QuestionHelper.chooseType("Time");
-    expect(choice).to.eq("Time");
+    const choice: string = await proxy.QuestionHelper.chooseType(RECORD_TYPES.Time);
+    expect(choice).to.eq(RECORD_TYPES.Time);
   });
 
   it("should choose integration", async () => {

@@ -3,6 +3,7 @@ import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { IProject, IRecord } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
 describe("Info test", () => {
@@ -26,13 +27,13 @@ describe("Info test", () => {
             amount: 1337,
             created: Date.now(),
             message: "Mocked message",
-            type: "Time",
+            type: RECORD_TYPES.Time,
           } as IRecord,
           {
             amount: 69,
             created: Date.now(),
             message: "Mocked message",
-            type: "Time",
+            type: RECORD_TYPES.Time,
           } as IRecord,
         ],
       } as IProject,
@@ -47,13 +48,13 @@ describe("Info test", () => {
             amount: 1234,
             created: Date.now(),
             message: "Mocked message",
-            type: "Time",
+            type: RECORD_TYPES.Time,
           } as IRecord,
           {
             amount: 1970,
             created: Date.now(),
             message: "Mocked message",
-            type: "Time",
+            type: RECORD_TYPES.Time,
           } as IRecord,
         ],
       } as IProject,

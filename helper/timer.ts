@@ -1,8 +1,9 @@
 import inquirer from "inquirer";
 import _ from "lodash";
 import moment, { Moment } from "moment";
-import { FileHelper, LogHelper, ProjectHelper } from ".";
 import { IGitCommitMessageAnswers, ITimerFile } from "../interfaces";
+import { RECORD_TYPES } from "../types";
+import { FileHelper, LogHelper, ProjectHelper } from "./";
 
 export class TimerHelper {
   private fileHelper: FileHelper;
@@ -65,7 +66,7 @@ export class TimerHelper {
         amount: moment.duration(diff).asHours(),
         end: now.valueOf(),
         message: _.isEmpty(finalCommitMessage) ? undefined : finalCommitMessage,
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       timer.stop = now.valueOf();

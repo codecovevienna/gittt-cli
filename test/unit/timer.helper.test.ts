@@ -6,6 +6,7 @@ import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper, TimerHelper } from "../../helper/index";
 import { ITimerFile } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 
 const sandboxDir: string = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -121,7 +122,7 @@ describe("TimerHelper", () => {
       amount: moment.duration(10).asHours(),
       end: now,
       message: "test",
-      type: "Time",
+      type: RECORD_TYPES.Time,
     }));
     assert.isTrue(saveTimerObjectStub.calledOnce);
 
@@ -156,7 +157,7 @@ describe("TimerHelper", () => {
       amount: moment.duration(10).asHours(),
       end: now,
       message: "Test",
-      type: "Time",
+      type: RECORD_TYPES.Time,
     }));
     assert.isTrue(saveTimerObjectStub.calledOnce);
     assert.isTrue(promptStub.calledOnce);
@@ -193,7 +194,7 @@ describe("TimerHelper", () => {
       amount: moment.duration(10).asHours(),
       end: now,
       message: undefined,
-      type: "Time",
+      type: RECORD_TYPES.Time,
     }));
     assert.isTrue(saveTimerObjectStub.calledOnce);
     assert.isTrue(promptStub.calledOnce);

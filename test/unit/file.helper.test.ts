@@ -4,6 +4,7 @@ import proxyquire from "proxyquire";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
 import { IConfigFile, IIntegrationLink, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 
 const configDir: string = path.join("mocked", ".git-time-tracker");
 const configFileName: string = "config.json";
@@ -608,7 +609,7 @@ describe("FileHelper", () => {
             amount: 1337,
             end: Date.now(),
             message: "TestMessage",
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       };
@@ -641,7 +642,7 @@ describe("FileHelper", () => {
             amount: 1337,
             end: Date.now(),
             message: "TestMessage",
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       };

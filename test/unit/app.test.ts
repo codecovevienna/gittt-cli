@@ -7,6 +7,7 @@ import sinon, { SinonSpy, SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
 import { IConfigFile, IInitAnswers, IJiraLink, IJiraPublishResult, IProject, IRecord } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
 LogHelper.DEBUG = false;
@@ -367,13 +368,13 @@ describe("App", () => {
           amount: 69,
           end: moment().year(2012).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
         {
           amount: 1337,
           end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -412,13 +413,13 @@ describe("App", () => {
           amount: 69,
           end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
         {
           amount: 1337,
           end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -450,13 +451,13 @@ describe("App", () => {
           amount: 69,
           end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
         {
           amount: 1337,
           end: moment().year(2019).month(1).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -494,13 +495,13 @@ describe("App", () => {
           amount: 69,
           end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
         {
           amount: 1337,
           end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -532,13 +533,13 @@ describe("App", () => {
           amount: 69,
           end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
         {
           amount: 1337,
           end: moment().year(2019).month(0).date(2).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -576,13 +577,13 @@ describe("App", () => {
           amount: 69,
           end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
         {
           amount: 1337,
           end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -616,7 +617,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -682,7 +683,7 @@ describe("App", () => {
       const mockedCommand: Command = new Command();
       mockedCommand.amount = 69;
       mockedCommand.guid = "mocked-guid";
-      mockedCommand.type = "Time";
+      mockedCommand.type = RECORD_TYPES.Time;
 
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
@@ -827,7 +828,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -880,7 +881,7 @@ describe("App", () => {
       const mockedCommand: Command = new Command();
       mockedCommand.amount = 69;
       mockedCommand.guid = "mocked-guid";
-      mockedCommand.type = "Time";
+      mockedCommand.type = RECORD_TYPES.Time;
 
       // Mock arguments array to be greater than 3
       process.argv = ["1", "2", "3", "4"];
@@ -901,7 +902,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -947,7 +948,7 @@ describe("App", () => {
       const mockedCommand: Command = new Command();
       mockedCommand.amount = 69;
       mockedCommand.guid = "unknown-guid";
-      mockedCommand.type = "Time";
+      mockedCommand.type = RECORD_TYPES.Time;
 
       // Mock arguments array to be greater than 3
       process.argv = ["1", "2", "3", "4"];
@@ -966,7 +967,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -1009,7 +1010,7 @@ describe("App", () => {
 
       const mockedCommand: Command = new Command();
       mockedCommand.amount = 3;
-      mockedCommand.type = "Time";
+      mockedCommand.type = RECORD_TYPES.Time;
 
       const helpStub: SinonStub = sinon.stub(mockedCommand, "help");
 
@@ -1030,7 +1031,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -1076,7 +1077,7 @@ describe("App", () => {
 
       const mockedCommand: Command = new Command();
       mockedCommand.guid = "mocked-guid";
-      mockedCommand.type = "Time";
+      mockedCommand.type = RECORD_TYPES.Time;
 
       const helpStub: SinonStub = sinon.stub(mockedCommand, "help");
 
@@ -1097,7 +1098,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -1163,7 +1164,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -1377,7 +1378,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -1446,7 +1447,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -1508,7 +1509,7 @@ describe("App", () => {
           amount: 1337,
           created: 1234,
           guid: "mocked-guid",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         } as IRecord,
       ];
 
@@ -1695,7 +1696,7 @@ describe("App", () => {
 
       const mockedCommand: Command = new Command();
       mockedCommand.amount = 2;
-      mockedCommand.type = "Time";
+      mockedCommand.type = RECORD_TYPES.Time;
       mockedCommand.year = 2019;
       mockedCommand.month = 5;
       mockedCommand.day = 12;

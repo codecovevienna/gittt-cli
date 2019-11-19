@@ -207,8 +207,8 @@ export class QuestionHelper {
   public static chooseType = async (oldType?: RECORD_TYPES): Promise<RECORD_TYPES> => {
     const choices: Array<{ name: string, value: string }> = [
       {
-        name: "Time",
-        value: "Time",
+        name: RECORD_TYPES.Time,
+        value: RECORD_TYPES.Time,
       },
     ];
 

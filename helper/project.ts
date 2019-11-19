@@ -1,5 +1,6 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
+import { RECORD_TYPES } from "../types";
 import {
   FileHelper,
   GitHelper,
@@ -209,7 +210,7 @@ export class ProjectHelper {
     }
 
     return project.records.reduce((prev: number, curr: IRecord) => {
-      if (curr.type === "Time") {
+      if (curr.type === RECORD_TYPES.Time) {
         return prev + curr.amount;
       } else {
         return prev;
