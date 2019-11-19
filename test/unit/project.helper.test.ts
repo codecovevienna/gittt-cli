@@ -4,6 +4,7 @@ import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from "../../helper/index";
 import { IIntegrationLink, IProject } from "../../interfaces";
+import { RECORD_TYPES } from "../../types";
 
 const sandboxDir: string = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -163,7 +164,7 @@ describe("ProjectHelper", () => {
         amount: 1337,
         end: 12054,
         message: "test",
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked: "test"`));
@@ -205,7 +206,7 @@ describe("ProjectHelper", () => {
       await instance.addRecordToProject({
         amount: 1337,
         end: 12054,
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked`));
@@ -283,7 +284,7 @@ describe("ProjectHelper", () => {
       await instance.addRecordToProject({
         amount: 1337,
         end: 12054,
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked`));
@@ -325,7 +326,7 @@ describe("ProjectHelper", () => {
       await instance.addRecordToProject({
         amount: 1,
         end: 12054,
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1 hour to test_mocked`));
@@ -372,7 +373,7 @@ describe("ProjectHelper", () => {
       await instance.addRecordToProject({
         amount: 1,
         end: 12054,
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1 hour to test_mocked`));
@@ -417,7 +418,7 @@ describe("ProjectHelper", () => {
         amount: 1337,
         end: 12054,
         message: "test",
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       assert.isTrue(exitStub.called);
@@ -478,7 +479,7 @@ describe("ProjectHelper", () => {
         amount: 1337,
         end: 12054,
         message: "test",
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       assert.isTrue(confirmMigrationStub.calledOnce);
@@ -539,7 +540,7 @@ describe("ProjectHelper", () => {
           amount: 1337,
           end: 69,
           message: "test",
-          type: "Time",
+          type: RECORD_TYPES.Time,
         });
       } catch (err) {
         assert.isDefined(err);
@@ -584,7 +585,7 @@ describe("ProjectHelper", () => {
                   amount: 10,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -609,7 +610,7 @@ describe("ProjectHelper", () => {
               amount: 10,
               end: 999,
               message: "test1",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           false,
@@ -648,7 +649,7 @@ describe("ProjectHelper", () => {
                   amount: 10,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -673,7 +674,7 @@ describe("ProjectHelper", () => {
               amount: 8,
               end: 999,
               message: "test1",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           false,
@@ -712,7 +713,7 @@ describe("ProjectHelper", () => {
                   amount: 2,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -737,7 +738,7 @@ describe("ProjectHelper", () => {
               amount: 5,
               end: 1001,
               message: "test1",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           false,
@@ -776,7 +777,7 @@ describe("ProjectHelper", () => {
                   amount: 10,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -801,7 +802,7 @@ describe("ProjectHelper", () => {
               amount: 10,
               end: 1005,
               message: "test1",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           false,
@@ -840,7 +841,7 @@ describe("ProjectHelper", () => {
                   amount: 2,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -865,7 +866,7 @@ describe("ProjectHelper", () => {
               amount: 2,
               end: 1000,
               message: "test1",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           false,
@@ -905,7 +906,7 @@ describe("ProjectHelper", () => {
                   amount: 2,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -930,13 +931,13 @@ describe("ProjectHelper", () => {
               amount: 5,
               end: 1001,
               message: "test0",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
             {
               amount: 2,
               end: 2001,
               message: "test1",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           false,
@@ -978,7 +979,7 @@ describe("ProjectHelper", () => {
                   amount: 2,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -1003,12 +1004,12 @@ describe("ProjectHelper", () => {
               amount: 5,
               end: 1001,
               message: "test0",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
             {
               amount: 2,
               end: 2001,
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           false,
@@ -1050,7 +1051,7 @@ describe("ProjectHelper", () => {
                   amount: 2,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -1075,17 +1076,17 @@ describe("ProjectHelper", () => {
               amount: 5,
               end: 1001,
               message: "test0",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
             {
               amount: 2,
               end: 2001,
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
             {
               amount: 3,
               end: 3001,
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           false,
@@ -1128,7 +1129,7 @@ describe("ProjectHelper", () => {
                   amount: 2,
                   end: 1000,
                   message: "test",
-                  type: "Time",
+                  type: RECORD_TYPES.Time,
                 },
               ],
             } as IProject,
@@ -1153,7 +1154,7 @@ describe("ProjectHelper", () => {
               amount: 2,
               end: 1000,
               message: "test",
-              type: "Time",
+              type: RECORD_TYPES.Time,
             },
           ],
           true,
@@ -1187,11 +1188,11 @@ describe("ProjectHelper", () => {
           {
             amount: 2,
             created: 1,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           }, {
             amount: 3,
             created: 2,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       } as IProject);
@@ -1217,7 +1218,7 @@ describe("ProjectHelper", () => {
           {
             amount: 2,
             created: 1,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           }, {
             amount: 3,
             created: 2,
@@ -1437,7 +1438,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       };
@@ -1476,7 +1477,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       }));
@@ -1500,7 +1501,7 @@ describe("ProjectHelper", () => {
           {
             amount: 69,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       };
@@ -1515,7 +1516,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       };
@@ -1556,7 +1557,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       }));
@@ -1581,7 +1582,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       };
@@ -1623,7 +1624,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       };
@@ -1670,7 +1671,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       }));
@@ -1703,7 +1704,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       };
@@ -1750,7 +1751,7 @@ describe("ProjectHelper", () => {
           {
             amount: 1337,
             end: 69,
-            type: "Time",
+            type: RECORD_TYPES.Time,
           },
         ],
       }));

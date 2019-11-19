@@ -1,1 +1,3 @@
-export type RECORD_TYPES = "Time";
+export enum RECORD_TYPES {
+  Time = "Time",
+}

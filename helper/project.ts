@@ -4,6 +4,7 @@ import uuid from "uuid/v1";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 import { QuestionHelper } from "./question";
+import { RECORD_TYPES } from "../types";
 
 export class ProjectHelper {
   /**
@@ -205,7 +206,7 @@ export class ProjectHelper {
     }
 
     return project.records.reduce((prev: number, curr: IRecord) => {
-      if (curr.type === "Time") {
+      if (curr.type === RECORD_TYPES.Time) {
         return prev + curr.amount;
       } else {
         return prev;

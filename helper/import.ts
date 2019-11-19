@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import { isNumber, isString } from "util";
 import { ICsvRow, IRecord } from "../interfaces";
 import { ProjectHelper } from "./project";
+import { RECORD_TYPES } from "../types";
 
 export class ImportHelper {
   private projectHelper: ProjectHelper;
@@ -22,7 +23,7 @@ export class ImportHelper {
     const result: IRecord[] = Array<IRecord>();
 
     return new Promise<IRecord[]>((resolve: (value?: IRecord[]) => void,
-                                   reject: (reason?: any) => void): void => {
+      reject: (reason?: any) => void): void => {
       parser.on("data", (data: any) => {
         try {
           assert(data.AMOUNT != null && isString(data.AMOUNT));
@@ -48,7 +49,7 @@ export class ImportHelper {
             amount: row.AMOUNT,  // Amount
             end: row.END, // End Date + End Time
             message: row.MESSAGE, // Description
-            type: "Time",
+            type: RECORD_TYPES.Time,
           };
 
           result.push(record);

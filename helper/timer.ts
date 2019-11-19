@@ -5,6 +5,7 @@ import { isString } from "util";
 import { IGitCommitMessageAnswers, ITimerFile } from "../interfaces";
 import { FileHelper, LogHelper } from "./index";
 import { ProjectHelper } from "./project";
+import { RECORD_TYPES } from "../types";
 
 export class TimerHelper {
   private fileHelper: FileHelper;
@@ -67,7 +68,7 @@ export class TimerHelper {
         amount: moment.duration(diff).asHours(),
         end: now.valueOf(),
         message: _.isEmpty(finalCommitMessage) ? undefined : finalCommitMessage,
-        type: "Time",
+        type: RECORD_TYPES.Time,
       });
 
       timer.stop = now.valueOf();
