@@ -3,7 +3,7 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
-import { LogHelper } from "../../helper";
+import { emptyHelper } from "../helper";
 
 describe("Kill test", () => {
   before(() => {
@@ -14,35 +14,55 @@ describe("Kill test", () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const killTimerStub: SinonStub = sinon.stub().resolves();
 
+    // const proxy: any = proxyquire("../../app", {
+    //   "./helper": {
+    //     FileHelper: function FileHelper(): any {
+    //       return {
+    //         configDirExists: sinon.stub().resolves(true),
+    //       };
+    //     },
+    //     GitHelper: function GitHelper(): any {
+    //       return {};
+    //     },
+    //     ImportHelper: function ImportHelper(): any {
+    //       return {};
+    //     },
+    //     LogHelper,
+    //     ProjectHelper: function ProjectHelper(): any {
+    //       return {};
+    //     },
+    //     TimerHelper: function TimerHelper(): any {
+    //       return {
+    //         killTimer: killTimerStub,
+    //       };
+    //     },
+    //   },
+    //   "commander": mockedCommander,
+    // });
+
+    const mockedHelper: any = Object.assign({}, emptyHelper);
+
+    // tslint:disable
+    mockedHelper.FileHelper = class {
+      public static getHomeDir = sinon.stub().returns("/home/test");
+      public configDirExists = sinon.stub().resolves(true);
+      public isConfigFileValid = sinon.stub().resolves(true);
+    }
+
+    mockedHelper.TimerHelper = class {
+      public killTimer = killTimerStub;
+    }
+
     const proxy: any = proxyquire("../../app", {
-      "./helper": {
-        FileHelper: function FileHelper(): any {
-          return {
-            configDirExists: sinon.stub().resolves(true),
-          };
-        },
-        GitHelper: function GitHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
-          return {};
-        },
-        LogHelper,
-        ProjectHelper: function ProjectHelper(): any {
-          return {};
-        },
-        TimerHelper: function TimerHelper(): any {
-          return {
-            killTimer: killTimerStub,
-          };
-        },
-      },
+      "./helper": mockedHelper,
       "commander": mockedCommander,
     });
+    // tslint:enable
+
     const mockedApp: App = new proxy.App();
 
-    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+    // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
+    // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
 
     await mockedApp.setup();
 

@@ -3,19 +3,7 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
-import { LogHelper } from "../../helper";
-
-// tslint:disable
-const emptyHelper = {
-  FileHelper: class { },
-  GitHelper: class { },
-  ImportHelper: class { },
-  ProjectHelper: class { },
-  TimerHelper: class { },
-  QuestionHelper: class { },
-  LogHelper,
-};
-// tslint:enable
+import { emptyHelper } from "../helper";
 
 describe("Commit test", () => {
   before(() => {
@@ -52,20 +40,22 @@ describe("Commit test", () => {
     //   "commander": mockedCommander,
     // });
 
+    const mockedHelper: any = Object.assign({}, emptyHelper);
+
     // tslint:disable
-    emptyHelper.FileHelper = class {
+    mockedHelper.FileHelper = class {
       public static getHomeDir = (): string => {
         return "/home/test";
       }
       public configDirExists = sinon.stub().resolves(true);
       public isConfigFileValid = sinon.stub().resolves(true);
     }
-    emptyHelper.ProjectHelper = class {
+    mockedHelper.ProjectHelper = class {
       public addRecordToProject = addRecordStub
     }
 
     const proxy: any = proxyquire("../../app", {
-      "./helper": emptyHelper,
+      "./helper": mockedHelper,
       "commander": mockedCommander,
     });
     // tslint:enable
