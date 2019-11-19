@@ -690,18 +690,18 @@ New type: ${updatedRecord.type}`;
 
     // order projects
     const orderedProjects: any[] = projectsWithHours.sort((a: any, b: any) => {
-      if (order === "hours") {
-        if (direction === "desc") {
+      if (order === 'hours') {
+        if (direction === 'desc') {
           return (a.hours - b.hours) * -1;
         }
         return (a.hours - b.hours);
       }
 
       if (a.project.name < b.project.name) {
-        return (direction === "desc") ? 1 : -1;
+        return (direction === 'desc') ? 1 : -1;
       }
       if (a.project.name > b.project.name) {
-        return (direction === "desc") ? -1 : 1;
+        return (direction === 'desc') ? -1 : 1;
       }
 
       return 0;
