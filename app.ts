@@ -747,7 +747,7 @@ export class App {
       return;
     }
 
-    const days: number = parseInt(cmd.days) || 14; // default is 14 days (2 weeks sprint)
+    const days: number = parseInt(cmd.days, 10) || 14; // default is 14 days (2 weeks sprint)
     const daysData: any = {};
     const weekdayData: any = { Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0 };
 
