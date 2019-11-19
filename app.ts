@@ -588,7 +588,7 @@ export class App {
     await this.gitHelper.commitChanges(commitMessage);
 
     LogHelper.info(`Removed record (${moment(chosenRecord.end).format("DD.MM.YYYY, HH:mm:ss")
-      }: ${chosenRecord.amount} ${chosenRecord.type} - "${_.truncate(chosenRecord.message)}") from project ${updatedProject.name}`)
+      }: ${chosenRecord.amount} ${chosenRecord.type} - "${_.truncate(chosenRecord.message)}") from project ${updatedProject.name}`);
   }
 
   public async addAction(cmd: Command): Promise<void> {
