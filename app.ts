@@ -674,7 +674,7 @@ New type: ${updatedRecord.type}`;
           amount: hours,
           end: Date.now(),
           message: options.message,
-          type: "Time",
+          type: RECORD_TYPES.Time,
         });
       });
 
@@ -704,13 +704,41 @@ New type: ${updatedRecord.type}`;
 
     commander
       .command("list")
-      .description("Listing all projects")
+      .description("List of time tracks in project")
       .action(async () => {
-        const projects: IProject[] = await this.fileHelper.findAllProjects();
+        let projectFromGit: IProject;
+        try {
+          projectFromGit = this.projectHelper.getProjectFromGit();
+        } catch (err) {
+          LogHelper.debug("Unable to get project name from git folder", err);
+          return this.exit("Unable to get project name from git folder", 1);
+        }
 
-        LogHelper.info("Projects:");
-        for (const prj of projects) {
-          console.log(`- ${prj.name}`);
+        const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
+        if (!projectWithRecords) {
+          return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
+        }
+
+        if (projectWithRecords.records.length === 0) {
+          return this.exit(`No records found for "${projectFromGit.name}"`, 1);
+        }
+
+        //sorting newest to latest
+        const records = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
+          return (b.end - b.amount) - (a.end - a.amount);
+        });
+
+        LogHelper.info(`${projectWithRecords.name}`);
+        LogHelper.info(`--------------------------------------------------------------------------------`);
+        LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
+
+        for (const record of records) {
+          let line = "";
+          line += `${record.type}\t`;
+          line += `${record.amount}h\t`;
+          line += `${moment(record.end - record.amount).format("DD.MM.YYYY HH:mm:ss")}\t`; //TODO should be date
+          line += `${record.message}`;
+          LogHelper.info(line);
         }
       });
 
