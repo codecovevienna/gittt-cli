@@ -7,6 +7,7 @@ import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
 import {
   FileHelper,
+  ChartHelper,
   GitHelper,
   ImportHelper,
   LogHelper,
@@ -26,12 +27,15 @@ import {
   IRecord,
 } from "./interfaces";
 import { RECORD_TYPES } from "./types";
+import { fetchAsyncQuestionPropertyQuestionProperty } from "inquirer/lib/utils/utils";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
 const APP_CONFIG_DIR: string = ".gittt-cli";
+const ORDER_TYPE: string[] = ["name", "hours"];
+const ORDER_DIRECTION: string[] = ["asc", "desc"];
 
 export class App {
   private homeDir: string;
@@ -652,6 +656,136 @@ New type: ${updatedRecord.type}`;
     }
   }
 
+  public async infoAction(cmd: Command): Promise<void> {
+    const project: IProject = this.projectHelper.getProjectFromGit();
+    const projects: IProject[] = await this.fileHelper.findAllProjects();
+
+    const order: string = ORDER_TYPE.indexOf(cmd.order) === -1 ? ORDER_TYPE[0] : cmd.order;
+    const direction: string = ORDER_DIRECTION.indexOf(cmd.direction) === -1 ? ORDER_DIRECTION[0] : cmd.direction;
+
+    // get current Gittt project
+    LogHelper.info("Project in current folder:");
+    if (!project) {
+      LogHelper.error("No project in current folder.");
+    } else {
+      // check if the project is a gittt project
+      const foundProject: IProject = projects.filter((p: IProject) => p.name === project.name)[0];
+      if (foundProject) {
+        const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
+        LogHelper.log(`- ${foundProject.name}: ${hours}h`);
+      } else {
+        LogHelper.error("No gittt project in current git project.");
+      }
+    }
+
+    LogHelper.info("");
+    LogHelper.info(`Projects:`);
+    // add hours to projects
+    const projectsWithHours: any[] = [];
+    for (const prj of projects) {
+      const hours: number = await this.projectHelper.getTotalHours(prj.name);
+      projectsWithHours.push({
+        hours,
+        project: prj,
+      });
+    }
+
+    // order projects
+    const orderedProjects: any[] = projectsWithHours.sort((a: any, b: any) => {
+      if (order === "hours") {
+        if (direction === "desc") {
+          return (a.hours - b.hours) * -1;
+        }
+        return (a.hours - b.hours);
+      }
+
+      if (a.project.name < b.project.name) {
+        return (direction === "desc") ? 1 : -1;
+      }
+      if (a.project.name > b.project.name) {
+        return (direction === "desc") ? -1 : 1;
+      }
+
+      return 0;
+    });
+
+    // print projects
+    for (const prj of orderedProjects) {
+      LogHelper.log(`- ${prj.project.name}: ${prj.hours || "-1"}h`);
+    }
+  }
+
+  public async reportAction(cmd: Command): Promise<void> {
+    const project: IProject = this.projectHelper.getProjectFromGit();
+    const projectName: string = cmd.project ? cmd.project : project.name;
+
+    const projects: IProject[] = await this.fileHelper.findAllProjects();
+
+
+
+    const selectedProject: IProject | null = projects.find((p) => p.name === projectName) || null;
+
+    if (!selectedProject) {
+      LogHelper.error(`Project ${projectName} not found`);
+      return;
+    }
+
+    const days: number = cmd.days || 14; // default is 14 days (2 weeks sprint)
+    let daysData: any = {};
+    let weekdayData: any = { "Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0 };
+
+    // get tomorrow 00:00
+    const now = moment();
+    now.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    now.add(1, "days");
+
+    // get all records in timeframe
+    for (const record of selectedProject.records) {
+      const startTime = moment(record.end).subtract(record.amount, "hours");
+
+      // the difference will be positive for every day into the past
+      const difference = moment.duration(now.diff(startTime));
+
+      // if difference is to great we skip the record
+      if (difference.asDays() > days && days != -1) {
+        continue;
+      }
+
+      // add to daysData
+      const dayString = startTime.format("MMM DD, YYYY (ddd)");
+      daysData[dayString] = daysData[dayString] ? daysData[dayString] + record.amount : record.amount;
+
+      // add to weeklyData
+      const weekdayString = startTime.format("dddd");
+      weekdayData[weekdayString] += record.amount;
+    }
+
+    LogHelper.info("----------------------------------------------------------------------");
+    LogHelper.info(`Project: ${projectName}`);
+    LogHelper.info(`for the last ${days} days`);
+    LogHelper.info("----------------------------------------------------------------------");
+
+    // seperator
+    LogHelper.log("");
+
+    // print daysData
+    if (Object.keys(daysData).length > 0) {
+      LogHelper.info("Days report");
+      LogHelper.log("----------------------------------------------------------------------");
+      LogHelper.log(ChartHelper.chart(daysData, true, 50, false, "h"));
+    }
+
+    // seperator
+    LogHelper.log("");
+
+    // print weeklyData
+    LogHelper.info("Weekday report");
+    LogHelper.log("----------------------------------------------------------------------");
+    LogHelper.log(ChartHelper.chart(weekdayData, true, 50, false, "h"));
+
+    return Promise.resolve();
+  }
+
   public initCommander(): CommanderStatic {
     commander.on("command:*", () => {
       commander.help();
@@ -714,40 +848,53 @@ New type: ${updatedRecord.type}`;
         }
       });
 
+    // report command
+    // will be changed in GITTT-85
     commander
-      .command("log")
-      .description("List of local changes")
-      .action(async () => {
-        const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
-        if (logs.length > 0) {
-          LogHelper.warn("Local changes:");
-          for (const log of logs) {
-            console.log(`${log.date}\n  ${log.message.trim()}`);
-          }
-        } else {
-          LogHelper.info("Everything is up to date");
-        }
-      });
+      .command("report")
+      .description("Prints a small report")
+      .option("-d, --days <number>", "Specify for how many days the report should be printed.")
+      .option("-p, --project <project name>", "Specify the project the report should be printed for. Default is the project in the current directory.")
+      .action((cmd: Command) => this.reportAction(cmd));
 
-    commander
-      .command("status")
-      .description("Overview of all projects")
-      .action(async () => {
-        const projects: IProject[] = await this.fileHelper.findAllProjects();
-        let totalHours: number = 0;
+    // log command
+    // not needed anymore
+    // commander
+    //   .command("log")
+    //   .description("List of local changes")
+    //   .action(async () => {
+    //     const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
+    //     if (logs.length > 0) {
+    //       LogHelper.warn("Local changes:");
+    //       for (const log of logs) {
+    //         console.log(`${log.date}\n  ${log.message.trim()}`);
+    //       }
+    //     } else {
+    //       LogHelper.info("Everything is up to date");
+    //     }
+    //   });
 
-        LogHelper.info("Projects:");
-        for (const pL of projects) {
-          const hours: number = await this.projectHelper.getTotalHours(pL.name);
-          LogHelper.info(`${pL.name}:\t${hours}`);
-          totalHours += hours;
-        }
-        LogHelper.info("");
+    // status command
+    // not needed anymore
+    // commander
+    //   .command("status")
+    //   .description("Overview of all projects")
+    //   .action(async () => {
+    //     const projects: IProject[] = await this.fileHelper.findAllProjects();
+    //     let totalHours: number = 0;
 
-        LogHelper.info("Summery:");
-        LogHelper.info(`Total projects:\t${projects.length}`);
-        LogHelper.info(`Total hours:\t${totalHours}`);
-      });
+    //     LogHelper.info("Projects:");
+    //     for (const pL of projects) {
+    //       const hours: number = await this.projectHelper.getTotalHours(pL.name);
+    //       LogHelper.info(`${pL.name}:\t${hours}`);
+    //       totalHours += hours;
+    //     }
+    //     LogHelper.info("");
+
+    //     LogHelper.info("Summery:");
+    //     LogHelper.info(`Total projects:\t${projects.length}`);
+    //     LogHelper.info(`Total hours:\t${totalHours}`);
+    //   });
 
     commander
       .command("setup")
