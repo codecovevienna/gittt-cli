@@ -32,6 +32,8 @@ const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
 const APP_CONFIG_DIR: string = ".gittt-cli";
+const ORDER_TYPE: string[] = ["name", "hours"];
+const ORDER_DIRECTION: string[] = ["asc", "desc"];
 
 export class App {
   private homeDir: string;
@@ -652,14 +654,75 @@ New type: ${updatedRecord.type}`;
     }
   }
 
+  public async infoAction(cmd: Command): Promise<void> {
+    const project: IProject = this.projectHelper.getProjectFromGit();
+    const projects: IProject[] = await this.fileHelper.findAllProjects();
+
+    const order: string = ORDER_TYPE.indexOf(cmd.order) === -1 ? ORDER_TYPE[0] : cmd.order;
+    const direction: string = ORDER_DIRECTION.indexOf(cmd.direction) === -1 ? ORDER_DIRECTION[0] : cmd.direction;
+
+    // get current Gittt project
+    LogHelper.info("Project in current folder:");
+    if (!project) {
+      LogHelper.error("No project in current folder.");
+    } else {
+      // check if the project is a gittt project
+      const foundProject: IProject = projects.filter((p: IProject) => p.name === project.name)[0];
+      if (foundProject) {
+        const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
+        LogHelper.log(`- ${foundProject.name}: ${hours}h`);
+      } else {
+        LogHelper.error("No gittt project in current git project.");
+      }
+    }
+
+    LogHelper.info("");
+    LogHelper.info(`Projects:`);
+    // add hours to projects
+    const projectsWithHours: any[] = [];
+    for (const prj of projects) {
+      const hours: number = await this.projectHelper.getTotalHours(prj.name);
+      projectsWithHours.push({
+        hours,
+        project: prj,
+      });
+    }
+
+    // order projects
+    const orderedProjects: any[] = projectsWithHours.sort((a: any, b: any) => {
+      if (order === "hours") {
+        if (direction === "desc") {
+          return (a.hours - b.hours) * -1;
+        }
+        return (a.hours - b.hours);
+      }
+
+      if (a.project.name < b.project.name) {
+        return (direction === "desc") ? 1 : -1;
+      }
+      if (a.project.name > b.project.name) {
+        return (direction === "desc") ? -1 : 1;
+      }
+
+      return 0;
+    });
+
+    // print projects
+    for (const prj of orderedProjects) {
+      LogHelper.log(`- ${prj.project.name}: ${prj.hours || "-1"}h`);
+    }
+  }
+
   public initCommander(): CommanderStatic {
     commander.on("command:*", () => {
       commander.help();
     });
 
+    // add version command
     commander
       .version(APP_VERSION);
 
+    // Commit action
     commander
       .command("commit <hours>")
       .description("Committing current hours to the project")
@@ -678,6 +741,7 @@ New type: ${updatedRecord.type}`;
         });
       });
 
+    // add command
     commander
       .command("add")
       .description("Adding hours to the project in the past")
@@ -693,6 +757,7 @@ New type: ${updatedRecord.type}`;
         await this.addAction(cmd);
       });
 
+    // push command
     commander
       .command("push")
       .description("Pushing changes to repository")
@@ -702,60 +767,75 @@ New type: ${updatedRecord.type}`;
         LogHelper.info("Done");
       });
 
+    // info command
+    commander
+      .command("info")
+      .description("Lists info about gittt for this users (projects and hours)")
+      .option("-o, --order <type>", "Specify the ordering (hours or name) default is " + ORDER_TYPE[0])
+      .option("-d, --direction <direction>", "Specify the ordering direction (asc, desc)" + ORDER_DIRECTION[0])
+      .action((cmd: Command) => this.infoAction(cmd));
+
+    // list command
+    // will be changed in GITTT-85
     commander
       .command("list")
-      .description("Listing all projects")
+      .description("Listing all projects (depricated -> see GITTT-85)")
       .action(async () => {
         const projects: IProject[] = await this.fileHelper.findAllProjects();
 
         LogHelper.info("Projects:");
         for (const prj of projects) {
-          console.log(`- ${prj.name}`);
+          LogHelper.log(`- ${prj.name}`);
         }
       });
 
-    commander
-      .command("log")
-      .description("List of local changes")
-      .action(async () => {
-        const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
-        if (logs.length > 0) {
-          LogHelper.warn("Local changes:");
-          for (const log of logs) {
-            console.log(`${log.date}\n  ${log.message.trim()}`);
-          }
-        } else {
-          LogHelper.info("Everything is up to date");
-        }
-      });
+    // log command
+    // not needed anymore
+    // commander
+    //   .command("log")
+    //   .description("List of local changes")
+    //   .action(async () => {
+    //     const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
+    //     if (logs.length > 0) {
+    //       LogHelper.warn("Local changes:");
+    //       for (const log of logs) {
+    //         console.log(`${log.date}\n  ${log.message.trim()}`);
+    //       }
+    //     } else {
+    //       LogHelper.info("Everything is up to date");
+    //     }
+    //   });
 
-    commander
-      .command("status")
-      .description("Overview of all projects")
-      .action(async () => {
-        const projects: IProject[] = await this.fileHelper.findAllProjects();
-        let totalHours: number = 0;
+    // status command
+    // not needed anymore
+    // commander
+    //   .command("status")
+    //   .description("Overview of all projects")
+    //   .action(async () => {
+    //     const projects: IProject[] = await this.fileHelper.findAllProjects();
+    //     let totalHours: number = 0;
 
-        LogHelper.info("Projects:");
-        for (const pL of projects) {
-          const hours: number = await this.projectHelper.getTotalHours(pL.name);
-          LogHelper.info(`${pL.name}:\t${hours}`);
-          totalHours += hours;
-        }
-        LogHelper.info("");
+    //     LogHelper.info("Projects:");
+    //     for (const pL of projects) {
+    //       const hours: number = await this.projectHelper.getTotalHours(pL.name);
+    //       LogHelper.info(`${pL.name}:\t${hours}`);
+    //       totalHours += hours;
+    //     }
+    //     LogHelper.info("");
 
-        LogHelper.info("Summery:");
-        LogHelper.info(`Total projects:\t${projects.length}`);
-        LogHelper.info(`Total hours:\t${totalHours}`);
-      });
+    //     LogHelper.info("Summery:");
+    //     LogHelper.info(`Total projects:\t${projects.length}`);
+    //     LogHelper.info(`Total hours:\t${totalHours}`);
+    //   });
 
     commander
       .command("setup")
-      .description("Initializes config directory")
+      .description("Initializes config directory and setup of gittt git project")
       .action(async () => {
         await this.initConfigDir();
       });
 
+    // start command
     commander
       .command("start")
       .description("Start the timer")
@@ -763,6 +843,7 @@ New type: ${updatedRecord.type}`;
         await this.timerHelper.startTimer();
       });
 
+    // stop command
     commander
       .command("stop")
       .description("Stop the timer and commit to a project")
@@ -776,6 +857,7 @@ New type: ${updatedRecord.type}`;
         }
       });
 
+    // init command
     commander
       .command("init")
       .description("Initializes the project in current git directory")
@@ -793,6 +875,7 @@ New type: ${updatedRecord.type}`;
         }
       });
 
+    // link command
     commander
       .command("link")
       .description("Initializes link to third party applications")
@@ -800,6 +883,7 @@ New type: ${updatedRecord.type}`;
         await this.linkAction(cmd);
       });
 
+    // publish command
     commander
       .command("publish")
       .description("Publishes stored records to external endpoint")
@@ -807,6 +891,7 @@ New type: ${updatedRecord.type}`;
         await this.publishAction(cmd);
       });
 
+    // edit command
     commander
       .command("edit")
       .description("Edit record of current project")
@@ -823,6 +908,7 @@ New type: ${updatedRecord.type}`;
         await this.editAction(cmd);
       });
 
+    // remove command
     commander
       .command("remove")
       .description("Remove record of current project")
@@ -831,6 +917,7 @@ New type: ${updatedRecord.type}`;
         await this.removeAction(cmd);
       });
 
+    // import command
     commander
       .command("import")
       .description("Import records from csv to current project")
