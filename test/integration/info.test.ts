@@ -5,7 +5,7 @@ import { App } from "../../app";
 import { IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
-describe("Status test", () => {
+describe("Info test", () => {
   before(() => {
     proxyquire.noCallThru();
   });
@@ -68,6 +68,7 @@ describe("Status test", () => {
     }
 
     mockedHelper.ProjectHelper = class {
+      public getProjectFromGit = sinon.stub();
       public getTotalHours = sinon.stub();
     }
 
@@ -81,7 +82,7 @@ describe("Status test", () => {
 
     await mockedApp.setup();
 
-    process.argv = ["namespace", "mocked", "status"];
+    process.argv = ["namespace", "mocked", "info"];
     mockedApp.start();
   });
 });
