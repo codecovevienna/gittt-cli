@@ -6,7 +6,7 @@ import { App } from "../../app";
 import { LogHelper } from "../../helper";
 import { IProject, IRecord } from "../../interfaces";
 
-describe("INfo test", () => {
+describe("Info test", () => {
   before(() => {
     proxyquire.noCallThru();
   });
@@ -76,8 +76,8 @@ describe("INfo test", () => {
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {
-            getTotalHours: sinon.stub(),
             getProjectFromGit: sinon.stub(),
+            getTotalHours: sinon.stub(),
           };
         },
         TimerHelper: function TimerHelper(): any {

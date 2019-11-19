@@ -665,15 +665,15 @@ New type: ${updatedRecord.type}`;
     LogHelper.info("Project in current folder:");
     if (!project) {
       LogHelper.error("No project in current folder.");
-    }
-
-    // check if the project is a gittt project
-    const foundProject: IProject = projects.filter((p: IProject) => p.name === project.name)[0];
-    if (foundProject) {
-      const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
-      console.log(`- ${foundProject.name}: ${hours}h`);
     } else {
-      LogHelper.error("No gittt project in current git project.");
+      // check if the project is a gittt project
+      const foundProject: IProject = projects.filter((p: IProject) => p.name === project.name)[0];
+      if (foundProject) {
+        const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
+        console.log(`- ${foundProject.name}: ${hours}h`);
+      } else {
+        LogHelper.error("No gittt project in current git project.");
+      }
     }
 
     LogHelper.info("");
@@ -690,18 +690,18 @@ New type: ${updatedRecord.type}`;
 
     // order projects
     const orderedProjects: any[] = projectsWithHours.sort((a: any, b: any) => {
-      if (order === 'hours') {
-        if (direction === 'desc') {
+      if (order === "hours") {
+        if (direction === "desc") {
           return (a.hours - b.hours) * -1;
         }
         return (a.hours - b.hours);
       }
 
       if (a.project.name < b.project.name) {
-        return (direction === 'desc') ? 1 : -1;
+        return (direction === "desc") ? 1 : -1;
       }
       if (a.project.name > b.project.name) {
-        return (direction === 'desc') ? -1 : 1;
+        return (direction === "desc") ? -1 : 1;
       }
 
       return 0;
@@ -709,7 +709,7 @@ New type: ${updatedRecord.type}`;
 
     // print projects
     for (const prj of orderedProjects) {
-      console.log(`- ${prj.project.name}: ${prj.hours}h`);
+      console.log(`- ${prj.project.name}: ${prj.hours || "-1"}h`);
     }
   }
 
