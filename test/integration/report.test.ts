@@ -77,7 +77,7 @@ describe("Report test", () => {
         ProjectHelper: function ProjectHelper(): any {
           return {
             getProjectFromGit: sinon.stub().resolves({
-              name: 'mocked_project_1',
+              name: "mocked_project_1",
             }),
             getTotalHours: sinon.stub(),
           };
