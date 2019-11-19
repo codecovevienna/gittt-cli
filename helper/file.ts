@@ -3,8 +3,7 @@ import fs, { WriteOptions } from "fs-extra";
 import path from "path";
 import { isString } from "util";
 import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
-import { LogHelper } from "./";
-import { ProjectHelper } from "./project";
+import { LogHelper, parseProjectNameFromGitUrl, ProjectHelper } from "./";
 
 export class FileHelper {
   public static isFile = (input: any): boolean => {
@@ -23,6 +22,19 @@ export class FileHelper {
       }
     }
     return false;
+  }
+
+  public static getHomeDir = (): string => {
+    const home: string | null = require("os").homedir()
+      || process.env.HOME
+      || process.env.HOMEPATH
+      || process.env.USERPROFIL;
+
+    if (!home) {
+      throw new Error("Unable to determinate home directory");
+    }
+
+    return home;
   }
 
   private configFilePath: string;
@@ -145,6 +157,25 @@ export class FileHelper {
     } catch (err) {
       LogHelper.debug("Error reading config file", err);
       throw new Error("Error getting config object");
+    }
+  }
+
+  public async isConfigFileValid(): Promise<boolean> {
+    let config: IConfigFile | undefined;
+
+    try {
+      config = await this.getConfigObject(true);
+    } catch (err) {
+      LogHelper.debug(`Unable to parse config file: ${err.message}`);
+      return false;
+    }
+
+    try {
+      parseProjectNameFromGitUrl(config.gitRepo);
+      return true;
+    } catch (err) {
+      LogHelper.debug("Unable to get project name", err);
+      return false;
     }
   }
 

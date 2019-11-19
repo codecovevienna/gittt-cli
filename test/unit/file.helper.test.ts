@@ -59,6 +59,86 @@ describe("FileHelper", () => {
     });
   });
 
+  describe("Get home directory", () => {
+    it("should get home directory [from os]", async () => {
+      const proxy: any = proxyquire("../../helper/file", {
+        os: {
+          homedir: sinon.stub().returns("/home/test"),
+        },
+      });
+
+      // const app: App = new proxy.App();
+      const homeDir: string = proxy.FileHelper.getHomeDir();
+
+      expect(homeDir).to.eq("/home/test");
+    });
+
+    it("should get home directory [from process.env.HOME]", async () => {
+      const proxy: any = proxyquire("../../helper/file", {
+        os: {
+          homedir: sinon.stub().returns(undefined),
+        },
+      });
+
+      process.env.HOME = "/home/test";
+
+      const homeDir: string = proxy.FileHelper.getHomeDir();
+
+      expect(homeDir).to.eq("/home/test");
+
+      delete process.env.HOME;
+    });
+
+    it("should get home directory [from process.env.HOMEPATH]", async () => {
+      const proxy: any = proxyquire("../../helper/file", {
+        os: {
+          homedir: sinon.stub().returns(undefined),
+        },
+      });
+
+      process.env.HOMEPATH = "/home/test";
+
+      const homeDir: string = proxy.FileHelper.getHomeDir();
+
+      expect(homeDir).to.eq("/home/test");
+
+      delete process.env.HOMEPATH;
+    });
+
+    it("should get home directory [from process.env.USERPROFIL]", async () => {
+      const proxy: any = proxyquire("../../helper/file", {
+        os: {
+          homedir: sinon.stub().returns(undefined),
+        },
+      });
+
+      process.env.USERPROFIL = "/home/test";
+
+      const homeDir: string = proxy.FileHelper.getHomeDir();
+
+      expect(homeDir).to.eq("/home/test");
+
+      delete process.env.USERPROFIL;
+    });
+
+    it("should fail to get home directory", async () => {
+      const homedirStub: SinonStub = sinon.stub().returns(undefined);
+      const proxy: any = proxyquire("../../helper/file", {
+        os: {
+          homedir: homedirStub,
+        },
+      });
+
+      try {
+        proxy.FileHelper.getHomeDir();
+      } catch (err) {
+        assert.isDefined(err);
+      }
+
+      assert.isTrue(homedirStub.calledOnce);
+    });
+  });
+
   describe("General", () => {
     it("should create instance", async () => {
       const fileHelper: FileHelper = new FileHelper(configDir, configFileName, timerFileName, projectsDir);

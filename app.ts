@@ -60,26 +60,12 @@ export class App {
     process.exit(code);
   }
 
-  public getHomeDir(): string {
-    const home: string | null = require("os").homedir()
-      || process.env.HOME
-      || process.env.HOMEPATH
-      || process.env.USERPROFIL;
-
-    if (!home) {
-      throw new Error("Unable to determinate home directory");
-    }
-
-    return home;
-  }
-
   public async setup(): Promise<void> {
-    this.homeDir = this.getHomeDir();
-    this.configDir = path.join(this.homeDir, `${APP_CONFIG_DIR}`);
+    this.configDir = path.join(FileHelper.getHomeDir(), `${APP_CONFIG_DIR}`);
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
 
     // TODO correct place to ask this?
-    if (!(await this.fileHelper.configDirExists()) || !(await this.isConfigFileValid())) {
+    if (!(await this.fileHelper.configDirExists()) || !(await this.fileHelper.isConfigFileValid())) {
       const initAnswers: IInitAnswers = await inquirer.prompt([
         {
           message: `Looks like you never used ${APP_NAME}, should it be set up?`,
@@ -109,7 +95,7 @@ export class App {
       this.fileHelper.createConfigDir();
       this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
 
-      if (!(await this.isConfigFileValid())) {
+      if (!(await this.fileHelper.isConfigFileValid())) {
         const gitUrl: string = await QuestionHelper.askGitUrl();
         LogHelper.info("Initializing local repo");
         await this.gitHelper.initRepo(gitUrl);
@@ -118,7 +104,7 @@ export class App {
         await this.gitHelper.pullRepo();
 
         // Check if a valid config file is already in the repo
-        if (!(await this.isConfigFileValid())) {
+        if (!(await this.fileHelper.isConfigFileValid())) {
           LogHelper.info("Initializing gittt config file");
           await this.fileHelper.initConfigFile(gitUrl);
           LogHelper.info("Committing created config file");
@@ -131,7 +117,7 @@ export class App {
       }
 
     } else {
-      if (await this.isConfigFileValid()) {
+      if (await this.fileHelper.isConfigFileValid()) {
         this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
         await this.gitHelper.pullRepo();
         LogHelper.info(`Config directory ${this.configDir} already initialized`);
@@ -841,24 +827,5 @@ New type: ${updatedRecord.type}`;
       });
 
     return commander;
-  }
-
-  public async isConfigFileValid(): Promise<boolean> {
-    let config: IConfigFile | undefined;
-
-    try {
-      config = await this.fileHelper.getConfigObject(true);
-    } catch (err) {
-      LogHelper.debug(`Unable to parse config file: ${err.message}`);
-      return false;
-    }
-
-    try {
-      parseProjectNameFromGitUrl(config.gitRepo);
-      return true;
-    } catch (err) {
-      LogHelper.debug("Unable to get project name", err);
-      return false;
-    }
   }
 }
