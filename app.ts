@@ -658,8 +658,8 @@ New type: ${updatedRecord.type}`;
     const project: IProject = this.projectHelper.getProjectFromGit();
     const projects: IProject[] = await this.fileHelper.findAllProjects();
 
-    const order: string = ORDER_TYPE.indexOf(cmd.order) == -1 ? ORDER_TYPE[0] : cmd.order;
-    const direction: string = ORDER_DIRECTION.indexOf(cmd.direction) == -1 ? ORDER_DIRECTION[0] : cmd.direction;
+    const order: string = ORDER_TYPE.indexOf(cmd.order) === -1 ? ORDER_TYPE[0] : cmd.order;
+    const direction: string = ORDER_DIRECTION.indexOf(cmd.direction) === -1 ? ORDER_DIRECTION[0] : cmd.direction;
 
     // get current Gittt project
     LogHelper.info("Project in current folder:");
@@ -668,9 +668,9 @@ New type: ${updatedRecord.type}`;
     }
 
     // check if the project is a gittt project
-    const foundProject: IProject = projects.filter(p => p.name == project.name)[0];
+    const foundProject: IProject = projects.filter((p: IProject) => p.name === project.name)[0];
     if (foundProject) {
-      const hours = await this.projectHelper.getTotalHours(foundProject.name)
+      const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
       console.log(`- ${foundProject.name}: ${hours}h`);
     } else {
       LogHelper.error("No gittt project in current git project.");
@@ -681,27 +681,27 @@ New type: ${updatedRecord.type}`;
     // add hours to projects
     const projectsWithHours: any[] = [];
     for (const prj of projects) {
-      const hours = await this.projectHelper.getTotalHours(prj.name)
+      const hours: number = await this.projectHelper.getTotalHours(prj.name);
       projectsWithHours.push({
-        hours: hours,
+        hours,
         project: prj,
       });
     }
 
     // order projects
-    const orderedProjects = projectsWithHours.sort((a: any, b: any) => {
-      if (order == 'hours') {
-        if (direction == 'desc') {
+    const orderedProjects: any[] = projectsWithHours.sort((a: any, b: any) => {
+      if (order === "hours") {
+        if (direction === "desc") {
           return (a.hours - b.hours) * -1;
         }
         return (a.hours - b.hours);
       }
 
       if (a.project.name < b.project.name) {
-        return (direction == 'desc') ? 1 : -1;
+        return (direction === "desc") ? 1 : -1;
       }
       if (a.project.name > b.project.name) {
-        return (direction == 'desc') ? -1 : 1;
+        return (direction === "desc") ? -1 : 1;
       }
 
       return 0;
