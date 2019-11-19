@@ -670,7 +670,7 @@ New type: ${updatedRecord.type}`;
       const foundProject: IProject = projects.filter((p: IProject) => p.name === project.name)[0];
       if (foundProject) {
         const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
-        console.log(`- ${foundProject.name}: ${hours}h`);
+        LogHelper.log(`- ${foundProject.name}: ${hours}h`);
       } else {
         LogHelper.error("No gittt project in current git project.");
       }
@@ -709,7 +709,7 @@ New type: ${updatedRecord.type}`;
 
     // print projects
     for (const prj of orderedProjects) {
-      console.log(`- ${prj.project.name}: ${prj.hours || "-1"}h`);
+      LogHelper.log(`- ${prj.project.name}: ${prj.hours || "-1"}h`);
     }
   }
 
@@ -785,7 +785,7 @@ New type: ${updatedRecord.type}`;
 
         LogHelper.info("Projects:");
         for (const prj of projects) {
-          console.log(`- ${prj.name}`);
+          LogHelper.log(`- ${prj.name}`);
         }
       });
 
