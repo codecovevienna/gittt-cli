@@ -2,7 +2,7 @@ import inquirer from "inquirer";
 import simplegit, { SimpleGit, StatusResult } from "simple-git/promise";
 import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
 import { IOverrideAnswers } from "../interfaces";
-import { FileHelper, LogHelper } from "./index";
+import { FileHelper, LogHelper } from "./";
 
 export class GitHelper {
   private git: SimpleGit;

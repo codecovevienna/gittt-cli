@@ -3,15 +3,8 @@ import csvParser, { CsvParser } from "csv-parser";
 import fs from "fs-extra";
 import { isNumber, isString } from "util";
 import { ICsvRow, IRecord } from "../interfaces";
-import { ProjectHelper } from "./project";
 
 export class ImportHelper {
-  private projectHelper: ProjectHelper;
-
-  constructor(projectHelper: ProjectHelper) {
-    this.projectHelper = projectHelper;
-  }
-
   public importCsv = async (filePath: string): Promise<IRecord[]> => {
 
     const fd: fs.ReadStream = fs.createReadStream(filePath);
@@ -22,7 +15,7 @@ export class ImportHelper {
     const result: IRecord[] = Array<IRecord>();
 
     return new Promise<IRecord[]>((resolve: (value?: IRecord[]) => void,
-                                   reject: (reason?: any) => void): void => {
+      reject: (reason?: any) => void): void => {
       parser.on("data", (data: any) => {
         try {
           assert(data.AMOUNT != null && isString(data.AMOUNT));

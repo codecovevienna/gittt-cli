@@ -1,4 +1,4 @@
-import { parseProjectNameFromGitUrl } from ".";
+import { parseProjectNameFromGitUrl } from "./";
 
 export class ValidationHelper {
   public static validateNumber = (input: any, from?: number, to?: number): boolean => {

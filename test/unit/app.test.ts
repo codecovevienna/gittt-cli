@@ -6,10 +6,7 @@ import { DefaultLogFields } from "simple-git/typings/response";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import {
-  IConfigFile, IInitAnswers,
-  IJiraLink, IJiraPublishResult, IProject, IRecord,
-} from "../../interfaces";
+import { IConfigFile, IInitAnswers, IJiraLink, IJiraPublishResult, IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
 LogHelper.DEBUG = false;

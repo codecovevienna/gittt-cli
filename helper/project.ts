@@ -1,8 +1,13 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
-import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
-import { QuestionHelper } from "./question";
-import { RecordHelper } from "./record";
+import {
+  FileHelper,
+  GitHelper,
+  LogHelper,
+  parseProjectNameFromGitUrl,
+  QuestionHelper,
+  RecordHelper,
+} from "./";
 
 export class ProjectHelper {
   /**

@@ -10,7 +10,6 @@ import {
   GitHelper,
   ImportHelper,
   LogHelper,
-  parseProjectNameFromGitUrl,
   ProjectHelper,
   QuestionHelper,
   TimerHelper,
@@ -87,7 +86,7 @@ export class App {
     this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
     this.projectHelper = new ProjectHelper(this.gitHelper, this.fileHelper);
     this.timerHelper = new TimerHelper(this.fileHelper, this.projectHelper);
-    this.importHelper = new ImportHelper(this.projectHelper);
+    this.importHelper = new ImportHelper();
 
     this.initCommander();
   }

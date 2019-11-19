@@ -1,11 +1,9 @@
-import fs from "fs";
 import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
-import { ProjectHelper } from "./project";
-import { ValidationHelper } from "./validation";
+import { ProjectHelper, ValidationHelper } from "./";
 
 export class QuestionHelper {
   public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
