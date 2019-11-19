@@ -6,7 +6,7 @@ import { App } from "../../app";
 import { LogHelper } from "../../helper";
 import { IProject, IRecord } from "../../interfaces";
 
-describe("Status test", () => {
+describe("Info test", () => {
   before(() => {
     proxyquire.noCallThru();
   });
@@ -76,6 +76,7 @@ describe("Status test", () => {
         LogHelper,
         ProjectHelper: function ProjectHelper(): any {
           return {
+            getProjectFromGit: sinon.stub(),
             getTotalHours: sinon.stub(),
           };
         },
@@ -92,7 +93,7 @@ describe("Status test", () => {
 
     await mockedApp.setup();
 
-    process.argv = ["namespace", "mocked", "status"];
+    process.argv = ["namespace", "mocked", "info"];
     mockedApp.start();
   });
 });

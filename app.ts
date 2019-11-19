@@ -786,9 +786,11 @@ New type: ${updatedRecord.type}`;
       commander.help();
     });
 
+    // add version command
     commander
       .version(APP_VERSION);
 
+    // Commit action
     commander
       .command("commit <hours>")
       .description("Committing current hours to the project")
@@ -807,6 +809,7 @@ New type: ${updatedRecord.type}`;
         });
       });
 
+    // add command
     commander
       .command("add")
       .description("Adding hours to the project in the past")
@@ -822,6 +825,7 @@ New type: ${updatedRecord.type}`;
         await this.addAction(cmd);
       });
 
+    // push command
     commander
       .command("push")
       .description("Pushing changes to repository")
@@ -831,15 +835,25 @@ New type: ${updatedRecord.type}`;
         LogHelper.info("Done");
       });
 
+    // info command
+    commander
+      .command("info")
+      .description("Lists info about gittt for this users (projects and hours)")
+      .option("-o, --order <type>", "Specify the ordering (hours or name) default is " + ORDER_TYPE[0])
+      .option("-d, --direction <direction>", "Specify the ordering direction (asc, desc)" + ORDER_DIRECTION[0])
+      .action((cmd: Command) => this.infoAction(cmd));
+
+    // list command
+    // will be changed in GITTT-85
     commander
       .command("list")
-      .description("Listing all projects")
+      .description("Listing all projects (depricated -> see GITTT-85)")
       .action(async () => {
         const projects: IProject[] = await this.fileHelper.findAllProjects();
 
         LogHelper.info("Projects:");
         for (const prj of projects) {
-          console.log(`- ${prj.name}`);
+          LogHelper.log(`- ${prj.name}`);
         }
       });
 
@@ -893,11 +907,12 @@ New type: ${updatedRecord.type}`;
 
     commander
       .command("setup")
-      .description("Initializes config directory")
+      .description("Initializes config directory and setup of gittt git project")
       .action(async () => {
         await this.initConfigDir();
       });
 
+    // start command
     commander
       .command("start")
       .description("Start the timer")
@@ -905,6 +920,7 @@ New type: ${updatedRecord.type}`;
         await this.timerHelper.startTimer();
       });
 
+    // stop command
     commander
       .command("stop")
       .description("Stop the timer and commit to a project")
@@ -918,6 +934,7 @@ New type: ${updatedRecord.type}`;
         }
       });
 
+    // init command
     commander
       .command("init")
       .description("Initializes the project in current git directory")
@@ -935,6 +952,7 @@ New type: ${updatedRecord.type}`;
         }
       });
 
+    // link command
     commander
       .command("link")
       .description("Initializes link to third party applications")
@@ -942,6 +960,7 @@ New type: ${updatedRecord.type}`;
         await this.linkAction(cmd);
       });
 
+    // publish command
     commander
       .command("publish")
       .description("Publishes stored records to external endpoint")
@@ -949,6 +968,7 @@ New type: ${updatedRecord.type}`;
         await this.publishAction(cmd);
       });
 
+    // edit command
     commander
       .command("edit")
       .description("Edit record of current project")
@@ -965,6 +985,7 @@ New type: ${updatedRecord.type}`;
         await this.editAction(cmd);
       });
 
+    // remove command
     commander
       .command("remove")
       .description("Remove record of current project")
@@ -973,6 +994,7 @@ New type: ${updatedRecord.type}`;
         await this.removeAction(cmd);
       });
 
+    // import command
     commander
       .command("import")
       .description("Import records from csv to current project")
