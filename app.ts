@@ -716,7 +716,7 @@ New type: ${updatedRecord.type}`;
 
   public async reportAction(cmd: Command): Promise<void> {
     const project: IProject = this.projectHelper.getProjectFromGit();
-    const projectName: string = cmd.project ? cmd.project : project.name;
+    const projectName: string = cmd.project ? cmd.project : (project ? project.name: null);
 
     const projects: IProject[] = await this.fileHelper.findAllProjects();
 
