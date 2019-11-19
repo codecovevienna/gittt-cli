@@ -2463,25 +2463,26 @@ describe("App", () => {
     });
   });
 
-  describe.skip("Import records from csv", () => {
+  describe("Import records from csv", () => {
     it("should add records from csv", async () => {
       const addRecordsToProjectStub: SinonStub = sinon.stub().resolves();
 
+      // tslint:disable
       const proxy: any = proxyquire("../../app", {
         "./helper": {
-          FileHelper: function FileHelper(): any {
-            return {
-              configDirExists: sinon.stub().resolves(true),
-              // TODO find way to mock static functions / move helper out of classes
-              isFile: sinon.stub().resolves("/path/mockedFile.csv"),
-            };
+          FileHelper: class {
+            public static isFile = (input: any): boolean => {
+              return true;
+            }
+
+            public configDirExists = async (): Promise<boolean> => {
+              return true;
+            }
           },
-          GitHelper: function GitHelper(): any {
-            return {};
-          },
-          ImportHelper: function ImportHelper(): any {
-            return {
-              importCsv: sinon.stub().resolves([
+          GitHelper: class { },
+          ImportHelper: class {
+            public importCsv = async (filePath: string): Promise<IRecord[]> => {
+              return [
                 {
                   amount: 1337,
                   end: Date.now(),
@@ -2489,20 +2490,18 @@ describe("App", () => {
                   message: "Mocked record",
                   type: "Time",
                 },
-              ] as IRecord[]),
-            };
+              ] as IRecord[];
+            }
           },
           LogHelper,
-          ProjectHelper: function ProjectHelper(): any {
-            return {
-              addRecordsToProject: addRecordsToProjectStub,
-            };
+          ProjectHelper: class {
+            public addRecordsToProject = addRecordsToProjectStub;
           },
-          TimerHelper: function TimerHelper(): any {
-            return {};
-          },
+          TimerHelper: class { },
         },
       });
+      // tslint:enable
+
       const mockedApp: App = new proxy.App();
 
       sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
