@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import commander, { Command, CommanderStatic } from "commander";
 import inquirer from "inquirer";
-import _ from "lodash";
+import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
@@ -151,7 +151,7 @@ export class App {
 
     switch (integration) {
       case "Jira":
-        const project: IProject | null = await this.getOrAskForProjectFromGit();
+        const project: IProject | undefined = await this.getOrAskForProjectFromGit();
 
         if (!project) {
           return this.exit("No valid git project", 1);
@@ -174,7 +174,7 @@ export class App {
     }
   }
 
-  public async getOrAskForProjectFromGit(): Promise<IProject | null> {
+  public async getOrAskForProjectFromGit(): Promise<IProject | undefined> {
     try {
       return this.projectHelper.getProjectFromGit();
     } catch (e) {
@@ -205,11 +205,10 @@ export class App {
         throw e;
       }
     }
-    return null;
   }
 
   public async publishAction(cmd: Command): Promise<void> {
-    const project: IProject | null = await this.getOrAskForProjectFromGit();
+    const project: IProject | undefined = await this.getOrAskForProjectFromGit();
 
     if (!project) {
       return this.exit("No valid git project", 1);
@@ -414,7 +413,7 @@ export class App {
     const interactiveMode: boolean = process.argv.length === 3;
 
     // TODO move to own function, is used multiple times
-    let projectFromGit: IProject | null;
+    let projectFromGit: IProject | undefined;
     try {
       if (interactiveMode) {
         projectFromGit = await this.getOrAskForProjectFromGit();
@@ -571,7 +570,7 @@ export class App {
   public async removeAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
-    let projectFromGit: IProject | null;
+    let projectFromGit: IProject | undefined;
     try {
       if (interactiveMode) {
         projectFromGit = await this.getOrAskForProjectFromGit();
@@ -721,13 +720,14 @@ export class App {
       filePath = (cmd.file && QuestionHelper.validateFile(cmd.file)) ? cmd.file : null;
       if (filePath !== null) {
         const records: IRecord[] = await this.importHelper.importCsv(filePath);
-        await this.projectHelper.addRecordsToProject(records, true, false);
+        //TODO check project
+        await this.projectHelper.addRecordsToProject(records, undefined, true, false);
       }
     }
   }
 
   public async infoAction(cmd: Command): Promise<void> {
-    const project: IProject | null = await this.getOrAskForProjectFromGit();
+    const project: IProject | undefined = await this.getOrAskForProjectFromGit();
 
     if (!project) {
       return this.exit("No valid git project", 1);
@@ -791,12 +791,10 @@ export class App {
   }
 
   public async reportAction(cmd: Command): Promise<void> {
-    const project: IProject | null = await this.getOrAskForProjectFromGit();
+    const project: IProject | undefined = await this.getOrAskForProjectFromGit();
     const projectName: string = cmd.project ? cmd.project : (project ? project.name : "");
 
-    const projects: IProject[] = await this.fileHelper.findAllProjects();
-
-    const selectedProject: IProject | null = projects.find((p: IProject) => p.name === projectName) || null;
+    const selectedProject: IProject | undefined = await this.projectHelper.getProjectByName(projectName);
 
     if (!selectedProject) {
       LogHelper.error(`Project ${projectName} not found`);
@@ -877,7 +875,8 @@ export class App {
         if (isNaN(hours)) {
           return this.exit("Unable to parse hours", 1);
         }
-        const projectName: string = cmd.pro
+
+        const selectedProject: IProject | undefined = isString(options.project) ? await this.projectHelper.getProjectByName(options.project) : await this.getOrAskForProjectFromGit();
 
         await this.projectHelper.addRecordToProject({
           amount: hours,
@@ -933,7 +932,7 @@ export class App {
       .description("List of time tracks in project")
       .option("-p, --project [project]", "Specify the project to get the time tracks")
       .action(async () => {
-        let projectFromGit: IProject | null;
+        let projectFromGit: IProject | undefined;
         try {
           projectFromGit = await this.getOrAskForProjectFromGit();
         } catch (err) {

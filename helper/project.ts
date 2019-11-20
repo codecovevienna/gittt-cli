@@ -5,6 +5,7 @@ import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "..
 import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoUrlError } from "../types";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 import { QuestionHelper } from "./question";
+import { isString } from "util";
 
 export class ProjectHelper {
   /**
@@ -130,12 +131,13 @@ export class ProjectHelper {
 
   public addRecordsToProject = async (
     records: IRecord[],
+    project?: IProject,
     uniqueOnly?: boolean,
     nonOverlappingOnly?: boolean,
   ): Promise<void> => {
-    const project: IProject = await this.findOrInitProjectByName(this.getProjectFromGit().name);
+    const selectedProject: IProject = project ? project : await this.findOrInitProjectByName(this.getProjectFromGit().name);
 
-    if (!project) {
+    if (!selectedProject) {
       return;
     }
 
@@ -143,10 +145,10 @@ export class ProjectHelper {
       let shouldAddRecord: boolean = true;
 
       if (uniqueOnly === true) {
-        shouldAddRecord = this.isRecordUnique(record, project.records);
+        shouldAddRecord = this.isRecordUnique(record, selectedProject.records);
       }
       if (nonOverlappingOnly === true) {
-        shouldAddRecord = this.isRecordOverlapping(record, project.records);
+        shouldAddRecord = this.isRecordOverlapping(record, selectedProject.records);
       }
 
       if (shouldAddRecord) {
@@ -154,49 +156,50 @@ export class ProjectHelper {
       }
 
       LogHelper.warn(
-        `Could not add record (amount: ${record.amount}, end: ${record.end}, type: ${record.type}) to ${project.name}`,
+        `Could not add record (amount: ${record.amount}, end: ${record.end}, type: ${record.type}) to ${selectedProject.name}`,
       );
     });
 
     if (records.length === 1) {
       let record: IRecord = records[0];
 
-      LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}) to ${project.name}`);
+      LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}) to ${selectedProject.name}`);
 
       record = this.setRecordDefaults(record);
 
-      project.records.push(record);
-      await this.fileHelper.saveProjectObject(project);
+      selectedProject.records.push(record);
+      await this.fileHelper.saveProjectObject(selectedProject);
 
       // TODO differ between types
       const hourString: string = record.amount === 1 ? "hour" : "hours";
       if (record.message) {
         await this.gitHelper.commitChanges(
-          `Added ${record.amount} ${hourString} to ${project.name}: "${record.message}"`,
+          `Added ${record.amount} ${hourString} to ${selectedProject.name}: "${record.message}"`,
         );
       } else {
-        await this.gitHelper.commitChanges(`Added ${record.amount} ${hourString} to ${project.name}`);
+        await this.gitHelper.commitChanges(`Added ${record.amount} ${hourString} to ${selectedProject.name}`);
       }
     } else if (records.length > 1) {
       if (records.length > 1) {
         records.forEach((record: IRecord) => {
 
           record = this.setRecordDefaults(record);
-          project.records.push(record);
+          selectedProject.records.push(record);
         });
 
-        LogHelper.info(`Adding (${records.length}) records to ${project.name}`);
-        await this.fileHelper.saveProjectObject(project);
-        await this.gitHelper.commitChanges(`Added ${records.length} records to ${project.name}`);
+        LogHelper.info(`Adding (${records.length}) records to ${selectedProject.name}`);
+        await this.fileHelper.saveProjectObject(selectedProject);
+        await this.gitHelper.commitChanges(`Added ${records.length} records to ${selectedProject.name}`);
       }
     }
   }
 
   public addRecordToProject = async (
     record: IRecord,
+    project?: IProject,
     uniqueOnly?: boolean,
     nonOverlappingOnly?: boolean,
-  ): Promise<void> => this.addRecordsToProject([record], uniqueOnly, nonOverlappingOnly)
+  ): Promise<void> => this.addRecordsToProject([record], project, uniqueOnly, nonOverlappingOnly)
 
   // TODO projectName optional? find it by .git folder
   public getTotalHours = async (projectName: string): Promise<number> => {
@@ -212,6 +215,14 @@ export class ProjectHelper {
         return prev;
       }
     }, 0);
+  }
+
+  public getProjectByName = async (name: string): Promise<IProject | undefined> => {
+    if (!isString(name)) {
+      return undefined;
+    }
+    const projects: IProject[] = await this.fileHelper.findAllProjects();
+    return projects.find((p: IProject) => p.name === name) || undefined;
   }
 
   public getProjectFromGit = (): IProject => {

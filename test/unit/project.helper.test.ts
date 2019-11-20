@@ -613,6 +613,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           false,
           true,
         );
@@ -677,6 +678,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           false,
           true,
         );
@@ -741,6 +743,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           false,
           true,
         );
@@ -805,6 +808,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           false,
           true,
         );
@@ -869,6 +873,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           false,
           true,
         );
@@ -940,6 +945,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           false,
           true,
         );
@@ -1012,6 +1018,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           false,
           true,
         );
@@ -1089,6 +1096,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           false,
           true,
         );
@@ -1157,6 +1165,7 @@ describe("ProjectHelper", () => {
               type: RECORD_TYPES.Time,
             },
           ],
+          undefined,
           true,
           false,
         );
