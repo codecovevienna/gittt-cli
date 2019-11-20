@@ -27,7 +27,7 @@ import {
   IProject,
   IRecord,
 } from "./interfaces";
-import { RECORD_TYPES } from "./types";
+import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoUrlError } from "./types";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
@@ -151,10 +151,10 @@ export class App {
 
     switch (integration) {
       case "Jira":
-        const project: IProject = this.projectHelper.getProjectFromGit();
+        const project: IProject | null = await this.getOrAskForProjectFromGit();
 
         if (!project) {
-          return this.exit("Seems like you are not in a valid git directory", 1);
+          return this.exit("No valid git project", 1);
         }
         // TODO validate if record exists in projects dir(?)
 
@@ -174,11 +174,45 @@ export class App {
     }
   }
 
+  public async getOrAskForProjectFromGit(): Promise<IProject | null> {
+    try {
+      return this.projectHelper.getProjectFromGit();
+    } catch (e) {
+      if (e instanceof GitRemoteError) {
+        // means that this is no
+        LogHelper.warn(e.message);
+
+        const fromDomainProject: string = await QuestionHelper.chooseProjectFile(await this.fileHelper.findAllProjects());
+
+        const [domain, name] = fromDomainProject.split("/");
+        const project: IProject | undefined = await this.fileHelper.findProjectByName(
+          // TODO find a better way?
+          name.replace(".json", ""),
+          ProjectHelper.domainToProjectMeta(domain),
+        );
+
+        if (!project) {
+          throw new Error("Unable to find project on disk");
+        }
+
+        return project;
+
+        // } else if (e instanceof GitNoOriginError) {
+
+        // } else if (e instanceof GitNoUrlError) {
+
+      } else {
+        throw e;
+      }
+    }
+    return null;
+  }
+
   public async publishAction(cmd: Command): Promise<void> {
-    const project: IProject = this.projectHelper.getProjectFromGit();
+    const project: IProject | null = await this.getOrAskForProjectFromGit();
 
     if (!project) {
-      return this.exit("Seems like you are not in a valid git directory", 1);
+      return this.exit("No valid git project", 1);
     }
 
     const configObject: IConfigFile = await this.fileHelper.getConfigObject();
@@ -380,12 +414,20 @@ export class App {
     const interactiveMode: boolean = process.argv.length === 3;
 
     // TODO move to own function, is used multiple times
-    let projectFromGit: IProject;
+    let projectFromGit: IProject | null;
     try {
-      projectFromGit = this.projectHelper.getProjectFromGit();
+      if (interactiveMode) {
+        projectFromGit = await this.getOrAskForProjectFromGit();
+      } else {
+        projectFromGit = this.projectHelper.getProjectFromGit();
+      }
     } catch (err) {
       LogHelper.debug("Unable to get project name from git folder", err);
       return this.exit("Unable to get project name from git folder", 1);
+    }
+
+    if (!projectFromGit) {
+      return this.exit("No valid git project", 1);
     }
 
     const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
@@ -529,12 +571,20 @@ export class App {
   public async removeAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
-    let projectFromGit: IProject;
+    let projectFromGit: IProject | null;
     try {
-      projectFromGit = this.projectHelper.getProjectFromGit();
+      if (interactiveMode) {
+        projectFromGit = await this.getOrAskForProjectFromGit();
+      } else {
+        projectFromGit = this.projectHelper.getProjectFromGit();
+      }
     } catch (err) {
       LogHelper.debug("Unable to get project name from git folder", err);
       return this.exit("Unable to get project name from git folder", 1);
+    }
+
+    if (!projectFromGit) {
+      return this.exit("No valid git project", 1);
     }
 
     const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
@@ -677,7 +727,12 @@ export class App {
   }
 
   public async infoAction(cmd: Command): Promise<void> {
-    const project: IProject = this.projectHelper.getProjectFromGit();
+    const project: IProject | null = await this.getOrAskForProjectFromGit();
+
+    if (!project) {
+      return this.exit("No valid git project", 1);
+    }
+
     const projects: IProject[] = await this.fileHelper.findAllProjects();
 
     const order: string = ORDER_TYPE.indexOf(cmd.order) === -1 ? ORDER_TYPE[0] : cmd.order;
@@ -736,7 +791,7 @@ export class App {
   }
 
   public async reportAction(cmd: Command): Promise<void> {
-    const project: IProject = this.projectHelper.getProjectFromGit();
+    const project: IProject | null = await this.getOrAskForProjectFromGit();
     const projectName: string = cmd.project ? cmd.project : (project ? project.name : "");
 
     const projects: IProject[] = await this.fileHelper.findAllProjects();
@@ -816,11 +871,13 @@ export class App {
       .command("commit <hours>")
       .description("Committing current hours to the project")
       .option("-m, --message <message>", "Description of the spent hours")
+      .option("-p, --project [project]", "Specify the project to commit to")
       .action(async (cmd: string, options: any): Promise<void> => {
         const hours: number = parseFloat(cmd);
         if (isNaN(hours)) {
           return this.exit("Unable to parse hours", 1);
         }
+        const projectName: string = cmd.pro
 
         await this.projectHelper.addRecordToProject({
           amount: hours,
@@ -842,6 +899,7 @@ export class App {
       .option("-M, --minute [minute]", "Specify the minute, defaults to current minute")
       .option("-w, --message [message]", "Specify the message of the record")
       .option("-t, --type [type]", "Specify the type of the record")
+      .option("-p, --project [project]", "Specify the project to add the record")
       .action(async (cmd: Command): Promise<void> => {
         await this.addAction(cmd);
       });
@@ -850,7 +908,10 @@ export class App {
     commander
       .command("push")
       .description("Pushing changes to repository")
+      .option("-p, --project [project]", "Specify the project to push")
       .action(async () => {
+        //TODO project
+
         LogHelper.info("Pushing changes...");
         await this.gitHelper.pushChanges();
         LogHelper.info("Done");
@@ -862,6 +923,7 @@ export class App {
       .description("Lists info about gittt for this users (projects and hours)")
       .option("-o, --order <type>", "Specify the ordering (hours or name) default is " + ORDER_TYPE[0])
       .option("-d, --direction <direction>", "Specify the ordering direction (asc, desc)" + ORDER_DIRECTION[0])
+      .option("-p, --project [project]", "Specify the project to get the information")
       .action((cmd: Command) => this.infoAction(cmd));
 
     // list command
@@ -869,13 +931,18 @@ export class App {
     commander
       .command("list")
       .description("List of time tracks in project")
+      .option("-p, --project [project]", "Specify the project to get the time tracks")
       .action(async () => {
-        let projectFromGit: IProject;
+        let projectFromGit: IProject | null;
         try {
-          projectFromGit = this.projectHelper.getProjectFromGit();
+          projectFromGit = await this.getOrAskForProjectFromGit();
         } catch (err) {
           LogHelper.debug("Unable to get project name from git folder", err);
           return this.exit("Unable to get project name from git folder", 1);
+        }
+
+        if (!projectFromGit) {
+          return this.exit("No valid git project", 1);
         }
 
         const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
@@ -920,8 +987,8 @@ export class App {
     commander
       .command("report")
       .description("Prints a small report")
-      .option("-d, --days <number>", "Specify for how many days the report should be printed.")
-      .option("-p, --project <project name>", "Specify the project the report should be printed for. Default is the project in the current directory.")
+      .option("-d, --days [number]", "Specify for how many days the report should be printed.")
+      .option("-p, --project [project]", "Specify the project the report should be printed for")
       .action((cmd: Command) => this.reportAction(cmd));
 
     // log command
@@ -984,6 +1051,7 @@ export class App {
       .description("Stop the timer and commit to a project")
       .option("-k, --kill", "Kill the timer for a project")
       .option("-m, --message <message>", "Commit message for the project")
+      .option("-p, --project [project]", "Specify the project to add your time to")
       .action(async (cmd: any): Promise<void> => {
         if (cmd.kill) {
           await this.timerHelper.killTimer();
@@ -1014,6 +1082,7 @@ export class App {
     commander
       .command("link")
       .description("Initializes link to third party applications")
+      .option("-p, --project [project]", "Specify the project to link")
       .action(async (cmd: Command) => {
         await this.linkAction(cmd);
       });
@@ -1022,6 +1091,7 @@ export class App {
     commander
       .command("publish")
       .description("Publishes stored records to external endpoint")
+      .option("-p, --project [project]", "Specify the project to publish")
       .action(async (cmd: Command) => {
         await this.publishAction(cmd);
       });
@@ -1039,6 +1109,7 @@ export class App {
       .option("-M, --minute [minute]", "Specify the minute, defaults to current minute")
       .option("-w, --message [message]", "Specify the message of the record")
       .option("-t, --type [type]", "Specify the type of the record")
+      .option("-p, --project [project]", "Specify the project to edit")
       .action(async (cmd: Command): Promise<void> => {
         await this.editAction(cmd);
       });
@@ -1046,8 +1117,9 @@ export class App {
     // remove command
     commander
       .command("remove")
-      .description("Remove record of current project")
+      .description("Remove record from a project")
       .option("-g, --guid [guid]", "GUID of the record to remove")
+      .option("-p, --project [project]", "Specify the project to remove a record")
       .action(async (cmd: Command): Promise<void> => {
         await this.removeAction(cmd);
       });
@@ -1057,6 +1129,7 @@ export class App {
       .command("import")
       .description("Import records from csv to current project")
       .option("-f, --file [file]", "CSV file with format (MESSAGE,END[int],AMOUNT[double])")
+      .option("-p, --project [project]", "Specify the project to import records to")
       .action(async (cmd: Command): Promise<void> => {
         await this.importCsv(cmd);
       });

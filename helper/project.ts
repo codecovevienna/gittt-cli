@@ -2,7 +2,7 @@ import fs, { WriteOptions } from "fs-extra";
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import uuid from "uuid/v1";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
-import { RECORD_TYPES } from "../types";
+import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoUrlError } from "../types";
 import { FileHelper, GitHelper, LogHelper, parseProjectNameFromGitUrl } from "./index";
 import { QuestionHelper } from "./question";
 
@@ -222,7 +222,7 @@ export class ProjectHelper {
 
     if (gitRemoteExec.code !== 0) {
       LogHelper.debug("Error executing git remote", new Error(gitRemoteExec.stdout));
-      throw new Error("Unable to get remotes from git config");
+      throw new GitRemoteError("Unable to get remotes from git config");
     }
 
     const remotes: string[] = gitRemoteExec.stdout.trim().split("\n");
@@ -233,7 +233,7 @@ export class ProjectHelper {
 
       if (!hasOrigin) {
         LogHelper.error(`Unable to find any remote called "origin"`);
-        throw new Error(`Unable to find any remote called "origin"`);
+        throw new GitNoOriginError(`Unable to find any remote called "origin"`);
       }
     }
 
@@ -244,7 +244,7 @@ export class ProjectHelper {
 
     if (gitConfigExec.code !== 0 || gitConfigExec.stdout.length < 4) {
       LogHelper.debug("Error executing git config remote.origin.url", new Error(gitConfigExec.stdout));
-      throw new Error("Unable to get URL from git config");
+      throw new GitNoUrlError("Unable to get URL from git config");
     }
 
     const originUrl: string = gitConfigExec.stdout.trim();
