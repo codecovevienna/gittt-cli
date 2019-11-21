@@ -3,8 +3,8 @@ import { IRecord } from "../interfaces";
 
 export class RecordHelper {
   /*
-     * returns {boolean} true if provided record is identical to any record in records
-     */
+   * returns {boolean} true if provided record is identical to any record in records
+   */
   public static isRecordUnique = (record: IRecord, records: IRecord[]): boolean => {
     // check if amount, end, message and type is found in records
     return records.find((existingRecord: IRecord) => {
