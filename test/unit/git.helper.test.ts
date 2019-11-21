@@ -4,8 +4,7 @@ import proxyquire from "proxyquire";
 import { StatusResult } from "simple-git/promise";
 import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
 import sinon, { SinonSpy, SinonStub } from "sinon";
-import { FileHelper, GitHelper, LogHelper } from "../../helper/index";
-import { IOverrideAnswers } from "../../interfaces";
+import { FileHelper, GitHelper, LogHelper } from "../../helper/";
 
 const sandboxDir: string = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -185,7 +184,7 @@ describe("GitHelper", () => {
     assert.isTrue(addRemoteSpy.calledWith("origin", "url"));
   });
 
-  it("should pull repo [reset: default, override: 0]", async () => {
+  it("should pull repo [reset: default, choice: 0]", async () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -197,11 +196,13 @@ describe("GitHelper", () => {
       .onCall(0).rejects(new Error("Mocked error"))
       .onCall(1).resolves();
 
+    // tslint:disable
     const proxy: any = proxyquire("../../helper/git", {
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          override: 0,
-        } as IOverrideAnswers),
+      "./": {
+        QuestionHelper: class {
+          public static chooseOverrideLocalChanges = sinon.stub().resolves(0);
+        },
+        LogHelper
       },
       "simple-git/promise": (): any => {
         return {
@@ -210,6 +211,7 @@ describe("GitHelper", () => {
         };
       },
     });
+    // tslint:enable
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -221,7 +223,7 @@ describe("GitHelper", () => {
     assert.isTrue(invalidateCacheSpy.calledOnce);
   });
 
-  it("should pull repo [reset: default, override: 1]", async () => {
+  it("should pull repo [reset: default, choice: 1]", async () => {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -231,11 +233,13 @@ describe("GitHelper", () => {
     const addSpy: SinonSpy = sinon.spy();
     const commitSpy: SinonSpy = sinon.spy();
     const rawSpy: SinonSpy = sinon.spy();
+    // tslint:disable
     const proxy: any = proxyquire("../../helper/git", {
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          override: 1,
-        } as IOverrideAnswers),
+      "./": {
+        QuestionHelper: class {
+          public static chooseOverrideLocalChanges = sinon.stub().resolves(1);
+        },
+        LogHelper
       },
       "simple-git/promise": (): any => {
         return {
@@ -247,6 +251,7 @@ describe("GitHelper", () => {
         };
       },
     });
+    // tslint:enable
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -268,11 +273,14 @@ describe("GitHelper", () => {
 
     const resetSpy: SinonSpy = sinon.spy();
     const pullSpy: SinonSpy = sinon.spy();
+
+    // tslint:disable
     const proxy: any = proxyquire("../../helper/git", {
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          override: 1,
-        } as IOverrideAnswers),
+      "./": {
+        QuestionHelper: class {
+          public static chooseOverrideLocalChanges = sinon.stub().resolves(1);
+        },
+        LogHelper
       },
       "simple-git/promise": (): any => {
         return {
@@ -281,6 +289,7 @@ describe("GitHelper", () => {
         };
       },
     });
+    // tslint:enable
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -366,11 +375,14 @@ describe("GitHelper", () => {
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const exitStub: SinonStub = sinon.stub(process, "exit");
+
+    // tslint:disable
     const proxy: any = proxyquire("../../helper/git", {
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          override: 2,
-        } as IOverrideAnswers),
+      "./": {
+        QuestionHelper: class {
+          public static chooseOverrideLocalChanges = sinon.stub().resolves(2);
+        },
+        LogHelper
       },
       "simple-git/promise": (): any => {
         return {
@@ -378,6 +390,7 @@ describe("GitHelper", () => {
         };
       },
     });
+    // tslint:enable
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -392,11 +405,13 @@ describe("GitHelper", () => {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
+    // tslint:disable
     const proxy: any = proxyquire("../../helper/git", {
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          override: 1337,
-        } as IOverrideAnswers),
+      "./": {
+        QuestionHelper: class {
+          public static chooseOverrideLocalChanges = sinon.stub().resolves(1337);
+        },
+        LogHelper
       },
       "simple-git/promise": (): any => {
         return {
@@ -404,6 +419,7 @@ describe("GitHelper", () => {
         };
       },
     });
+    // tslint:enable
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 

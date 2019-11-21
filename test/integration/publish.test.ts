@@ -3,7 +3,7 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
-import { LogHelper } from "../../helper";
+import { emptyHelper } from "../helper";
 
 describe("Publish test", () => {
   before(() => {
@@ -12,34 +12,22 @@ describe("Publish test", () => {
 
   it("should publish records to external tool", async () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
+    const mockedHelper: any = Object.assign({}, emptyHelper);
+
+    // tslint:disable
+    mockedHelper.FileHelper = class {
+      public static getHomeDir = sinon.stub().returns("/home/test");
+      public configDirExists = sinon.stub().resolves(true);
+      public isConfigFileValid = sinon.stub().resolves(true);
+    }
 
     const proxy: any = proxyquire("../../app", {
-      "./helper": {
-        FileHelper: function FileHelper(): any {
-          return {
-            configDirExists: sinon.stub().resolves(true),
-          };
-        },
-        GitHelper: function GitHelper(): any {
-          return {};
-        },
-        ImportHelper: function ImportHelper(): any {
-          return {};
-        },
-        LogHelper,
-        ProjectHelper: function ProjectHelper(): any {
-          return {};
-        },
-        TimerHelper: function TimerHelper(): any {
-          return {};
-        },
-      },
+      "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    const mockedApp: App = new proxy.App();
+    // tslint:enable
 
-    sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
+    const mockedApp: App = new proxy.App();
 
     const publishActionStub: SinonStub = sinon.stub(mockedApp, "publishAction").resolves();
 

@@ -1,8 +1,6 @@
-import inquirer from "inquirer";
 import simplegit, { SimpleGit, StatusResult } from "simple-git/promise";
 import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
-import { IOverrideAnswers } from "../interfaces";
-import { FileHelper, LogHelper } from "./index";
+import { FileHelper, LogHelper, QuestionHelper } from "./";
 
 export class GitHelper {
   private git: SimpleGit;
@@ -59,20 +57,7 @@ export class GitHelper {
         await this.fileHelper.initReadme();
         override = 1;
       } else {
-        const overrideLocalAnswers: IOverrideAnswers = await inquirer.prompt([
-          {
-            choices: [
-              { name: "Override local config file", value: 0 },
-              { name: "Override remote config file", value: 1 },
-              { name: "Exit", value: 2 },
-            ],
-            message: `Remote repo is not empty, override local changes?`,
-            name: "override",
-            type: "list",
-          },
-        ]) as IOverrideAnswers;
-
-        override = overrideLocalAnswers.override;
+        override = await QuestionHelper.chooseOverrideLocalChanges();
       }
 
       switch (override) {
