@@ -113,7 +113,7 @@ export class FileHelper {
     }
   }
 
-  public getConfigObject = async (fromDisk: boolean = false): Promise<IConfigFile> => {
+  public getConfigObject = async (fromDisk = false): Promise<IConfigFile> => {
     try {
       if (!this.configObject || fromDisk) {
         const configObj: IConfigFile = await fs.readJson(this.configFilePath);
@@ -249,7 +249,7 @@ export class FileHelper {
     return projects;
   }
 
-  public removeDomainDirectory = async (projectMeta: IProjectMeta, force: boolean = false): Promise<void> => {
+  public removeDomainDirectory = async (projectMeta: IProjectMeta, force = false): Promise<void> => {
     const projectsInDomain: IProject[] = await this.findProjectsForDomain(projectMeta);
     if (projectsInDomain.length > 0) {
       if (force) {

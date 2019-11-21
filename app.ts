@@ -29,11 +29,11 @@ import {
 } from "./interfaces";
 import { RECORD_TYPES } from "./types";
 
-// tslint:disable-next-line no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
-const APP_CONFIG_DIR: string = ".gittt-cli";
+const APP_CONFIG_DIR = ".gittt-cli";
 const ORDER_TYPE: string[] = ["name", "hours"];
 const ORDER_DIRECTION: string[] = ["asc", "desc"];
 
@@ -295,7 +295,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        year: string,
+        year: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -329,7 +329,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        month: string,
+        month: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -363,7 +363,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        day: string,
+        day: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -500,7 +500,7 @@ export class App {
 
     await this.fileHelper.saveProjectObject(updatedProject);
 
-    let changes: string = "";
+    let changes = "";
 
     if (updatedRecord.amount !== chosenRecord.amount) {
       changes += `amount: ${updatedRecord.amount}, `;
@@ -585,7 +585,7 @@ export class App {
 
     await this.fileHelper.saveProjectObject(updatedProject);
 
-    const commitMessage: string = `Removed record ${chosenRecord.guid} from project ${updatedProject.name}`;
+    const commitMessage = `Removed record ${chosenRecord.guid} from project ${updatedProject.name}`;
 
     await this.gitHelper.commitChanges(commitMessage);
 
@@ -900,9 +900,9 @@ export class App {
         LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
         LogHelper.print(`--------------------------------------------------------------------------------`);
 
-        let sumOfTime: number = 0;
+        let sumOfTime = 0;
         for (const record of records) {
-          let line: string = "";
+          let line = "";
           line += `${record.type}\t`;
           line += chalk.yellow.bold(`${record.amount}h\t`);
           line += `${moment(record.end).subtract(record.amount, "hours").format("DD.MM.YYYY HH:mm:ss")}\t`;

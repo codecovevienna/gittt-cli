@@ -43,7 +43,7 @@ export class GitHelper {
     }
   }
 
-  public pullRepo = async (reset: boolean = false): Promise<void> => {
+  public pullRepo = async (reset = false): Promise<void> => {
     try {
       if (reset) {
         LogHelper.debug("Resetting to origin/master");
@@ -53,7 +53,7 @@ export class GitHelper {
       LogHelper.info("Pulled repo successfully");
     } catch (err) {
 
-      let override: number = 255;
+      let override = 255;
 
       if (err.message === "fatal: couldn't find remote ref master\n") {
         await this.fileHelper.initReadme();

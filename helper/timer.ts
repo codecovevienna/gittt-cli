@@ -1,7 +1,6 @@
 import inquirer from "inquirer";
 import _ from "lodash";
 import moment, { Moment } from "moment";
-import { isString } from "util";
 import { IGitCommitMessageAnswers, ITimerFile } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { FileHelper, LogHelper } from "./index";

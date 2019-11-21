@@ -2,7 +2,7 @@
 # Include .gitkeep files so folders are actually created
 !.gitkeep
 #exclude vscode config
-.vscode
+# .vscode
 dist
 notes
 

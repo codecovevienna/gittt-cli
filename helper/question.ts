@@ -208,7 +208,7 @@ export class QuestionHelper {
     }
 
     const choice: any = await inquirer.prompt([question]) as {
-      amount: number,
+      amount: number;
     };
 
     return parseFloat(choice.choice);
@@ -315,7 +315,7 @@ export class QuestionHelper {
   }
 
   public static chooseType = async (oldType?: RECORD_TYPES): Promise<RECORD_TYPES> => {
-    const choices: Array<{ name: string, value: string }> = [
+    const choices: Array<{ name: string; value: string }> = [
       {
         name: RECORD_TYPES.Time,
         value: RECORD_TYPES.Time,

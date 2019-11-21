@@ -27,7 +27,7 @@ export class ProjectHelper {
   public static domainToProjectMeta = (domain: string): IProjectMeta => {
     const split: string[] = domain.split("_");
     const potentialPort: number = parseInt(split[split.length - 1], 10);
-    let port: number = 0;
+    let port = 0;
     let splitClean: string[] = [];
 
     if (!isNaN(potentialPort)) {
@@ -140,7 +140,7 @@ export class ProjectHelper {
     }
 
     records = records.filter((record: IRecord) => {
-      let shouldAddRecord: boolean = true;
+      let shouldAddRecord = true;
 
       if (uniqueOnly === true) {
         shouldAddRecord = this.isRecordUnique(record, project.records);
