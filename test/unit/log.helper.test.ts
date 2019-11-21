@@ -220,4 +220,27 @@ describe("LogHelper", function () {
 
     assert.isTrue(greenStub.notCalled);
   });
+
+  it("should print message", async function () {
+    const proxy: any = proxyquire("../../helper/log", {});
+
+    const logStub: SinonStub = sinon.stub(console, "log").returns();
+
+    proxy.LogHelper.print("Message");
+
+    assert.isTrue(logStub.calledOnce);
+    logStub.restore();
+  });
+
+  it("should not print message", async function () {
+    const proxy: any = proxyquire("../../helper/log", {});
+
+    const logStub: SinonStub = sinon.stub(console, "log").returns();
+
+    proxy.LogHelper.silence = true;
+    proxy.LogHelper.print("Message");
+
+    assert.isTrue(logStub.notCalled);
+    logStub.restore();
+  });
 });

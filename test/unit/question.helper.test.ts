@@ -269,6 +269,19 @@ describe("QuestionHelper", function () {
     expect(choice).to.eq("gitlab_com_443/codecovevienna_gittt-cli.json");
   });
 
+  it("should choose override local changes", async function () {
+    const proxy: any = proxyquire("../../helper/question", {
+      inquirer: {
+        prompt: sinon.stub().resolves({
+          choice: "0",
+        }),
+      },
+    });
+
+    const choice: string = await proxy.QuestionHelper.chooseOverrideLocalChanges();
+    expect(choice).to.eq(0);
+  });
+
   it("should confirm migration", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
