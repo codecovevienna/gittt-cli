@@ -5,7 +5,7 @@ import moment from "moment";
 import { isString } from "util";
 import { parseProjectNameFromGitUrl } from ".";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
-import { RECORD_TYPES } from "../types";
+import { RECORD_TYPES, ORDER_TYPE, ORDER_DIRECTION } from "../types";
 import { ProjectHelper } from "./project";
 
 export class QuestionHelper {
@@ -386,6 +386,40 @@ export class QuestionHelper {
 
     return choice.choice;
   }
+
+  // public static chooseOrder = async (): Promise<string> => {
+  //   const choices: Array<{ name: string, value: string }> = ORDER_TYPE.map((value: string) => { return { name: value, value: value }; });
+
+  //   const question: ListQuestion = {
+  //     choices,
+  //     message: "Order",
+  //     name: "choice",
+  //     type: "list",
+  //   };
+
+  //   question.default = ORDER_TYPE[0];
+
+  //   const choice: any = await inquirer.prompt([question]);
+
+  //   return choice.choice;
+  // }
+
+  // public static chooseDirection = async (): Promise<string> => {
+  //   const choices: Array<{ name: string, value: string }> = ORDER_DIRECTION.map((value: string) => { return { name: value, value: value }; });
+
+  //   const question: ListQuestion = {
+  //     choices,
+  //     message: "Direction",
+  //     name: "choice",
+  //     type: "list",
+  //   };
+
+  //   question.default = ORDER_DIRECTION[0];
+
+  //   const choice: any = await inquirer.prompt([question]);
+
+  //   return choice.choice;
+  // }
 
   public static confirmMigration = async (): Promise<boolean> => {
     const question: Question = {

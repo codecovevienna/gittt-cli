@@ -19,3 +19,6 @@ export class GitNoUrlError extends Error {
     super(message);
   }
 }
+
+export const ORDER_TYPE: string[] = ["name", "hours"];
+export const ORDER_DIRECTION: string[] = ["asc", "desc"];
