@@ -686,24 +686,25 @@ export class App {
         return cmd.help();
       }
 
-      project = await this.projectHelper.getProjectByName(cmd.project);
-
+      
       amount = parseInt(cmd.amount, 10);
       type = cmd.type;
-
+      
       year = QuestionHelper.validateNumber(cmd.year)
-        ? parseInt(cmd.year, 10) : moment().year();
+      ? parseInt(cmd.year, 10) : moment().year();
       month = QuestionHelper.validateNumber(cmd.month, 1, 12)
-        ? parseInt(cmd.month, 10) : moment().month() + 1;
+      ? parseInt(cmd.month, 10) : moment().month() + 1;
       day = QuestionHelper.validateNumber(cmd.day, 1, 31)
-        ? parseInt(cmd.day, 10) : moment().date();
+      ? parseInt(cmd.day, 10) : moment().date();
       hour = QuestionHelper.validateNumber(cmd.hour, 0, 23)
-        ? parseInt(cmd.hour, 10) : moment().hour();
+      ? parseInt(cmd.hour, 10) : moment().hour();
       minute = QuestionHelper.validateNumber(cmd.minute, 0, 59)
-        ? parseInt(cmd.minute, 10) : moment().minute();
-
+      ? parseInt(cmd.minute, 10) : moment().minute();
+      
+      project = await this.projectHelper.getProjectByName(cmd.project);
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
     } else {
+      project = await this.getOrAskForProjectFromGit();
       year = await QuestionHelper.askYear();
       month = await QuestionHelper.askMonth();
       day = await QuestionHelper.askDay();
@@ -712,7 +713,6 @@ export class App {
       amount = await QuestionHelper.askAmount(1);
       message = await QuestionHelper.askMessage();
       type = await QuestionHelper.chooseType();
-      project = await this.getOrAskForProjectFromGit();
     }
 
     const modifiedMoment: Moment = moment().set({
