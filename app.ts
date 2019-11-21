@@ -6,6 +6,7 @@ import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
+import { isNullOrUndefined } from "util";
 import {
   ChartHelper,
   FileHelper,
@@ -27,8 +28,7 @@ import {
   IProject,
   IRecord,
 } from "./interfaces";
-import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoUrlError, ORDER_TYPE, ORDER_DIRECTION } from "./types";
-import { isNullOrUndefined } from "util";
+import { GitNoOriginError, GitNoUrlError, GitRemoteError, ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 
 // tslint:disable-next-line no-var-requires
 const packageJson: any = require("./package.json");
@@ -173,7 +173,8 @@ export class App {
       return this.projectHelper.getProjectFromGit();
     } catch (e) {
       if (e instanceof GitRemoteError) {
-        const selectedProjectName: string = await QuestionHelper.chooseProjectFile(await this.fileHelper.findAllProjects());
+        const selectedProjectName: string = await QuestionHelper.
+          chooseProjectFile(await this.fileHelper.findAllProjects());
         const [domain, name] = selectedProjectName.split("/");
         const project: IProject | undefined = await this.fileHelper.findProjectByName(
           // TODO find a better way?
@@ -660,9 +661,9 @@ export class App {
     }
 
     await this.projectHelper.addRecordToProject({
-      amount: amount,
+      amount,
       end: Date.now(),
-      message: message,
+      message,
       type: RECORD_TYPES.Time,
     }, project);
   }
@@ -689,7 +690,6 @@ export class App {
         LogHelper.error("No type option found");
         return cmd.help();
       }
-
 
       amount = parseInt(cmd.amount, 10);
       type = cmd.type;
@@ -761,7 +761,7 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    console.log("importing")
+    console.log("importing");
 
     const records: IRecord[] = await this.importHelper.importCsv(filePath);
     await this.projectHelper.addRecordsToProject(records, project, true, false);
@@ -1015,7 +1015,6 @@ export class App {
       .description("List of time tracks in project")
       .option("-p, --project [project]", "Specify the project to get the time tracks")
       .action((cmd: Command): Promise<void> => this.listAction(cmd));
-
 
     // report command
     // will be changed in GITTT-85

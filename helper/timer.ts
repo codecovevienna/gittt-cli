@@ -1,7 +1,7 @@
 import inquirer from "inquirer";
 import _ from "lodash";
 import moment, { Moment } from "moment";
-import { IGitCommitMessageAnswers, ITimerFile, IProject } from "../interfaces";
+import { IGitCommitMessageAnswers, IProject, ITimerFile } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { FileHelper, LogHelper, ProjectHelper } from "./";
 

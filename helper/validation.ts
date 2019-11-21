@@ -1,6 +1,6 @@
-import { parseProjectNameFromGitUrl } from "./";
-import { isString } from "util";
 import * as fs from "fs";
+import { isString } from "util";
+import { parseProjectNameFromGitUrl } from "./";
 
 export class ValidationHelper {
   public static validateNumber = (input: any, from?: number, to?: number): boolean => {

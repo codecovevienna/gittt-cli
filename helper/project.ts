@@ -1,7 +1,7 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
-import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
-import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoUrlError } from "../types";
 import { isString } from "util";
+import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
+import { GitNoOriginError, GitNoUrlError, GitRemoteError, RECORD_TYPES } from "../types";
 import {
   FileHelper,
   GitHelper,
@@ -139,7 +139,9 @@ export class ProjectHelper {
     uniqueOnly?: boolean,
     nonOverlappingOnly?: boolean,
   ): Promise<void> => {
-    const selectedProject: IProject = project ? project : await this.findOrInitProjectByName(this.getProjectFromGit().name);
+    const selectedProject: IProject = project ?
+      project :
+      await this.findOrInitProjectByName(this.getProjectFromGit().name);
 
     if (!selectedProject) {
       return;

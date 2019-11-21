@@ -2,7 +2,7 @@ import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
 import { IJiraLink, IProject, IRecord } from "../interfaces";
-import { RECORD_TYPES, ORDER_TYPE, ORDER_DIRECTION } from "../types";
+import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "../types";
 import { ProjectHelper, ValidationHelper } from "./";
 
 export class QuestionHelper {
