@@ -45,6 +45,19 @@ describe("FileHelper", function () {
       });
       assert.isFalse(proxy.FileHelper.isFile("/tmp/mocked"));
     });
+
+    it("should fail to validate file [no file]", async function () {
+      const proxy: any = proxyquire("../../helper/file", {
+        "fs-extra": {
+          accessSync: sinon.stub().returns(true),
+          statSync: sinon.stub()
+            .returns({
+              isFile: false,
+            }),
+        },
+      });
+      assert.isFalse(proxy.FileHelper.isFile("/tmp/mocked"));
+    });
   });
 
   describe("Get home directory", function () {
@@ -251,6 +264,63 @@ describe("FileHelper", function () {
       }
 
       assert.isTrue(writeJsonSpy.calledOnce);
+    });
+
+    it("should check validity of config file", async function () {
+      const parseProjectNameFromGitUrlStub: SinonStub = sinon.stub().returns(true);
+      const fileProxy: any = proxyquire("../../helper/file", {
+        "./": {
+          parseProjectNameFromGitUrl: parseProjectNameFromGitUrlStub,
+          LogHelper
+        },
+      });
+
+      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      sinon.stub(instance, "getConfigObject").resolves({
+        created: 1337,
+        gitRepo: "ssh://git@mock.test.com:443/mocked/test.git",
+        links: [],
+      } as IConfigFile)
+
+      assert.isTrue(await instance.isConfigFileValid());
+      assert.isTrue(parseProjectNameFromGitUrlStub.calledOnce);
+    });
+
+    it("should check validity of config file [getConfigObject: throws]", async function () {
+      const parseProjectNameFromGitUrlStub: SinonStub = sinon.stub().returns(true);
+      const fileProxy: any = proxyquire("../../helper/file", {
+        "./": {
+          parseProjectNameFromGitUrl: parseProjectNameFromGitUrlStub,
+          LogHelper
+        },
+      });
+
+      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      sinon.stub(instance, "getConfigObject").throws(new Error("Mocked error"))
+
+      assert.isFalse(await instance.isConfigFileValid());
+    });
+
+    it("should check validity of config file [parseProjectNameFromGitUrl: throws]", async function () {
+      const parseProjectNameFromGitUrlStub: SinonStub = sinon.stub().throws(new Error("Mocked error"))
+      const fileProxy: any = proxyquire("../../helper/file", {
+        "./": {
+          parseProjectNameFromGitUrl: parseProjectNameFromGitUrlStub,
+          LogHelper
+        },
+      });
+
+      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      sinon.stub(instance, "getConfigObject").resolves({
+        created: 1337,
+        gitRepo: "ssh://git@mock.test.com:443/mocked/test.git",
+        links: [],
+      } as IConfigFile)
+
+      assert.isFalse(await instance.isConfigFileValid());
     });
 
     it("should check existence of config file", async function () {
