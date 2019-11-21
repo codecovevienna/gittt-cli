@@ -5,13 +5,13 @@ import { QuestionHelper } from "../../helper";
 import { IJiraLink, IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 
-describe("QuestionHelper", () => {
-  it("should filter jira endpoint", async () => {
+describe("QuestionHelper", function () {
+  it("should filter jira endpoint", async function () {
     expect(QuestionHelper.filterJiraEndpoint("http://test.com")).to.eq("http://test.com/");
     expect(QuestionHelper.filterJiraEndpoint("http://test.com/")).to.eq("http://test.com/");
   });
 
-  it("should ask for year", async () => {
+  it("should ask for year", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -24,7 +24,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(2012);
   });
 
-  it("should ask for month", async () => {
+  it("should ask for month", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -37,7 +37,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(1);
   });
 
-  it("should ask for day", async () => {
+  it("should ask for day", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -50,7 +50,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(1);
   });
 
-  it("should ask for hour", async () => {
+  it("should ask for hour", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -63,7 +63,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(1);
   });
 
-  it("should ask for minute", async () => {
+  it("should ask for minute", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -76,7 +76,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(1);
   });
 
-  it("should ask for amount", async () => {
+  it("should ask for amount", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -89,7 +89,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(1);
   });
 
-  it("should ask for amount [with old amount]", async () => {
+  it("should ask for amount [with old amount]", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -102,7 +102,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(1);
   });
 
-  it("should ask for message", async () => {
+  it("should ask for message", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -115,7 +115,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq("message");
   });
 
-  it("should ask for git url", async () => {
+  it("should ask for git url", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -128,7 +128,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq("ssh://git@github.com/company/project.git");
   });
 
-  it("should ask for jira link", async () => {
+  it("should ask for jira link", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -156,7 +156,7 @@ describe("QuestionHelper", () => {
     expect(choice.projectName).to.eq("mocked_project_1");
   });
 
-  it("should choose record", async () => {
+  it("should choose record", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -184,7 +184,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.deep.eq(mockedRecords[0]);
   });
 
-  it("should choose type", async () => {
+  it("should choose type", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -197,7 +197,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(RECORD_TYPES.Time);
   });
 
-  it("should choose type [with old type]", async () => {
+  it("should choose type [with old type]", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -210,7 +210,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq(RECORD_TYPES.Time);
   });
 
-  it("should choose integration", async () => {
+  it("should choose integration", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -223,7 +223,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq("Jira");
   });
 
-  it("should choose domain", async () => {
+  it("should choose domain", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -239,7 +239,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq("github.com");
   });
 
-  it("should choose project file", async () => {
+  it("should choose project file", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({
@@ -269,7 +269,7 @@ describe("QuestionHelper", () => {
     expect(choice).to.eq("gitlab_com_443/codecovevienna_gittt-cli.json");
   });
 
-  it("should confirm migration", async () => {
+  it("should confirm migration", async function () {
     const proxy: any = proxyquire("../../helper/question", {
       inquirer: {
         prompt: sinon.stub().resolves({

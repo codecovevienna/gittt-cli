@@ -5,12 +5,12 @@ import { App } from "../../app";
 import { IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
-describe("Report test", () => {
-  before(() => {
+describe("Report test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should output project overview", async () => {
+  it("should output project overview", async function () {
     const mockedHelper: any = Object.assign({}, emptyHelper);
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
 

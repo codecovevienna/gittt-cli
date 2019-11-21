@@ -17,7 +17,7 @@ module.exports = {
     sourceType: "module"
   },
   rules: {
-    "no-case-declarations": 1,
+    "no-case-declarations": 0,
     "@typescript-eslint/interface-name-prefix": 0
   },
   overrides: [
@@ -25,7 +25,8 @@ module.exports = {
       "files": ["*.test.ts"],
       "rules": {
         "no-undef": 0,
-        "@typescript-eslint/no-explicit-any": 0
+        "@typescript-eslint/no-explicit-any": 0,
+        "mocha/no-hooks-for-single-case": 0
       }
     }
   ]

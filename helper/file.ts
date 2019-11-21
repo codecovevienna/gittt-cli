@@ -1,26 +1,24 @@
 import plainFs from "fs";
 import fs, { WriteOptions } from "fs-extra";
 import path from "path";
-import { isString } from "util";
 import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
 import { LogHelper, parseProjectNameFromGitUrl, ProjectHelper } from "./";
 
 export class FileHelper {
-  public static isFile = (input: any): boolean => {
-    if (isString(input)) {
-      const inputFilePath: string = input;
-      const stats: fs.Stats = fs.statSync(inputFilePath);
-      if (stats.isFile) {
-        try {
-          // fs-extra does not expose constants correctly, so we have to use the plain node fs ones
-          // tslint:disable-next-line no-bitwise
-          fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
-        } catch (e) {
-          return false;
-        }
-        return true;
+  public static isFile = (input: string): boolean => {
+    const inputFilePath: string = input;
+    const stats: fs.Stats = fs.statSync(inputFilePath);
+    if (stats.isFile) {
+      try {
+        // fs-extra does not expose constants correctly, so we have to use the plain node fs ones
+        // tslint:disable-next-line no-bitwise
+        fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
+      } catch (e) {
+        return false;
       }
+      return true;
     }
+
     return false;
   }
 

@@ -29,7 +29,7 @@ import {
 } from "./interfaces";
 import { RECORD_TYPES } from "./types";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
@@ -132,7 +132,7 @@ export class App {
     }
   }
 
-  public async linkAction(cmd: Command): Promise<void> {
+  public async linkAction(): Promise<void> {
     const integration: string = await QuestionHelper.chooseIntegration();
 
     switch (integration) {
@@ -184,7 +184,7 @@ export class App {
       ]);
 
       if (linkSetupAnswer.confirm) {
-        await this.linkAction(cmd);
+        await this.linkAction();
 
         return await this.publishAction(cmd);
       } else {
@@ -687,7 +687,7 @@ export class App {
     LogHelper.info("");
     LogHelper.info(`Projects:`);
     // add hours to projects
-    const projectsWithHours: any[] = [];
+    const projectsWithHours: { hours: number; project: IProject }[] = [];
     for (const prj of projects) {
       const hours: number = await this.projectHelper.getTotalHours(prj.name);
       projectsWithHours.push({
@@ -697,23 +697,24 @@ export class App {
     }
 
     // order projects
-    const orderedProjects: any[] = projectsWithHours.sort((a: any, b: any) => {
-      if (order === "hours") {
-        if (direction === "desc") {
-          return (a.hours - b.hours) * -1;
+    const orderedProjects: { hours: number; project: IProject }[] = projectsWithHours
+      .sort((a: { hours: number; project: IProject }, b: { hours: number; project: IProject }) => {
+        if (order === "hours") {
+          if (direction === "desc") {
+            return (a.hours - b.hours) * -1;
+          }
+          return (a.hours - b.hours);
         }
-        return (a.hours - b.hours);
-      }
 
-      if (a.project.name < b.project.name) {
-        return (direction === "desc") ? 1 : -1;
-      }
-      if (a.project.name > b.project.name) {
-        return (direction === "desc") ? -1 : 1;
-      }
+        if (a.project.name < b.project.name) {
+          return (direction === "desc") ? 1 : -1;
+        }
+        if (a.project.name > b.project.name) {
+          return (direction === "desc") ? -1 : 1;
+        }
 
-      return 0;
-    });
+        return 0;
+      });
 
     // print projects
     for (const prj of orderedProjects) {
@@ -743,7 +744,7 @@ export class App {
     now.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     now.add(1, "days");
 
-    // get all records in timeframe
+    // get all records in time frame
     for (const record of selectedProject.records) {
       const startTime: moment.Moment = moment(record.end).subtract(record.amount, "hours");
 
@@ -769,7 +770,7 @@ export class App {
     LogHelper.info(`for the last ${days} days`);
     LogHelper.info("----------------------------------------------------------------------");
 
-    // seperator
+    // separator
     LogHelper.log("");
 
     // print daysData
@@ -1000,8 +1001,8 @@ export class App {
     commander
       .command("link")
       .description("Initializes link to third party applications")
-      .action(async (cmd: Command) => {
-        await this.linkAction(cmd);
+      .action(async () => {
+        await this.linkAction();
       });
 
     // publish command

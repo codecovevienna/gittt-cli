@@ -1,20 +1,13 @@
 import { assert, expect } from "chai";
-import path from "path";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { ObjectReadableMock } from "stream-mock";
-import { FileHelper, GitHelper, ImportHelper } from "../../helper";
+import { ImportHelper } from "../../helper";
 import { IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 
-const sandboxDir: string = "./sandbox";
-const configDir: string = path.join(sandboxDir, ".git-time-tracker");
-const configFileName: string = "config.json";
-const timerFileName: string = "timer.json";
-const projectsDir: string = "projects";
-
-const csvFilePath: string = "/path/to/csv/file.csv";
-const csvCorrectInput: string = "AMOUNT,END,MESSAGE\n10,1556727733,Message Text\n1,1556723833,Message new Text";
+const csvFilePath = "/path/to/csv/file.csv";
+const csvCorrectInput = "AMOUNT,END,MESSAGE\n10,1556727733,Message Text\n1,1556723833,Message new Text";
 const expectedCorrectOutput: IRecord[] = [{
   amount: 10,
   end: 1556727733,
@@ -28,42 +21,27 @@ const expectedCorrectOutput: IRecord[] = [{
   type: RECORD_TYPES.Time,
 }];
 
-const csvOnlyHeaderInput: string = "AMOUNT,END,MESSAGE";
-const csvWrongSeparatorInput: string = "AMOUNT;END;MESSAGE\n10;1556727733;Message Text\n1;1556723833;Message new Text";
-const csvMalformedDataInput: string = "AMOUNT,END,MESSAGE\n10,Message Text\n1,Hallo Test,Message new Text";
-const csvMalformedHeaderInput: string = "amount,end,message\n10,1556727733,Message Text\n1,1556723833,Message new Text";
-const csvNoHeaderInput: string = "10,1556727733,Message Text\n1,1556723833,Message new Text";
-const csvBullshitInput: string = "ksdjf939jflwsfkdskjlfjlo3oqw9d92eijskljdjf apsflsflk jakjfieo jwfaksdjf  jfea fio";
-const csvMissingColumnInput: string = "AMOUNT,MESSAGE\n10,Message Text\n1,Message new Text";
+const csvOnlyHeaderInput = "AMOUNT,END,MESSAGE";
+const csvWrongSeparatorInput = "AMOUNT;END;MESSAGE\n10;1556727733;Message Text\n1;1556723833;Message new Text";
+const csvMalformedDataInput = "AMOUNT,END,MESSAGE\n10,Message Text\n1,Hallo Test,Message new Text";
+const csvMalformedHeaderInput = "amount,end,message\n10,1556727733,Message Text\n1,1556723833,Message new Text";
+const csvNoHeaderInput = "10,1556727733,Message Text\n1,1556723833,Message new Text";
+const csvBullshitInput = "ksdjf939jflwsfkdskjlfjlo3oqw9d92eijskljdjf apsflsflk jakjfieo jwfaksdjf  jfea fio";
+const csvMissingColumnInput = "AMOUNT,MESSAGE\n10,Message Text\n1,Message new Text";
 
 const expectedEmptyArray: IRecord[] = [];
 
-describe("ImportHelper", () => {
-  let mockedFileHelper: FileHelper;
-  let mockedGitHelper: GitHelper;
-
-  before(() => {
+describe("ImportHelper", function () {
+  before(function () {
     proxyquire.noCallThru();
-
-    const fileProxy: any = proxyquire("../../helper/file", {});
-    const gitProxy: any = proxyquire("../../helper/git", {
-      "simple-git/promise": (baseDir: string): any => {
-        expect(baseDir).to.eq(configDir);
-        return {};
-      },
-    });
-    const projectProxy: any = proxyquire("../../helper/project", {});
-
-    mockedFileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-    mockedGitHelper = new gitProxy.GitHelper(configDir, mockedFileHelper);
   });
 
-  it("should create instance", async () => {
+  it("should create instance", async function () {
     const importHelper: ImportHelper = new ImportHelper();
     expect(importHelper).to.be.instanceOf(ImportHelper);
   });
 
-  it("should parse correct records", async () => {
+  it("should parse correct records", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvCorrectInput)),
@@ -77,7 +55,7 @@ describe("ImportHelper", () => {
     assert.deepStrictEqual(result, expectedCorrectOutput);
   });
 
-  it("should fail due to only header", async () => {
+  it("should fail due to only header", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvOnlyHeaderInput)),
@@ -91,7 +69,7 @@ describe("ImportHelper", () => {
     assert.deepStrictEqual(result, expectedEmptyArray);
   });
 
-  it("should fail due to wrong separator", async () => {
+  it("should fail due to wrong separator", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvWrongSeparatorInput)),
@@ -105,7 +83,7 @@ describe("ImportHelper", () => {
     assert.deepStrictEqual(result, expectedEmptyArray);
   });
 
-  it("should fail due to malformed data", async () => {
+  it("should fail due to malformed data", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvMalformedDataInput)),
@@ -119,7 +97,7 @@ describe("ImportHelper", () => {
     assert.deepStrictEqual(result, expectedEmptyArray);
   });
 
-  it("should fail due to malformed header", async () => {
+  it("should fail due to malformed header", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvMalformedHeaderInput)),
@@ -133,7 +111,7 @@ describe("ImportHelper", () => {
     assert.deepStrictEqual(result, expectedEmptyArray);
   });
 
-  it("should fail due to missing header", async () => {
+  it("should fail due to missing header", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvNoHeaderInput)),
@@ -147,7 +125,7 @@ describe("ImportHelper", () => {
     assert.deepStrictEqual(result, expectedEmptyArray);
   });
 
-  it("should fail due to bullshit data", async () => {
+  it("should fail due to bullshit data", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvBullshitInput)),
@@ -161,7 +139,7 @@ describe("ImportHelper", () => {
     assert.deepStrictEqual(result, expectedEmptyArray);
   });
 
-  it("should fail due to missing column", async () => {
+  it("should fail due to missing column", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvMissingColumnInput)),

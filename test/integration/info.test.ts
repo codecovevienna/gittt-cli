@@ -6,12 +6,12 @@ import { IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
-describe("Info test", () => {
-  before(() => {
+describe("Info test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should output project overview", async () => {
+  it("should output project overview", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 

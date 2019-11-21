@@ -6,12 +6,12 @@ import { App } from "../../app";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
-describe("List test", () => {
-  before(() => {
+describe("List test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should list projects", async () => {
+  it("should list projects", async function () {
     const mockedHelper: any = Object.assign({}, emptyHelper);
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
 

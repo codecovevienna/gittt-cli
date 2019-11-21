@@ -5,12 +5,12 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
-describe("Remove test", () => {
-  before(() => {
+describe("Remove test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should remove record from project", async () => {
+  it("should remove record from project", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
