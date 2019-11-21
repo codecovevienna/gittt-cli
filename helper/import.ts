@@ -4,15 +4,8 @@ import fs from "fs-extra";
 import { isNumber, isString } from "util";
 import { ICsvRow, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
-import { ProjectHelper } from "./project";
 
 export class ImportHelper {
-  private projectHelper: ProjectHelper;
-
-  constructor(projectHelper: ProjectHelper) {
-    this.projectHelper = projectHelper;
-  }
-
   public importCsv = async (filePath: string): Promise<IRecord[]> => {
 
     const fd: fs.ReadStream = fs.createReadStream(filePath);
