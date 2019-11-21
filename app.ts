@@ -647,11 +647,11 @@ export class App {
     project = await this.projectHelper.getProjectByName(options.project);
 
     if (interactiveMode) {
-      if (!isString(message)) {
-        message = await QuestionHelper.askMessage();
-      }
       if (!project) {
         project = await this.getOrAskForProjectFromGit();
+      }
+      if (!isString(message)) {
+        message = await QuestionHelper.askMessage();
       }
     }
 
