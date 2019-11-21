@@ -39,261 +39,276 @@ describe("TimerHelper", function () {
     mockedProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
   });
 
-  it("should create instance", async function () {
-    const timerHelper: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    expect(timerHelper).to.be.instanceOf(TimerHelper);
+  describe("General", function () {
+    it("should create instance", async function () {
+      const timerHelper: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      expect(timerHelper).to.be.instanceOf(TimerHelper);
+    });
+  })
+
+  describe("Start timer", function () {
+
+    it("should start the timer [file does not exist]", async function () {
+      const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(false);
+      const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      await instance.startTimer();
+
+      assert.isTrue(saveTimerObjectStub.calledOnce);
+      assert.isTrue(timerFileExistsStub.calledOnce);
+
+      timerFileExistsStub.restore();
+      saveTimerObjectStub.restore();
+    });
+
+    it("should fail [timer already started]", async function () {
+      const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(true);
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
+      const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
+        start: 0,
+        stop: 0,
+      } as ITimerFile);
+      const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+
+      await instance.startTimer();
+
+      assert.isTrue(timerFileExistsStub.calledOnce);
+      assert.isTrue(saveTimerObjectStub.notCalled);
+      assert.isTrue(getTimerObjectStub.calledOnce);
+      assert.isTrue(isTimerRunningObjectStub.calledOnce);
+
+      timerFileExistsStub.restore();
+      saveTimerObjectStub.restore();
+      isTimerRunningObjectStub.restore();
+      getTimerObjectStub.restore();
+    });
+
+    it("should start the timer [file already exists]", async function () {
+      const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(true);
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(false);
+      const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+
+      await instance.startTimer();
+
+      assert.isTrue(timerFileExistsStub.calledOnce);
+      assert.isTrue(saveTimerObjectStub.calledOnce);
+      assert.isTrue(isTimerRunningObjectStub.calledOnce);
+
+      timerFileExistsStub.restore();
+      saveTimerObjectStub.restore();
+      isTimerRunningObjectStub.restore();
+    });
   });
 
-  it("should start the timer [file does not exist]", async function () {
-    const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(false);
-    const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
 
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    await instance.startTimer();
+  describe("Stop timer", function () {
 
-    assert.isTrue(saveTimerObjectStub.calledOnce);
-    assert.isTrue(timerFileExistsStub.calledOnce);
+    it("should stop the timer [with message]", async function () {
 
-    timerFileExistsStub.restore();
-    saveTimerObjectStub.restore();
+      const now: number = Date.now();
+
+      const nowStub: SinonStub = sinon.stub(Date, "now").returns(now);
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
+      const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
+        start: now - 10,
+        stop: 0,
+      } as ITimerFile);
+      const addRecordToProjectStub: SinonStub = sinon.stub(mockedProjectHelper, "addRecordToProject").resolves();
+      const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+
+      const message = "test";
+      await instance.stopTimer(message);
+
+      assert.isTrue(nowStub.calledOnce);
+      assert.isTrue(isTimerRunningObjectStub.calledOnce);
+      assert.isTrue(getTimerObjectStub.calledOnce);
+      assert.isTrue(addRecordToProjectStub.calledOnceWith({
+        amount: moment.duration(10).asHours(),
+        end: now,
+        message: "test",
+        type: RECORD_TYPES.Time,
+      }));
+      assert.isTrue(saveTimerObjectStub.calledOnce);
+
+      nowStub.restore();
+      isTimerRunningObjectStub.restore();
+      getTimerObjectStub.restore();
+      addRecordToProjectStub.restore();
+      saveTimerObjectStub.restore();
+    });
+
+    it("should stop the timer [ask for message]", async function () {
+
+      const now: number = Date.now();
+
+      const nowStub: SinonStub = sinon.stub(Date, "now").returns(now);
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
+      const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
+        start: now - 10,
+        stop: 0,
+      } as ITimerFile);
+      const addRecordToProjectStub: SinonStub = sinon.stub(mockedProjectHelper, "addRecordToProject").resolves();
+      const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+      const promptStub: SinonStub = sinon.stub(inquirer, "prompt").resolves({ gitCommitMessage: "Test" });
+
+      await instance.stopTimer(undefined);
+
+      assert.isTrue(nowStub.calledOnce);
+      assert.isTrue(isTimerRunningObjectStub.calledOnce);
+      assert.isTrue(getTimerObjectStub.calledOnce);
+      assert.isTrue(addRecordToProjectStub.calledOnceWith({
+        amount: moment.duration(10).asHours(),
+        end: now,
+        message: "Test",
+        type: RECORD_TYPES.Time,
+      }));
+      assert.isTrue(saveTimerObjectStub.calledOnce);
+      assert.isTrue(promptStub.calledOnce);
+
+      nowStub.restore();
+      isTimerRunningObjectStub.restore();
+      getTimerObjectStub.restore();
+      addRecordToProjectStub.restore();
+      saveTimerObjectStub.restore();
+      promptStub.restore();
+    });
+
+    it("should stop the timer [ask for message {empty}]", async function () {
+
+      const now: number = Date.now();
+
+      const nowStub: SinonStub = sinon.stub(Date, "now").returns(now);
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
+      const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
+        start: now - 10,
+        stop: 0,
+      } as ITimerFile);
+      const addRecordToProjectStub: SinonStub = sinon.stub(mockedProjectHelper, "addRecordToProject").resolves();
+      const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+      const promptStub: SinonStub = sinon.stub(inquirer, "prompt").resolves({ gitCommitMessage: "" });
+
+      await instance.stopTimer(undefined);
+
+      assert.isTrue(nowStub.calledOnce);
+      assert.isTrue(isTimerRunningObjectStub.calledOnce);
+      assert.isTrue(getTimerObjectStub.calledOnce);
+      assert.isTrue(addRecordToProjectStub.calledOnceWith({
+        amount: moment.duration(10).asHours(),
+        end: now,
+        message: undefined,
+        type: RECORD_TYPES.Time,
+      }));
+      assert.isTrue(saveTimerObjectStub.calledOnce);
+      assert.isTrue(promptStub.calledOnce);
+
+      nowStub.restore();
+      isTimerRunningObjectStub.restore();
+      getTimerObjectStub.restore();
+      addRecordToProjectStub.restore();
+      saveTimerObjectStub.restore();
+      promptStub.restore();
+    });
+
+    it("should not stop the timer [timer is not running]", async function () {
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(false);
+
+      await instance.stopTimer(undefined);
+
+      assert.isTrue(isTimerRunningObjectStub.calledOnce);
+
+      isTimerRunningObjectStub.restore();
+    });
   });
 
-  it("should fail [timer already started]", async function () {
-    const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(true);
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
-    const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
-      start: 0,
-      stop: 0,
-    } as ITimerFile);
-    const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+  describe("Kill timer", function () {
 
-    await instance.startTimer();
+    it("should kill the timer", async function () {
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
+      const initTimerFileStub: SinonStub = sinon.stub(mockedFileHelper, "initTimerFile").resolves();
 
-    assert.isTrue(timerFileExistsStub.calledOnce);
-    assert.isTrue(saveTimerObjectStub.notCalled);
-    assert.isTrue(getTimerObjectStub.calledOnce);
-    assert.isTrue(isTimerRunningObjectStub.calledOnce);
+      await instance.killTimer();
 
-    timerFileExistsStub.restore();
-    saveTimerObjectStub.restore();
-    isTimerRunningObjectStub.restore();
-    getTimerObjectStub.restore();
+      assert.isTrue(isTimerRunningObjectStub.calledOnce);
+      assert.isTrue(initTimerFileStub.calledOnce);
+
+      isTimerRunningObjectStub.restore();
+      initTimerFileStub.restore();
+    });
+
+    it("should not kill the timer [no timer is running]", async function () {
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(false);
+      const initTimerFileStub: SinonStub = sinon.stub(mockedFileHelper, "initTimerFile").resolves();
+
+      await instance.killTimer();
+
+      assert.isTrue(isTimerRunningObjectStub.calledOnce);
+      assert.isTrue(initTimerFileStub.notCalled);
+
+      isTimerRunningObjectStub.restore();
+      initTimerFileStub.restore();
+    });
   });
 
-  it("should start the timer [file already exists]", async function () {
-    const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(true);
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(false);
-    const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+  describe("Check timer", function () {
 
-    await instance.startTimer();
+    it("should check if timer is running", async function () {
+      const now: Moment = moment();
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(true);
+      const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
+        start: now.valueOf() - 10,
+        stop: 0,
+      } as ITimerFile);
 
-    assert.isTrue(timerFileExistsStub.calledOnce);
-    assert.isTrue(saveTimerObjectStub.calledOnce);
-    assert.isTrue(isTimerRunningObjectStub.calledOnce);
+      const result: boolean = await instance.isTimerRunning(now);
+      assert.isTrue(result);
 
-    timerFileExistsStub.restore();
-    saveTimerObjectStub.restore();
-    isTimerRunningObjectStub.restore();
-  });
+      assert.isTrue(timerFileExistsStub.calledOnce);
+      assert.isTrue(getTimerObjectStub.calledOnce);
 
-  it("should stop the timer [with message]", async function () {
+      timerFileExistsStub.restore();
+      getTimerObjectStub.restore();
+    });
 
-    const now: number = Date.now();
+    it("should check if timer is running [timer is not running]", async function () {
+      const now: Moment = moment();
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(true);
+      const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
+        start: now.valueOf() + 10,
+        stop: 0,
+      } as ITimerFile);
 
-    const nowStub: SinonStub = sinon.stub(Date, "now").returns(now);
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
-    const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
-      start: now - 10,
-      stop: 0,
-    } as ITimerFile);
-    const addRecordToProjectStub: SinonStub = sinon.stub(mockedProjectHelper, "addRecordToProject").resolves();
-    const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
+      const result: boolean = await instance.isTimerRunning(now);
+      assert.isFalse(result);
 
-    const message = "test";
-    await instance.stopTimer(message);
+      assert.isTrue(timerFileExistsStub.calledOnce);
+      assert.isTrue(getTimerObjectStub.calledOnce);
 
-    assert.isTrue(nowStub.calledOnce);
-    assert.isTrue(isTimerRunningObjectStub.calledOnce);
-    assert.isTrue(getTimerObjectStub.calledOnce);
-    assert.isTrue(addRecordToProjectStub.calledOnceWith({
-      amount: moment.duration(10).asHours(),
-      end: now,
-      message: "test",
-      type: RECORD_TYPES.Time,
-    }));
-    assert.isTrue(saveTimerObjectStub.calledOnce);
+      timerFileExistsStub.restore();
+      getTimerObjectStub.restore();
+    });
 
-    nowStub.restore();
-    isTimerRunningObjectStub.restore();
-    getTimerObjectStub.restore();
-    addRecordToProjectStub.restore();
-    saveTimerObjectStub.restore();
-  });
+    it("should check if timer is running [timer file does not exist]", async function () {
+      const now: Moment = moment();
+      const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
+      const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(false);
 
-  it("should stop the timer [ask for message]", async function () {
+      const result: boolean = await instance.isTimerRunning(now);
+      assert.isFalse(result);
 
-    const now: number = Date.now();
+      assert.isTrue(timerFileExistsStub.calledOnce);
 
-    const nowStub: SinonStub = sinon.stub(Date, "now").returns(now);
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
-    const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
-      start: now - 10,
-      stop: 0,
-    } as ITimerFile);
-    const addRecordToProjectStub: SinonStub = sinon.stub(mockedProjectHelper, "addRecordToProject").resolves();
-    const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
-    const promptStub: SinonStub = sinon.stub(inquirer, "prompt").resolves({ gitCommitMessage: "Test" });
-
-    await instance.stopTimer(undefined);
-
-    assert.isTrue(nowStub.calledOnce);
-    assert.isTrue(isTimerRunningObjectStub.calledOnce);
-    assert.isTrue(getTimerObjectStub.calledOnce);
-    assert.isTrue(addRecordToProjectStub.calledOnceWith({
-      amount: moment.duration(10).asHours(),
-      end: now,
-      message: "Test",
-      type: RECORD_TYPES.Time,
-    }));
-    assert.isTrue(saveTimerObjectStub.calledOnce);
-    assert.isTrue(promptStub.calledOnce);
-
-    nowStub.restore();
-    isTimerRunningObjectStub.restore();
-    getTimerObjectStub.restore();
-    addRecordToProjectStub.restore();
-    saveTimerObjectStub.restore();
-    promptStub.restore();
-  });
-
-  it("should stop the timer [ask for message {empty}]", async function () {
-
-    const now: number = Date.now();
-
-    const nowStub: SinonStub = sinon.stub(Date, "now").returns(now);
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
-    const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
-      start: now - 10,
-      stop: 0,
-    } as ITimerFile);
-    const addRecordToProjectStub: SinonStub = sinon.stub(mockedProjectHelper, "addRecordToProject").resolves();
-    const saveTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveTimerObject").resolves();
-    const promptStub: SinonStub = sinon.stub(inquirer, "prompt").resolves({ gitCommitMessage: "" });
-
-    await instance.stopTimer(undefined);
-
-    assert.isTrue(nowStub.calledOnce);
-    assert.isTrue(isTimerRunningObjectStub.calledOnce);
-    assert.isTrue(getTimerObjectStub.calledOnce);
-    assert.isTrue(addRecordToProjectStub.calledOnceWith({
-      amount: moment.duration(10).asHours(),
-      end: now,
-      message: undefined,
-      type: RECORD_TYPES.Time,
-    }));
-    assert.isTrue(saveTimerObjectStub.calledOnce);
-    assert.isTrue(promptStub.calledOnce);
-
-    nowStub.restore();
-    isTimerRunningObjectStub.restore();
-    getTimerObjectStub.restore();
-    addRecordToProjectStub.restore();
-    saveTimerObjectStub.restore();
-    promptStub.restore();
-  });
-
-  it("should not stop the timer [timer is not running]", async function () {
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(false);
-
-    await instance.stopTimer(undefined);
-
-    assert.isTrue(isTimerRunningObjectStub.calledOnce);
-
-    isTimerRunningObjectStub.restore();
-  });
-
-  it("should kill the timer", async function () {
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(true);
-    const initTimerFileStub: SinonStub = sinon.stub(mockedFileHelper, "initTimerFile").resolves();
-
-    await instance.killTimer();
-
-    assert.isTrue(isTimerRunningObjectStub.calledOnce);
-    assert.isTrue(initTimerFileStub.calledOnce);
-
-    isTimerRunningObjectStub.restore();
-    initTimerFileStub.restore();
-  });
-
-  it("should not kill the timer [no timer is running]", async function () {
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const isTimerRunningObjectStub: SinonStub = sinon.stub(instance, "isTimerRunning").resolves(false);
-    const initTimerFileStub: SinonStub = sinon.stub(mockedFileHelper, "initTimerFile").resolves();
-
-    await instance.killTimer();
-
-    assert.isTrue(isTimerRunningObjectStub.calledOnce);
-    assert.isTrue(initTimerFileStub.notCalled);
-
-    isTimerRunningObjectStub.restore();
-    initTimerFileStub.restore();
-  });
-
-  it("should check if timer is running", async function () {
-    const now: Moment = moment();
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(true);
-    const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
-      start: now.valueOf() - 10,
-      stop: 0,
-    } as ITimerFile);
-
-    const result: boolean = await instance.isTimerRunning(now);
-    assert.isTrue(result);
-
-    assert.isTrue(timerFileExistsStub.calledOnce);
-    assert.isTrue(getTimerObjectStub.calledOnce);
-
-    timerFileExistsStub.restore();
-    getTimerObjectStub.restore();
-  });
-
-  it("should check if timer is running [timer is not running]", async function () {
-    const now: Moment = moment();
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(true);
-    const getTimerObjectStub: SinonStub = sinon.stub(mockedFileHelper, "getTimerObject").resolves({
-      start: now.valueOf() + 10,
-      stop: 0,
-    } as ITimerFile);
-
-    const result: boolean = await instance.isTimerRunning(now);
-    assert.isFalse(result);
-
-    assert.isTrue(timerFileExistsStub.calledOnce);
-    assert.isTrue(getTimerObjectStub.calledOnce);
-
-    timerFileExistsStub.restore();
-    getTimerObjectStub.restore();
-  });
-
-  it("should check if timer is running [timer file does not exist]", async function () {
-    const now: Moment = moment();
-    const instance: TimerHelper = new TimerHelper(mockedFileHelper, mockedProjectHelper);
-    const timerFileExistsStub: SinonStub = sinon.stub(mockedFileHelper, "timerFileExists").returns(false);
-
-    const result: boolean = await instance.isTimerRunning(now);
-    assert.isFalse(result);
-
-    assert.isTrue(timerFileExistsStub.calledOnce);
-
-    timerFileExistsStub.restore();
+      timerFileExistsStub.restore();
+    });
   });
 });
