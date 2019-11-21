@@ -4,6 +4,7 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
+import { assert } from "chai";
 
 describe("Report test", () => {
   before(() => {
@@ -13,6 +14,7 @@ describe("Report test", () => {
   it("should output project overview", async () => {
     const mockedHelper: any = Object.assign({}, emptyHelper);
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
+    const mockedChartStub: SinonStub = sinon.stub();
 
     const findAllProjectsStub: SinonStub = sinon.stub().resolves([
       {
@@ -72,6 +74,20 @@ describe("Report test", () => {
         name: "mocked_project_1",
       });
       public getTotalHours = sinon.stub();
+      public getOrAskForProjectFromGit = sinon.stub().resolves(
+        {
+          meta: {
+            host: "",
+            port: 0,
+          },
+          name: "mocked_project_1",
+          records: [],
+        } as IProject
+      );
+    }
+
+    mockedHelper.ChartHelper = class {
+      public static chart = mockedChartStub;
     }
 
     const proxy: any = proxyquire("../../app", {
@@ -86,5 +102,7 @@ describe("Report test", () => {
 
     process.argv = ["namespace", "mocked", "report"];
     mockedApp.start();
+
+    assert.isTrue(mockedChartStub.called);
   });
 });

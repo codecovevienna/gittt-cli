@@ -26,11 +26,11 @@ describe("Commit test", () => {
     mockedHelper.ProjectHelper = class {
       public addRecordToProject = addRecordToProjectStub;
       public getProjectByName = sinon.stub().resolves();
-      public getProjectFromGit = sinon.stub().resolves(
+      public getOrAskForProjectFromGit = sinon.stub().resolves(
         {
           meta: {
             host: "",
-            port: 1,
+            port: 0,
           },
           name: "mocked",
           records: [],
@@ -51,7 +51,7 @@ describe("Commit test", () => {
     process.argv = ["namespace", "mocked", "commit", "1337"];
     mockedApp.start();
 
-    assert.isTrue(addRecordToProjectStub.calledOnce);
+    assert.isTrue(addRecordToProjectStub.called);
   });
 
   it("should fail to commit hours", async () => {

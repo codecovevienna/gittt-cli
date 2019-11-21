@@ -5,6 +5,7 @@ LogHelper.silence = true;
 
 export const emptyHelper: any = {
   // tslint:disable
+  CharHelper: class { },
   FileHelper: class { },
   GitHelper: class { },
   ImportHelper: class { },

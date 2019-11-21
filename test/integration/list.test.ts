@@ -5,6 +5,7 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
+import { IProject } from "../../interfaces";
 
 describe("List test", () => {
   before(() => {
@@ -84,6 +85,16 @@ describe("List test", () => {
 
     mockedHelper.ProjectHelper = class {
       public getProjectFromGit = getProjectFromGitStub;
+      public getOrAskForProjectFromGit = sinon.stub().resolves(
+        {
+          meta: {
+            host: "",
+            port: 0,
+          },
+          name: "mocked",
+          records: [],
+        } as IProject
+      );
     }
 
     const proxy: any = proxyquire("../../app", {

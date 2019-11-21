@@ -139,7 +139,7 @@ export class App {
     if (!interactiveMode) {
       project = await this.projectHelper.getProjectByName(cmd.project);
     } else {
-      project = await this.getOrAskForProjectFromGit();
+      project = await this.projectHelper.getOrAskForProjectFromGit();
     }
 
     if (!project) {
@@ -168,31 +168,6 @@ export class App {
     }
   }
 
-  public async getOrAskForProjectFromGit(): Promise<IProject | undefined> {
-    try {
-      return this.projectHelper.getProjectFromGit();
-    } catch (e) {
-      if (e instanceof GitRemoteError) {
-        const selectedProjectName: string = await QuestionHelper.
-          chooseProjectFile(await this.fileHelper.findAllProjects());
-        const [domain, name] = selectedProjectName.split("/");
-        const project: IProject | undefined = await this.fileHelper.findProjectByName(
-          // TODO find a better way?
-          name.replace(".json", ""),
-          ProjectHelper.domainToProjectMeta(domain),
-        );
-
-        if (!project) {
-          throw new Error("Unable to find project on disk");
-        }
-
-        return project;
-      } else {
-        throw e;
-      }
-    }
-  }
-
   public async publishAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
@@ -201,7 +176,7 @@ export class App {
     if (!interactiveMode) {
       project = await this.projectHelper.getProjectByName(cmd.project);
     } else {
-      project = await this.getOrAskForProjectFromGit();
+      project = await this.projectHelper.getOrAskForProjectFromGit();
     }
 
     if (!project) {
@@ -413,7 +388,7 @@ export class App {
       if (!interactiveMode) {
         project = await this.projectHelper.getProjectByName(cmd.project);
       } else {
-        project = await this.getOrAskForProjectFromGit();
+        project = await this.projectHelper.getOrAskForProjectFromGit();
       }
     } catch (err) {
       LogHelper.debug("Unable to get project name from git folder", err);
@@ -570,7 +545,7 @@ export class App {
       if (!interactiveMode) {
         project = await this.projectHelper.getProjectByName(cmd.project);
       } else {
-        project = await this.getOrAskForProjectFromGit();
+        project = await this.projectHelper.getOrAskForProjectFromGit();
       }
     } catch (err) {
       LogHelper.debug("Unable to get project name from git folder", err);
@@ -653,7 +628,7 @@ export class App {
 
     if (interactiveMode) {
       if (!project) {
-        project = await this.getOrAskForProjectFromGit();
+        project = await this.projectHelper.getOrAskForProjectFromGit();
       }
     }
 
@@ -705,7 +680,7 @@ export class App {
       project = await this.projectHelper.getProjectByName(cmd.project);
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
     } else {
-      project = await this.getOrAskForProjectFromGit();
+      project = await this.projectHelper.getOrAskForProjectFromGit();
       year = await QuestionHelper.askYear();
       month = await QuestionHelper.askMonth();
       day = await QuestionHelper.askDay();
@@ -751,7 +726,7 @@ export class App {
     if (!interactiveMode) {
       project = await this.projectHelper.getProjectByName(options.project);
     } else {
-      project = await this.getOrAskForProjectFromGit();
+      project = await this.projectHelper.getOrAskForProjectFromGit();
     }
 
     if (!project) {
@@ -777,7 +752,7 @@ export class App {
     if (!interactiveMode) {
       project = await this.projectHelper.getProjectByName(cmd.project);
     } else {
-      project = await this.getOrAskForProjectFromGit();
+      project = await this.projectHelper.getOrAskForProjectFromGit();
     }
 
     const projects: IProject[] = await this.fileHelper.findAllProjects();
@@ -841,7 +816,7 @@ export class App {
     if (!interactiveMode) {
       project = await this.projectHelper.getProjectByName(cmd.project);
     } else {
-      project = await this.getOrAskForProjectFromGit();
+      project = await this.projectHelper.getOrAskForProjectFromGit();
     }
 
     if (!project) {
@@ -893,7 +868,7 @@ export class App {
     if (!interactiveMode) {
       project = await this.projectHelper.getProjectByName(cmd.project);
     } else {
-      project = await this.getOrAskForProjectFromGit();
+      project = await this.projectHelper.getOrAskForProjectFromGit();
     }
 
     if (!project) {
@@ -1087,7 +1062,7 @@ export class App {
         if (!interactiveMode) {
           project = await this.projectHelper.getProjectByName(cmd.project);
         } else {
-          project = await this.getOrAskForProjectFromGit();
+          project = await this.projectHelper.getOrAskForProjectFromGit();
         }
 
         if (cmd.kill) {

@@ -71,6 +71,16 @@ describe("Info test", () => {
     mockedHelper.ProjectHelper = class {
       public getProjectFromGit = sinon.stub();
       public getTotalHours = sinon.stub();
+      public getOrAskForProjectFromGit = sinon.stub().resolves(
+        {
+          meta: {
+            host: "",
+            port: 0,
+          },
+          name: "mocked",
+          records: [],
+        } as IProject
+      );
     }
 
     const proxy: any = proxyquire("../../app", {

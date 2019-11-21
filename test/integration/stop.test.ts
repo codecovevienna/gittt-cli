@@ -4,6 +4,7 @@ import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
+import { IProject } from "../../interfaces";
 
 describe("Stop test", () => {
   before(() => {
@@ -25,6 +26,19 @@ describe("Stop test", () => {
 
     mockedHelper.TimerHelper = class {
       public stopTimer = stopTimerStub;
+    }
+
+    mockedHelper.ProjectHelper = class {
+      public getProjectByName = sinon.stub().resolves(
+        {
+          meta: {
+            host: "",
+            port: 0,
+          },
+          name: "mocked",
+          records: [],
+        } as IProject
+      );
     }
 
     const proxy: any = proxyquire("../../app", {

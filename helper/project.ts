@@ -326,4 +326,29 @@ export class ProjectHelper {
 
     return migratedProject;
   }
+
+  public getOrAskForProjectFromGit = async (): Promise<IProject | undefined> => {
+    try {
+      return this.getProjectFromGit();
+    } catch (e) {
+      if (e instanceof GitRemoteError) {
+        const selectedProjectName: string = await QuestionHelper.
+          chooseProjectFile(await this.fileHelper.findAllProjects());
+        const [domain, name] = selectedProjectName.split("/");
+        const project: IProject | undefined = await this.fileHelper.findProjectByName(
+          // TODO find a better way?
+          name.replace(".json", ""),
+          ProjectHelper.domainToProjectMeta(domain),
+        );
+
+        if (!project) {
+          throw new Error("Unable to find project on disk");
+        }
+
+        return project;
+      } else {
+        throw e;
+      }
+    }
+  }
 }
