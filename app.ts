@@ -146,15 +146,24 @@ export class App {
   }
 
   public async linkAction(cmd: Command): Promise<void> {
+    const interactiveMode: boolean = process.argv.length === 3;
+
+    let project: IProject | undefined;
+
+    if (!interactiveMode) {
+      project = await this.projectHelper.getProjectByName(cmd.project);
+    } else {
+      project = await this.getOrAskForProjectFromGit();
+    }
+
+    if (!project) {
+      return this.exit("No valid git project", 1);
+    }
+
     const integration: string = await QuestionHelper.chooseIntegration();
 
     switch (integration) {
       case "Jira":
-        const project: IProject | undefined = await this.getOrAskForProjectFromGit();
-
-        if (!project) {
-          return this.exit("No valid git project", 1);
-        }
         // TODO validate if record exists in projects dir(?)
 
         const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project);
@@ -198,7 +207,15 @@ export class App {
   }
 
   public async publishAction(cmd: Command): Promise<void> {
-    const project: IProject | undefined = await this.getOrAskForProjectFromGit();
+    const interactiveMode: boolean = process.argv.length === 3;
+
+    let project: IProject | undefined;
+
+    if (!interactiveMode) {
+      project = await this.projectHelper.getProjectByName(cmd.project);
+    } else {
+      project = await this.getOrAskForProjectFromGit();
+    }
 
     if (!project) {
       return this.exit("No valid git project", 1);
@@ -207,7 +224,7 @@ export class App {
     const configObject: IConfigFile = await this.fileHelper.getConfigObject();
 
     const link: any | undefined = configObject.links.find((li: IIntegrationLink) => {
-      return li.projectName === project.name;
+      return project ? li.projectName === project.name : false;
     });
 
     if (!link) {
@@ -686,21 +703,21 @@ export class App {
         return cmd.help();
       }
 
-      
+
       amount = parseInt(cmd.amount, 10);
       type = cmd.type;
-      
+
       year = QuestionHelper.validateNumber(cmd.year)
-      ? parseInt(cmd.year, 10) : moment().year();
+        ? parseInt(cmd.year, 10) : moment().year();
       month = QuestionHelper.validateNumber(cmd.month, 1, 12)
-      ? parseInt(cmd.month, 10) : moment().month() + 1;
+        ? parseInt(cmd.month, 10) : moment().month() + 1;
       day = QuestionHelper.validateNumber(cmd.day, 1, 31)
-      ? parseInt(cmd.day, 10) : moment().date();
+        ? parseInt(cmd.day, 10) : moment().date();
       hour = QuestionHelper.validateNumber(cmd.hour, 0, 23)
-      ? parseInt(cmd.hour, 10) : moment().hour();
+        ? parseInt(cmd.hour, 10) : moment().hour();
       minute = QuestionHelper.validateNumber(cmd.minute, 0, 59)
-      ? parseInt(cmd.minute, 10) : moment().minute();
-      
+        ? parseInt(cmd.minute, 10) : moment().minute();
+
       project = await this.projectHelper.getProjectByName(cmd.project);
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
     } else {
@@ -878,7 +895,6 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-
       project = await this.projectHelper.getProjectByName(cmd.project);
     } else {
       project = await this.getOrAskForProjectFromGit();
@@ -1069,10 +1085,20 @@ export class App {
       .option("-m, --message <message>", "Commit message for the project")
       .option("-p, --project [project]", "Specify the project to add your time to")
       .action(async (cmd: any): Promise<void> => {
+        const interactiveMode: boolean = process.argv.length === 3;
+
+        let project: IProject | undefined;
+
+        if (!interactiveMode) {
+          project = await this.projectHelper.getProjectByName(cmd.project);
+        } else {
+          project = await this.getOrAskForProjectFromGit();
+        }
+
         if (cmd.kill) {
           await this.timerHelper.killTimer();
         } else {
-          await this.timerHelper.stopTimer(cmd.message);
+          await this.timerHelper.stopTimer(cmd.message, project);
         }
       });
 
