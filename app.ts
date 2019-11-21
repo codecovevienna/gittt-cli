@@ -722,7 +722,7 @@ export class App {
     }
   }
 
-  public async listAction(cmd: Command): Promise<void> {
+  public async listAction(): Promise<void> {
     let projectFromGit: IProject;
     try {
       projectFromGit = this.projectHelper.getProjectFromGit();
@@ -836,6 +836,8 @@ export class App {
   }
 
   public initCommander(): CommanderStatic {
+    // Only matters for tests to omit 'MaxListenersExceededWarning'
+    commander.removeAllListeners();
     commander.on("command:*", () => {
       commander.help();
     });
@@ -902,7 +904,7 @@ export class App {
     commander
       .command("list")
       .description("List of time tracks in project")
-      .action((cmd: Command) => this.listAction(cmd));
+      .action(() => this.listAction());
 
     // report command
     // will be changed in GITTT-85
