@@ -59,7 +59,7 @@ describe("Report test", function () {
       } as IProject,
     ]);
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -78,7 +78,7 @@ describe("Report test", function () {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

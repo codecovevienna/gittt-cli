@@ -16,7 +16,7 @@ describe("Commit test", function () {
 
     const addRecordStub: SinonStub = sinon.stub().resolves();
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -30,7 +30,7 @@ describe("Commit test", function () {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 
@@ -45,7 +45,7 @@ describe("Commit test", function () {
   it("should fail to commit hours", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
 
-    // tslint:disable
+
     emptyHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -56,7 +56,7 @@ describe("Commit test", function () {
       "./helper": emptyHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

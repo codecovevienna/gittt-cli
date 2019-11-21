@@ -11,7 +11,6 @@ export class FileHelper {
     if (stats.isFile) {
       try {
         // fs-extra does not expose constants correctly, so we have to use the plain node fs ones
-        // tslint:disable-next-line no-bitwise
         fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
       } catch (e) {
         return false;

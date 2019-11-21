@@ -200,7 +200,7 @@ describe("GitHelper", function () {
       .onCall(0).rejects(new Error("Mocked error"))
       .onCall(1).resolves();
 
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -215,7 +215,7 @@ describe("GitHelper", function () {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -237,7 +237,7 @@ describe("GitHelper", function () {
     const addSpy: SinonSpy = sinon.spy();
     const commitSpy: SinonSpy = sinon.spy();
     const rawSpy: SinonSpy = sinon.spy();
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -255,7 +255,7 @@ describe("GitHelper", function () {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -278,7 +278,7 @@ describe("GitHelper", function () {
     const resetSpy: SinonSpy = sinon.spy();
     const pullSpy: SinonSpy = sinon.spy();
 
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -293,7 +293,7 @@ describe("GitHelper", function () {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -380,7 +380,7 @@ describe("GitHelper", function () {
 
     const exitStub: SinonStub = sinon.stub(process, "exit");
 
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -394,7 +394,7 @@ describe("GitHelper", function () {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -409,7 +409,7 @@ describe("GitHelper", function () {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -423,7 +423,7 @@ describe("GitHelper", function () {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 

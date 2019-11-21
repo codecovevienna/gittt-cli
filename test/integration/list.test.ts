@@ -74,7 +74,7 @@ describe("List test", function () {
       },
     );
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -90,7 +90,7 @@ describe("List test", function () {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

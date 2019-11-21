@@ -14,7 +14,7 @@ describe("Import test", function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static isFile = sinon.stub().returns("/path");
       public static getHomeDir = sinon.stub().returns("/home/test");
@@ -26,7 +26,7 @@ describe("Import test", function () {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

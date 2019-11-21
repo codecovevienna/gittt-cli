@@ -101,7 +101,7 @@ describe("App", function () {
     it("should setup app", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = async (): Promise<boolean> => {
@@ -113,7 +113,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper
       });
-      // tslint:enable
+
 
       const app: App = new proxy.App();
 
@@ -125,7 +125,7 @@ describe("App", function () {
     it("should setup app without config directory", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = async (): Promise<boolean> => {
@@ -141,7 +141,7 @@ describe("App", function () {
           } as IInitAnswers),
         },
       });
-      // tslint:enable
+
 
       const app: App = new proxy.App();
 
@@ -158,7 +158,7 @@ describe("App", function () {
 
       const exitStub: SinonStub = sinon.stub(process, "exit");
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = async (): Promise<boolean> => {
@@ -174,7 +174,7 @@ describe("App", function () {
           } as IInitAnswers),
         },
       });
-      // tslint:enable
+
 
       const app: App = new proxy.App();
 
@@ -191,7 +191,7 @@ describe("App", function () {
 
       const pullStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = async (): Promise<boolean> => {
@@ -212,7 +212,7 @@ describe("App", function () {
           } as IInitAnswers),
         },
       });
-      // tslint:enable
+
 
       const app: App = new proxy.App();
 
@@ -228,7 +228,7 @@ describe("App", function () {
 
       const exitStub: SinonStub = sinon.stub(process, "exit");
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub()
@@ -249,7 +249,7 @@ describe("App", function () {
           } as IInitAnswers),
         },
       });
-      // tslint:enable
+
 
       const app: App = new proxy.App();
 
@@ -271,7 +271,7 @@ describe("App", function () {
       const commitChangesStub: SinonStub = sinon.stub().resolves();
       const pushChangesStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub()
@@ -303,7 +303,7 @@ describe("App", function () {
           } as IInitAnswers),
         },
       });
-      // tslint:enable
+
 
       const app: App = new proxy.App();
 
@@ -325,7 +325,7 @@ describe("App", function () {
       const pullStub: SinonStub = sinon.stub().resolves();
       const createDirStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().onCall(0)
@@ -347,7 +347,7 @@ describe("App", function () {
           } as IInitAnswers),
         },
       });
-      // tslint:enable
+
 
       const app: App = new proxy.App();
 
@@ -378,7 +378,7 @@ describe("App", function () {
         } as IRecord,
       ];
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -393,7 +393,7 @@ describe("App", function () {
           }),
         },
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -423,7 +423,7 @@ describe("App", function () {
         } as IRecord,
       ];
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -433,7 +433,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -461,7 +461,7 @@ describe("App", function () {
         } as IRecord,
       ];
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -476,7 +476,7 @@ describe("App", function () {
           }),
         },
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -505,7 +505,7 @@ describe("App", function () {
         } as IRecord,
       ];
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -515,7 +515,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -543,7 +543,7 @@ describe("App", function () {
         } as IRecord,
       ];
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -558,7 +558,7 @@ describe("App", function () {
           }),
         },
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -587,7 +587,7 @@ describe("App", function () {
         } as IRecord,
       ];
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -597,7 +597,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -639,7 +639,7 @@ describe("App", function () {
       const commitChangesStub: SinonStub = sinon.stub().resolves();
       const saveProjectObjectStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -670,7 +670,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -702,7 +702,7 @@ describe("App", function () {
 
       const getProjectFromGitStub: SinonStub = sinon.stub().throws(new Error("Mocked Error"));
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -716,7 +716,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -742,7 +742,7 @@ describe("App", function () {
       } as IProject);
       const findProjectByNameStub: SinonStub = sinon.stub().resolves(undefined);
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -758,7 +758,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -791,7 +791,7 @@ describe("App", function () {
         records: [],
       });
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -807,7 +807,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -850,7 +850,7 @@ describe("App", function () {
       const commitChangesStub: SinonStub = sinon.stub().resolves();
       const saveProjectObjectStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -872,7 +872,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -922,7 +922,7 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -937,7 +937,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -987,7 +987,7 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1002,7 +1002,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1051,7 +1051,7 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1069,7 +1069,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1118,7 +1118,7 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1133,7 +1133,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1186,7 +1186,7 @@ describe("App", function () {
       const commitChangesStub: SinonStub = sinon.stub().resolves();
       const saveProjectObjectStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1209,7 +1209,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1238,7 +1238,7 @@ describe("App", function () {
 
       const getProjectFromGitStub: SinonStub = sinon.stub().throws(new Error("Mocked Error"));
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1252,7 +1252,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1283,7 +1283,7 @@ describe("App", function () {
       } as IProject);
       const findProjectByNameStub: SinonStub = sinon.stub().resolves(undefined);
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1298,7 +1298,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1337,7 +1337,7 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1352,7 +1352,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1400,7 +1400,7 @@ describe("App", function () {
       const commitChangesStub: SinonStub = sinon.stub().resolves();
       const saveProjectObjectStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1419,7 +1419,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1467,7 +1467,7 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1482,7 +1482,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1529,7 +1529,7 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1544,7 +1544,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1570,7 +1570,7 @@ describe("App", function () {
     it("should not add record [no cmd amount]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1584,7 +1584,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1602,7 +1602,7 @@ describe("App", function () {
     it("should not add record [invalid number]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1616,7 +1616,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1635,7 +1635,7 @@ describe("App", function () {
     it("should not add record [no cmd type]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1649,7 +1649,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1670,7 +1670,7 @@ describe("App", function () {
 
       const addRecordToProjectStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1688,7 +1688,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1714,7 +1714,7 @@ describe("App", function () {
 
       const addRecordToProjectStub: SinonStub = sinon.stub().resolves();
 
-      // tslint:disable
+
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
@@ -1739,7 +1739,7 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-      // tslint:enable
+
 
       const mockedApp: App = new proxy.App();
 
@@ -1761,7 +1761,7 @@ describe("App", function () {
 
         const addRecordsToProjectStub: SinonStub = sinon.stub().resolves();
 
-        // tslint:disable
+
         mockedHelper.FileHelper = class {
           public static isFile = sinon.stub().returns(true);
           public static getHomeDir = sinon.stub().returns("/home/test");
@@ -1788,7 +1788,7 @@ describe("App", function () {
         const proxy: any = proxyquire("../../app", {
           "./helper": mockedHelper,
         });
-        // tslint:enable
+
 
         const mockedApp: App = new proxy.App();
 
@@ -1821,7 +1821,7 @@ describe("App", function () {
           } as IProject);
           const addOrUpdateLinkStub: SinonStub = sinon.stub().resolves();
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -1852,7 +1852,7 @@ describe("App", function () {
             "./helper": mockedHelper,
             "commander": mockedCommander,
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -1869,7 +1869,7 @@ describe("App", function () {
 
           const getProjectFromGitStub: SinonStub = sinon.stub().returns(undefined);
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -1889,7 +1889,7 @@ describe("App", function () {
             "./helper": mockedHelper,
             "commander": mockedCommander,
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -1915,7 +1915,7 @@ describe("App", function () {
           } as IProject);
           const addOrUpdateLinkStub: SinonStub = sinon.stub().throws(new Error("Mocked Error"));
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -1946,7 +1946,7 @@ describe("App", function () {
             "./helper": mockedHelper,
             "commander": mockedCommander,
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -1998,7 +1998,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2021,7 +2021,7 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2076,7 +2076,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2104,7 +2104,7 @@ describe("App", function () {
               }),
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2170,7 +2170,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2199,7 +2199,7 @@ describe("App", function () {
               }),
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2262,7 +2262,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2290,7 +2290,7 @@ describe("App", function () {
               }),
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2314,7 +2314,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2331,7 +2331,7 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2366,7 +2366,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2389,7 +2389,7 @@ describe("App", function () {
               }),
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2434,7 +2434,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2453,7 +2453,7 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2501,7 +2501,7 @@ describe("App", function () {
           });
           const axiosPostStub: SinonStub = sinon.stub().throws(new Error("Mocked Error"));
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2523,7 +2523,7 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2575,7 +2575,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2597,7 +2597,7 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 
@@ -2649,7 +2649,7 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-          // tslint:disable
+
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2671,7 +2671,7 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-          // tslint:enable
+
 
           const mockedApp: App = new proxy.App();
 

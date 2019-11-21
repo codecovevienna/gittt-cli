@@ -16,7 +16,7 @@ describe("Unknown command test", function () {
 
     const helpStub: SinonStub = sinon.stub(mockedCommander, "help");
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -27,7 +27,7 @@ describe("Unknown command test", function () {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

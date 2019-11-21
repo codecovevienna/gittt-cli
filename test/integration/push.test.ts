@@ -16,7 +16,7 @@ describe("Push test", function () {
 
     const pushChangesStub: SinonStub = sinon.stub().resolves();
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -31,7 +31,7 @@ describe("Push test", function () {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 
