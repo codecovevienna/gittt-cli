@@ -36,6 +36,9 @@ export class RecordHelper {
     }) === undefined;
   }
 
+  /*
+   * Sets guid and current timestamps to given record object
+   */
   public static setRecordDefaults = (record: IRecord): IRecord => {
     // Add unique identifier to each record
     if (!record.guid) {
