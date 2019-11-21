@@ -419,30 +419,31 @@ export class App {
   public async editAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
+    let project: IProject | undefined;
+
     // TODO move to own function, is used multiple times
-    let projectFromGit: IProject | undefined;
     try {
-      if (interactiveMode) {
-        projectFromGit = await this.getOrAskForProjectFromGit();
+      if (!interactiveMode) {
+        project = await this.projectHelper.getProjectByName(cmd.project);
       } else {
-        projectFromGit = this.projectHelper.getProjectFromGit();
+        project = await this.getOrAskForProjectFromGit();
       }
     } catch (err) {
       LogHelper.debug("Unable to get project name from git folder", err);
       return this.exit("Unable to get project name from git folder", 1);
     }
 
-    if (!projectFromGit) {
+    if (!project) {
       return this.exit("No valid git project", 1);
     }
 
-    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
+    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(project.name);
     if (!projectWithRecords) {
-      return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
+      return this.exit(`Unable to find project "${project.name}"`, 1);
     }
 
     if (projectWithRecords.records.length === 0) {
-      return this.exit(`No records found for "${projectFromGit.name}"`, 1);
+      return this.exit(`No records found for "${project.name}"`, 1);
     }
 
     const { records } = projectWithRecords;
@@ -577,29 +578,29 @@ export class App {
   public async removeAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
-    let projectFromGit: IProject | undefined;
+    let project: IProject | undefined;
     try {
-      if (interactiveMode) {
-        projectFromGit = await this.getOrAskForProjectFromGit();
+      if (!interactiveMode) {
+        project = await this.projectHelper.getProjectByName(cmd.project);
       } else {
-        projectFromGit = this.projectHelper.getProjectFromGit();
+        project = await this.getOrAskForProjectFromGit();
       }
     } catch (err) {
       LogHelper.debug("Unable to get project name from git folder", err);
       return this.exit("Unable to get project name from git folder", 1);
     }
 
-    if (!projectFromGit) {
+    if (!project) {
       return this.exit("No valid git project", 1);
     }
 
-    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
+    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(project.name);
     if (!projectWithRecords) {
-      return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
+      return this.exit(`Unable to find project "${project.name}"`, 1);
     }
 
     if (projectWithRecords.records.length === 0) {
-      return this.exit(`No records found for "${projectFromGit.name}"`, 1);
+      return this.exit(`No records found for "${project.name}"`, 1);
     }
 
     const { records } = projectWithRecords;
