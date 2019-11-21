@@ -686,6 +686,8 @@ export class App {
         return cmd.help();
       }
 
+      project = await this.projectHelper.getProjectByName(cmd.project);
+
       amount = parseInt(cmd.amount, 10);
       type = cmd.type;
 
@@ -701,8 +703,6 @@ export class App {
         ? parseInt(cmd.minute, 10) : moment().minute();
 
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
-
-      project = await this.projectHelper.getProjectByName(cmd.project);
     } else {
       year = await QuestionHelper.askYear();
       month = await QuestionHelper.askMonth();
