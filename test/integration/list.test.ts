@@ -94,9 +94,6 @@ describe("List test", () => {
 
     const mockedApp: App = new proxy.App();
 
-    // sinon.stub(mockedApp, "getHomeDir").returns("/home/test");
-    // sinon.stub(mockedApp, "isConfigFileValid").resolves(true);
-
     await mockedApp.setup();
 
     process.argv = ["namespace", "mocked", "list"];
