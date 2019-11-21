@@ -28,6 +28,7 @@ import {
   IRecord,
 } from "./interfaces";
 import { RECORD_TYPES } from "./types";
+import { ExportHelper } from "./helper/export";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
@@ -45,6 +46,7 @@ export class App {
   private gitHelper: GitHelper;
   private projectHelper: ProjectHelper;
   private importHelper: ImportHelper;
+  private exportHelper: ExportHelper;
 
   public start(): void {
     if (process.argv.length === 2) {
@@ -89,6 +91,7 @@ export class App {
     this.projectHelper = new ProjectHelper(this.gitHelper, this.fileHelper);
     this.timerHelper = new TimerHelper(this.fileHelper, this.projectHelper);
     this.importHelper = new ImportHelper();
+    this.exportHelper = new ExportHelper();
 
     this.initCommander();
   }
@@ -130,6 +133,10 @@ export class App {
         // TODO reinitialize?
       }
     }
+  }
+
+  public exportAction(): void {
+    this.exportHelper.export();
   }
 
   public async linkAction(): Promise<void> {
