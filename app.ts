@@ -180,7 +180,6 @@ export class App {
     } catch (e) {
       if (e instanceof GitRemoteError) {
         // means that this is no
-        LogHelper.warn(e.message);
 
         const fromDomainProject: string = await QuestionHelper.chooseProjectFile(await this.fileHelper.findAllProjects());
 
@@ -202,6 +201,7 @@ export class App {
         // } else if (e instanceof GitNoUrlError) {
 
       } else {
+        console.log("here");
         throw e;
       }
     }
@@ -642,6 +642,37 @@ export class App {
       }: ${chosenRecord.amount} ${chosenRecord.type} - "${_.truncate(chosenRecord.message)}") from project ${updatedProject.name}`);
   }
 
+  public async commitAction(cmd: string, options: any): Promise<void> {
+    const interactiveMode: boolean = process.argv.length === 4;
+
+    const amount: number = parseFloat(cmd);
+    let message: string | undefined;
+    let project: IProject | undefined;
+
+    if (isNaN(amount)) {
+      return this.exit("Unable to parse hours", 1);
+    }
+
+    message = options.message;
+    project = await this.projectHelper.getProjectByName(options.project);
+
+    if (interactiveMode) {
+      if (!isString(message)) {
+        message = await QuestionHelper.askMessage();
+      }
+      if (!project) {
+        project = await this.getOrAskForProjectFromGit();
+      }
+    }
+
+    await this.projectHelper.addRecordToProject({
+      amount: amount,
+      end: Date.now(),
+      message: message,
+      type: RECORD_TYPES.Time,
+    }, project);
+  }
+
   public async addAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
@@ -871,19 +902,7 @@ export class App {
       .option("-m, --message <message>", "Description of the spent hours")
       .option("-p, --project [project]", "Specify the project to commit to")
       .action(async (cmd: string, options: any): Promise<void> => {
-        const hours: number = parseFloat(cmd);
-        if (isNaN(hours)) {
-          return this.exit("Unable to parse hours", 1);
-        }
-
-        const selectedProject: IProject | undefined = isString(options.project) ? await this.projectHelper.getProjectByName(options.project) : await this.getOrAskForProjectFromGit();
-
-        await this.projectHelper.addRecordToProject({
-          amount: hours,
-          end: Date.now(),
-          message: options.message,
-          type: RECORD_TYPES.Time,
-        });
+        await this.commitAction(cmd, options);
       });
 
     // add command
