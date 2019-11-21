@@ -16,9 +16,7 @@ describe("Add test", () => {
 
     // tslint:disable
     mockedHelper.FileHelper = class {
-      public static getHomeDir = (): string => {
-        return "/home/test";
-      }
+      public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
       public isConfigFileValid = sinon.stub().resolves(true);
     }
