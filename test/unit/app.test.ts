@@ -2512,13 +2512,13 @@ describe("App", () => {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
-      mockedCommand.file = "mockedFile.csv";
+      const mockedCommand: string = "mockedFile.csv";
+      const mockedOptions: any[] = [{ project: "not existing" }];
 
       // Mock arguments array to enable interactive mode
-      process.argv = ["1", "2", "3"];
+      process.argv = ["1", "2", "3", "4"];
 
-      await mockedApp.importCsv(mockedCommand);
+      await mockedApp.importCsv(mockedCommand, mockedOptions);
 
       assert.isTrue(addRecordsToProjectStub.calledOnce);
     });

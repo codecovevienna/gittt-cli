@@ -5,6 +5,7 @@ import { isNumber, isString } from "util";
 import { ICsvRow, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { ProjectHelper } from "./project";
+import { LogHelper } from "./log";
 
 export class ImportHelper {
   private projectHelper: ProjectHelper;
@@ -53,7 +54,7 @@ export class ImportHelper {
 
           result.push(record);
         } catch (err) {
-          // LogHelper.debug(data, err);
+          LogHelper.debug(data, err);
         }
       });
 

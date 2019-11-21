@@ -110,16 +110,16 @@ export class QuestionHelper {
 
   public static validateFile = (input: any): boolean => {
     if (isString(input)) {
-      const inputFilePath: string = input;
-      const stats: fs.Stats = fs.statSync(inputFilePath);
-      if (stats.isFile) {
-        try {
+      try {
+        const inputFilePath: string = input;
+        const stats: fs.Stats = fs.statSync(inputFilePath);
+        if (stats.isFile) {
           // tslint:disable-next-line no-bitwise
           fs.accessSync(inputFilePath, fs.constants.R_OK | fs.constants.W_OK);
-        } catch (e) {
-          return false;
+          return true;
         }
-        return true;
+      } catch (err) {
+        return false;
       }
     }
     return false;

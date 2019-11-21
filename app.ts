@@ -755,18 +755,30 @@ export class App {
     await this.projectHelper.addRecordToProject(newRecord, project);
   }
 
-  public async importCsv(cmd: Command): Promise<void> {
+  public async importCsv(cmd: string, options: any): Promise<void> {
+    const interactiveMode: boolean = process.argv.length === 4;
 
-    let filePath: string;
-
-    if (cmd.file !== null) {
-      filePath = (cmd.file && QuestionHelper.validateFile(cmd.file)) ? cmd.file : null;
-      if (filePath !== null) {
-        const records: IRecord[] = await this.importHelper.importCsv(filePath);
-        //TODO check project
-        await this.projectHelper.addRecordsToProject(records, undefined, true, false);
-      }
+    const filePath: string = cmd;
+    if (!isString(filePath) || !QuestionHelper.validateFile(filePath)) {
+      return this.exit("Unable to get csv file path", 1);
     }
+
+    let project: IProject | undefined;
+
+    if (!interactiveMode) {
+      project = await this.projectHelper.getProjectByName(options.project);
+    } else {
+      project = await this.getOrAskForProjectFromGit();
+    }
+
+    if (!project) {
+      return this.exit("No valid git project", 1);
+    }
+
+    console.log("importing")
+
+    const records: IRecord[] = await this.importHelper.importCsv(filePath);
+    await this.projectHelper.addRecordsToProject(records, project, true, false);
   }
 
   public async infoAction(cmd: Command): Promise<void> {
@@ -1161,13 +1173,10 @@ export class App {
 
     // import command
     commander
-      .command("import")
-      .description("Import records from csv to current project")
-      .option("-f, --file [file]", "CSV file with format (MESSAGE,END[int],AMOUNT[double])")
+      .command("import <file>")
+      .description("Import records from csv file to current project")
       .option("-p, --project [project]", "Specify the project to import records to")
-      .action(async (cmd: Command): Promise<void> => {
-        await this.importCsv(cmd);
-      });
+      .action(async (cmd: string, options: any): Promise<void> => await this.importCsv(cmd, options));
 
     return commander;
   }
