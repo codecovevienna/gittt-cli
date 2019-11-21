@@ -655,9 +655,6 @@ export class App {
       if (!project) {
         project = await this.getOrAskForProjectFromGit();
       }
-      if (!isString(message)) {
-        message = await QuestionHelper.askMessage();
-      }
     }
 
     await this.projectHelper.addRecordToProject({

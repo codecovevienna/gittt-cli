@@ -4,6 +4,7 @@ import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
+import { IRecord, IProject, IInitAnswers } from "../../interfaces";
 
 describe("Commit test", () => {
   before(() => {
@@ -14,7 +15,7 @@ describe("Commit test", () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    const addRecordStub: SinonStub = sinon.stub().resolves();
+    const addRecordToProjectStub: SinonStub = sinon.stub().resolves();
 
     // tslint:disable
     mockedHelper.FileHelper = class {
@@ -23,7 +24,18 @@ describe("Commit test", () => {
       public isConfigFileValid = sinon.stub().resolves(true);
     }
     mockedHelper.ProjectHelper = class {
-      public addRecordToProject = addRecordStub
+      public addRecordToProject = addRecordToProjectStub;
+      public getProjectByName = sinon.stub().resolves();
+      public getProjectFromGit = sinon.stub().resolves(
+        {
+          meta: {
+            host: "",
+            port: 1,
+          },
+          name: "mocked",
+          records: [],
+        } as IProject
+      );
     }
 
     const proxy: any = proxyquire("../../app", {
@@ -39,7 +51,7 @@ describe("Commit test", () => {
     process.argv = ["namespace", "mocked", "commit", "1337"];
     mockedApp.start();
 
-    assert.isTrue(addRecordStub.called);
+    assert.isTrue(addRecordToProjectStub.calledOnce);
   });
 
   it("should fail to commit hours", async () => {
