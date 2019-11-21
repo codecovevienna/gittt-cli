@@ -873,14 +873,19 @@ export class App {
   }
 
   public async reportAction(cmd: Command): Promise<void> {
-    const project: IProject | undefined = await this.getOrAskForProjectFromGit();
-    const projectName: string = cmd.project ? cmd.project : (project ? project.name : "");
+    const interactiveMode: boolean = process.argv.length === 3;
 
-    const selectedProject: IProject | undefined = await this.projectHelper.findOrInitProjectByName(projectName);
+    let project: IProject | undefined;
 
-    if (!selectedProject) {
-      LogHelper.error(`Project ${projectName} not found`);
-      return;
+    if (!interactiveMode) {
+
+      project = await this.projectHelper.getProjectByName(cmd.project);
+    } else {
+      project = await this.getOrAskForProjectFromGit();
+    }
+
+    if (!project) {
+      return this.exit("No valid git project", 1);
     }
 
     const days: number = parseInt(cmd.days, 10) || 14; // default is 14 days (2 weeks sprint)
@@ -893,7 +898,7 @@ export class App {
     now.add(1, "days");
 
     // get all records in timeframe
-    for (const record of selectedProject.records) {
+    for (const record of project.records) {
       const startTime: moment.Moment = moment(record.end).subtract(record.amount, "hours");
 
       // the difference will be positive for every day into the past
@@ -914,7 +919,7 @@ export class App {
     }
 
     LogHelper.info("----------------------------------------------------------------------");
-    LogHelper.info(`Project: ${projectName}`);
+    LogHelper.info(`Project: ${project.name}`);
     LogHelper.info(`for the last ${days} days`);
     LogHelper.info("----------------------------------------------------------------------");
 
