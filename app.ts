@@ -722,6 +722,52 @@ export class App {
     }
   }
 
+  public async listAction(cmd: Command): Promise<void> {
+    let projectFromGit: IProject;
+    try {
+      projectFromGit = this.projectHelper.getProjectFromGit();
+    } catch (err) {
+      LogHelper.debug("Unable to get project name from git folder", err);
+      return this.exit("Unable to get project name from git folder", 1);
+    }
+
+    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
+    if (!projectWithRecords) {
+      return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
+    }
+
+    if (projectWithRecords.records.length === 0) {
+      return this.exit(`No records found for "${projectFromGit.name}"`, 1);
+    }
+
+    // sorting newest to latest
+    const records: IRecord[] = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
+      const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
+      const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
+
+      return bStartTime.diff(aStartTime);
+    });
+
+    LogHelper.info(`${projectWithRecords.name}`);
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+
+    let sumOfTime = 0;
+    for (const record of records) {
+      let line = "";
+      line += `${record.type}\t`;
+      line += chalk.yellow.bold(`${record.amount}h\t`);
+      line += `${moment(record.end).subtract(record.amount, "hours").format("DD.MM.YYYY HH:mm:ss")}\t`;
+      line += chalk.yellow.bold(`${record.message}`);
+      sumOfTime += record.amount;
+      LogHelper.print(line);
+    }
+
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.info(`SUM:\t${sumOfTime}h`);
+  }
+
   public async reportAction(cmd: Command): Promise<void> {
     const project: IProject = this.projectHelper.getProjectFromGit();
     const projectName: string = cmd.project ? cmd.project : (project ? project.name : "");
@@ -856,51 +902,7 @@ export class App {
     commander
       .command("list")
       .description("List of time tracks in project")
-      .action(async () => {
-        let projectFromGit: IProject;
-        try {
-          projectFromGit = this.projectHelper.getProjectFromGit();
-        } catch (err) {
-          LogHelper.debug("Unable to get project name from git folder", err);
-          return this.exit("Unable to get project name from git folder", 1);
-        }
-
-        const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
-        if (!projectWithRecords) {
-          return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
-        }
-
-        if (projectWithRecords.records.length === 0) {
-          return this.exit(`No records found for "${projectFromGit.name}"`, 1);
-        }
-
-        // sorting newest to latest
-        const records: IRecord[] = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
-          const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
-          const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
-
-          return bStartTime.diff(aStartTime);
-        });
-
-        LogHelper.info(`${projectWithRecords.name}`);
-        LogHelper.print(`--------------------------------------------------------------------------------`);
-        LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
-        LogHelper.print(`--------------------------------------------------------------------------------`);
-
-        let sumOfTime = 0;
-        for (const record of records) {
-          let line = "";
-          line += `${record.type}\t`;
-          line += chalk.yellow.bold(`${record.amount}h\t`);
-          line += `${moment(record.end).subtract(record.amount, "hours").format("DD.MM.YYYY HH:mm:ss")}\t`;
-          line += chalk.yellow.bold(`${record.message}`);
-          sumOfTime += record.amount;
-          LogHelper.print(line);
-        }
-
-        LogHelper.print(`--------------------------------------------------------------------------------`);
-        LogHelper.info(`SUM:\t${sumOfTime}h`);
-      });
+      .action((cmd: Command) => this.listAction(cmd));
 
     // report command
     // will be changed in GITTT-85

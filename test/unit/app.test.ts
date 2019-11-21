@@ -2865,4 +2865,202 @@ describe("App", function () {
       expect(chartStub.callCount).to.eq(2);
     });
   });
+
+  describe("List", function () {
+    it("should show list of records", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectFromGitStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: []
+        },
+      );
+      const findProjectByNameStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: [
+            {
+              amount: 2,
+              created: 1572346125890,
+              end: 1572346125745,
+              guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+              message: "A mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1572346125890,
+            },
+            {
+              amount: 2.5,
+              created: 1571323193712,
+              end: 1571323193545,
+              guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+              message: "Some other mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1571323193712,
+            },
+          ],
+        },
+      );
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectFromGit = getProjectFromGitStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.listAction(new Command());
+      // One for the day and one for the week report
+    });
+
+    it("should not show list of records [no git project]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectFromGitStub: SinonStub = sinon.stub().throws(new Error("Mocked error"))
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectFromGit = getProjectFromGitStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+      const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.listAction(new Command());
+
+      assert.isTrue(exitStub.calledOnce)
+    });
+
+    it("should not show list of records [no project found]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectFromGitStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: []
+        },
+      );
+      const findProjectByNameStub: SinonStub = sinon.stub().resolves();
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectFromGit = getProjectFromGitStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+      const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.listAction(new Command());
+
+      assert.isTrue(exitStub.calledOnce)
+    });
+
+    it("should not show list of records [no records found]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectFromGitStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: []
+        },
+      );
+      const findProjectByNameStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: [],
+        },
+      );
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectFromGit = getProjectFromGitStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+      const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.listAction(new Command());
+
+      assert.isTrue(exitStub.calledOnce)
+    });
+  });
 });
