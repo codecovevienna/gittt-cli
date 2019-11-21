@@ -101,7 +101,6 @@ describe("App", function () {
     it("should setup app", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = async (): Promise<boolean> => {
@@ -2685,6 +2684,185 @@ describe("App", function () {
           assert.isTrue(exitStub.called);
         });
       });
+    });
+  });
+
+  describe("Report", function () {
+    it("should show report of current project", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const mockedProjects: IProject[] = [
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+          records: [
+            {
+              amount: 1337,
+              created: Date.now(),
+              message: "Mocked message",
+              type: "Time",
+            } as IRecord,
+            {
+              amount: 69,
+              created: Date.now(),
+              message: "Mocked message",
+              type: "Time",
+            } as IRecord,
+          ],
+        } as IProject,
+        {
+          meta: {
+            host: "gitlab.com",
+            port: 443,
+          },
+          name: "mocked_project_2",
+          records: [
+            {
+              amount: 1234,
+              created: Date.now(),
+              message: "Mocked message",
+              type: "Time",
+            } as IRecord,
+            {
+              amount: 1970,
+              created: Date.now(),
+              message: "Mocked message",
+              type: "Time",
+            } as IRecord,
+          ],
+        } as IProject,
+      ];
+
+      const getProjectFromGitStub: SinonStub = sinon.stub().returns({
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "mocked_project_1337",
+      } as IProject);
+      const findAllProjectsStub: SinonStub = sinon.stub().resolves(mockedProjects);
+      const chartStub = sinon.stub();
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findAllProjects = findAllProjectsStub;
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectFromGit = getProjectFromGitStub;
+      }
+
+      mockedHelper.ChartHelper = class {
+        public static chart = chartStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.reportAction(new Command());
+      // One for the day and one for the week report
+      expect(chartStub.callCount).to.eq(0);
+    });
+    it("should not show report [project not found]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const mockedProjects: IProject[] = [
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+          records: [
+            {
+              amount: 1337,
+              created: Date.now(),
+              message: "Mocked message",
+              type: "Time",
+            } as IRecord,
+            {
+              amount: 69,
+              created: Date.now(),
+              message: "Mocked message",
+              type: "Time",
+            } as IRecord,
+          ],
+        } as IProject,
+        {
+          meta: {
+            host: "gitlab.com",
+            port: 443,
+          },
+          name: "mocked_project_2",
+          records: [
+            {
+              amount: 1234,
+              created: Date.now(),
+              message: "Mocked message",
+              type: "Time",
+            } as IRecord,
+            {
+              amount: 1970,
+              created: Date.now(),
+              message: "Mocked message",
+              type: "Time",
+            } as IRecord,
+          ],
+        } as IProject,
+      ];
+
+      const getProjectFromGitStub: SinonStub = sinon.stub().returns({
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "mocked_project_1",
+      } as IProject);
+      const findAllProjectsStub: SinonStub = sinon.stub().resolves(mockedProjects);
+      const chartStub = sinon.stub();
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findAllProjects = findAllProjectsStub;
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectFromGit = getProjectFromGitStub;
+      }
+
+      mockedHelper.ChartHelper = class {
+        public static chart = chartStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.reportAction(new Command());
+      // One for the day and one for the week report
+      expect(chartStub.callCount).to.eq(2);
     });
   });
 });

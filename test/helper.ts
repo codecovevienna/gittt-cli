@@ -11,5 +11,6 @@ export const emptyHelper: any = {
   ProjectHelper: class { },
   TimerHelper: class { },
   QuestionHelper: class { },
+  ChartHelper: class { },
   LogHelper,
 };

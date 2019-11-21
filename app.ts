@@ -780,7 +780,7 @@ export class App {
       LogHelper.log(ChartHelper.chart(daysData, true, 50, false, "h"));
     }
 
-    // seperator
+    // separator
     LogHelper.log("");
 
     // print weeklyData
