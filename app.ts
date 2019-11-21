@@ -745,7 +745,7 @@ export class App {
     const interactiveMode: boolean = process.argv.length === 4;
 
     const filePath: string = cmd;
-    if (!isString(filePath) || !QuestionHelper.validateFile(filePath)) {
+    if (!isString(filePath) || !ValidationHelper.validateFile(filePath)) {
       return this.exit("Unable to get csv file path", 1);
     }
 
