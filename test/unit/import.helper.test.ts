@@ -1,11 +1,10 @@
 import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
-import { SinonSpy } from "sinon";
 import sinon from "sinon";
-import { ObjectReadableMock, ObjectWritableMock } from "stream-mock";
-import { FileHelper, GitHelper, ImportHelper, ProjectHelper } from "../../helper";
-import { ICsvRow, IRecord } from "../../interfaces";
+import { ObjectReadableMock } from "stream-mock";
+import { FileHelper, GitHelper, ImportHelper } from "../../helper";
+import { IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 
 const sandboxDir: string = "./sandbox";
@@ -41,7 +40,6 @@ const expectedEmptyArray: IRecord[] = [];
 
 describe("ImportHelper", () => {
   let mockedFileHelper: FileHelper;
-  let mockedProjectHelper: ProjectHelper;
   let mockedGitHelper: GitHelper;
 
   before(() => {
@@ -58,11 +56,10 @@ describe("ImportHelper", () => {
 
     mockedFileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
     mockedGitHelper = new gitProxy.GitHelper(configDir, mockedFileHelper);
-    mockedProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
   });
 
   it("should create instance", async () => {
-    const importHelper: ImportHelper = new ImportHelper(mockedProjectHelper);
+    const importHelper: ImportHelper = new ImportHelper();
     expect(importHelper).to.be.instanceOf(ImportHelper);
   });
 
@@ -73,7 +70,7 @@ describe("ImportHelper", () => {
       },
     });
 
-    const instance: ImportHelper = new fileProxy.ImportHelper(mockedProjectHelper);
+    const instance: ImportHelper = new fileProxy.ImportHelper();
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);
@@ -87,7 +84,7 @@ describe("ImportHelper", () => {
       },
     });
 
-    const instance: ImportHelper = new fileProxy.ImportHelper(mockedProjectHelper);
+    const instance: ImportHelper = new fileProxy.ImportHelper();
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);
@@ -101,7 +98,7 @@ describe("ImportHelper", () => {
       },
     });
 
-    const instance: ImportHelper = new fileProxy.ImportHelper(mockedProjectHelper);
+    const instance: ImportHelper = new fileProxy.ImportHelper();
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);
@@ -115,7 +112,7 @@ describe("ImportHelper", () => {
       },
     });
 
-    const instance: ImportHelper = new fileProxy.ImportHelper(mockedProjectHelper);
+    const instance: ImportHelper = new fileProxy.ImportHelper();
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);
@@ -129,7 +126,7 @@ describe("ImportHelper", () => {
       },
     });
 
-    const instance: ImportHelper = new fileProxy.ImportHelper(mockedProjectHelper);
+    const instance: ImportHelper = new fileProxy.ImportHelper();
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);
@@ -143,7 +140,7 @@ describe("ImportHelper", () => {
       },
     });
 
-    const instance: ImportHelper = new fileProxy.ImportHelper(mockedProjectHelper);
+    const instance: ImportHelper = new fileProxy.ImportHelper();
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);
@@ -157,7 +154,7 @@ describe("ImportHelper", () => {
       },
     });
 
-    const instance: ImportHelper = new fileProxy.ImportHelper(mockedProjectHelper);
+    const instance: ImportHelper = new fileProxy.ImportHelper();
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);
@@ -171,7 +168,7 @@ describe("ImportHelper", () => {
       },
     });
 
-    const instance: ImportHelper = new fileProxy.ImportHelper(mockedProjectHelper);
+    const instance: ImportHelper = new fileProxy.ImportHelper();
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);

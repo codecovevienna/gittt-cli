@@ -1,11 +1,9 @@
 import inquirer from "inquirer";
 import _ from "lodash";
 import moment, { Moment } from "moment";
-import { isString } from "util";
 import { IGitCommitMessageAnswers, ITimerFile, IProject } from "../interfaces";
 import { RECORD_TYPES } from "../types";
-import { FileHelper, LogHelper } from "./index";
-import { ProjectHelper } from "./project";
+import { FileHelper, LogHelper, ProjectHelper } from "./";
 
 export class TimerHelper {
   private fileHelper: FileHelper;

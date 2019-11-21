@@ -12,10 +12,10 @@ import {
   GitHelper,
   ImportHelper,
   LogHelper,
-  parseProjectNameFromGitUrl,
   ProjectHelper,
   QuestionHelper,
   TimerHelper,
+  ValidationHelper,
 } from "./helper";
 import {
   IConfigFile,
@@ -62,26 +62,12 @@ export class App {
     process.exit(code);
   }
 
-  public getHomeDir(): string {
-    const home: string | null = require("os").homedir()
-      || process.env.HOME
-      || process.env.HOMEPATH
-      || process.env.USERPROFIL;
-
-    if (!home) {
-      throw new Error("Unable to determinate home directory");
-    }
-
-    return home;
-  }
-
   public async setup(): Promise<void> {
-    this.homeDir = this.getHomeDir();
-    this.configDir = path.join(this.homeDir, `${APP_CONFIG_DIR}`);
+    this.configDir = path.join(FileHelper.getHomeDir(), `${APP_CONFIG_DIR}`);
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
 
     // TODO correct place to ask this?
-    if (!(await this.fileHelper.configDirExists()) || !(await this.isConfigFileValid())) {
+    if (!(await this.fileHelper.configDirExists()) || !(await this.fileHelper.isConfigFileValid())) {
       const initAnswers: IInitAnswers = await inquirer.prompt([
         {
           message: `Looks like you never used ${APP_NAME}, should it be set up?`,
@@ -101,7 +87,7 @@ export class App {
     this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
     this.projectHelper = new ProjectHelper(this.gitHelper, this.fileHelper);
     this.timerHelper = new TimerHelper(this.fileHelper, this.projectHelper);
-    this.importHelper = new ImportHelper(this.projectHelper);
+    this.importHelper = new ImportHelper();
 
     this.initCommander();
   }
@@ -111,7 +97,7 @@ export class App {
       this.fileHelper.createConfigDir();
       this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
 
-      if (!(await this.isConfigFileValid())) {
+      if (!(await this.fileHelper.isConfigFileValid())) {
         const gitUrl: string = await QuestionHelper.askGitUrl();
         LogHelper.info("Initializing local repo");
         await this.gitHelper.initRepo(gitUrl);
@@ -120,7 +106,7 @@ export class App {
         await this.gitHelper.pullRepo();
 
         // Check if a valid config file is already in the repo
-        if (!(await this.isConfigFileValid())) {
+        if (!(await this.fileHelper.isConfigFileValid())) {
           LogHelper.info("Initializing gittt config file");
           await this.fileHelper.initConfigFile(gitUrl);
           LogHelper.info("Committing created config file");
@@ -133,7 +119,7 @@ export class App {
       }
 
     } else {
-      if (await this.isConfigFileValid()) {
+      if (await this.fileHelper.isConfigFileValid()) {
         this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
         await this.gitHelper.pullRepo();
         LogHelper.info(`Config directory ${this.configDir} already initialized`);
@@ -493,22 +479,22 @@ export class App {
         return cmd.help();
       }
 
-      if (!QuestionHelper.validateNumber(cmd.amount)) {
+      if (!ValidationHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
 
       amount = parseFloat(cmd.amount);
 
-      year = QuestionHelper.validateNumber(cmd.year)
+      year = ValidationHelper.validateNumber(cmd.year)
         ? parseInt(cmd.year, 10) : moment().year();
-      month = QuestionHelper.validateNumber(cmd.month, 1, 12)
+      month = ValidationHelper.validateNumber(cmd.month, 1, 12)
         ? parseInt(cmd.month, 10) : moment().month() + 1;
-      day = QuestionHelper.validateNumber(cmd.day, 1, 31)
+      day = ValidationHelper.validateNumber(cmd.day, 1, 31)
         ? parseInt(cmd.day, 10) : moment().date();
-      hour = QuestionHelper.validateNumber(cmd.hour, 0, 23)
+      hour = ValidationHelper.validateNumber(cmd.hour, 0, 23)
         ? parseInt(cmd.hour, 10) : moment().hour();
-      minute = QuestionHelper.validateNumber(cmd.minute, 0, 59)
+      minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
@@ -695,7 +681,7 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      if (!QuestionHelper.validateNumber(cmd.amount)) {
+      if (!ValidationHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
@@ -708,15 +694,15 @@ export class App {
       amount = parseInt(cmd.amount, 10);
       type = cmd.type;
 
-      year = QuestionHelper.validateNumber(cmd.year)
+      year = ValidationHelper.validateNumber(cmd.year)
         ? parseInt(cmd.year, 10) : moment().year();
-      month = QuestionHelper.validateNumber(cmd.month, 1, 12)
+      month = ValidationHelper.validateNumber(cmd.month, 1, 12)
         ? parseInt(cmd.month, 10) : moment().month() + 1;
-      day = QuestionHelper.validateNumber(cmd.day, 1, 31)
+      day = ValidationHelper.validateNumber(cmd.day, 1, 31)
         ? parseInt(cmd.day, 10) : moment().date();
-      hour = QuestionHelper.validateNumber(cmd.hour, 0, 23)
+      hour = ValidationHelper.validateNumber(cmd.hour, 0, 23)
         ? parseInt(cmd.hour, 10) : moment().hour();
-      minute = QuestionHelper.validateNumber(cmd.minute, 0, 59)
+      minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
       project = await this.projectHelper.getProjectByName(cmd.project);
@@ -1179,24 +1165,5 @@ export class App {
       .action(async (cmd: string, options: any): Promise<void> => await this.importCsv(cmd, options));
 
     return commander;
-  }
-
-  public async isConfigFileValid(): Promise<boolean> {
-    let config: IConfigFile | undefined;
-
-    try {
-      config = await this.fileHelper.getConfigObject(true);
-    } catch (err) {
-      LogHelper.debug(`Unable to parse config file: ${err.message}`);
-      return false;
-    }
-
-    try {
-      parseProjectNameFromGitUrl(config.gitRepo);
-      return true;
-    } catch (err) {
-      LogHelper.debug("Unable to get project name", err);
-      return false;
-    }
   }
 }
