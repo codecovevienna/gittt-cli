@@ -2932,8 +2932,7 @@ describe("App", function () {
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
 
-      await mockedApp.listAction(new Command());
-      // One for the day and one for the week report
+      await mockedApp.listAction();
     });
 
     it("should not show list of records [no git project]", async function () {
@@ -2963,7 +2962,7 @@ describe("App", function () {
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
 
-      await mockedApp.listAction(new Command());
+      await mockedApp.listAction();
 
       assert.isTrue(exitStub.calledOnce)
     });
@@ -3006,7 +3005,7 @@ describe("App", function () {
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
 
-      await mockedApp.listAction(new Command());
+      await mockedApp.listAction();
 
       assert.isTrue(exitStub.calledOnce)
     });
@@ -3058,7 +3057,7 @@ describe("App", function () {
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
 
-      await mockedApp.listAction(new Command());
+      await mockedApp.listAction();
 
       assert.isTrue(exitStub.calledOnce)
     });

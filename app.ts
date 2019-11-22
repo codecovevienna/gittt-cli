@@ -46,7 +46,6 @@ export class App {
   private gitHelper: GitHelper;
   private projectHelper: ProjectHelper;
   private importHelper: ImportHelper;
-  private exportHelper: ExportHelper;
 
   public start(): void {
     if (process.argv.length === 2) {
@@ -91,7 +90,6 @@ export class App {
     this.projectHelper = new ProjectHelper(this.gitHelper, this.fileHelper);
     this.timerHelper = new TimerHelper(this.fileHelper, this.projectHelper);
     this.importHelper = new ImportHelper();
-    this.exportHelper = new ExportHelper();
 
     this.initCommander();
   }
@@ -135,8 +133,25 @@ export class App {
     }
   }
 
-  public exportAction(): void {
-    this.exportHelper.export();
+  public async exportAction(cmd: Command): Promise<void> {
+    const filePath: string = cmd.out ? cmd.out : "/tmp/gittt-export.ods";
+    LogHelper.print(`Gathering projects...`)
+    let projectsToExport: IProject[] = [];
+    if (cmd.project) {
+      const projectToExport: IProject | undefined = await this.fileHelper.findProjectByName(cmd.project);
+      if (!projectToExport) {
+        this.exit(`✗ Project "${cmd.project}" not found`, 1)
+      } else {
+        projectsToExport.push(projectToExport);
+      }
+    } else {
+      projectsToExport = await this.fileHelper.findAllProjects();
+    }
+    LogHelper.info(`✓ Got all ${projectsToExport.length} projects`)
+    LogHelper.print(`Starting export to "${filePath}"...`)
+
+    ExportHelper.export(filePath, projectsToExport);
+    LogHelper.info(`✓ Export done`)
   }
 
   public async linkAction(): Promise<void> {
@@ -1057,6 +1072,16 @@ export class App {
       .option("-f, --file [file]", "CSV file with format (MESSAGE,END[int],AMOUNT[double])")
       .action(async (cmd: Command): Promise<void> => {
         await this.importCsv(cmd);
+      });
+
+    // export command
+    commander
+      .command("export")
+      .description("Exports projects to ods file")
+      .option("-o, --out [output file]", "Path of the output file (default: /tmp/gittt-report.ods)")
+      .option("-p, --project [project to export]", "Name of the project")
+      .action(async (cmd: Command): Promise<void> => {
+        await this.exportAction(cmd);
       });
 
     return commander;
