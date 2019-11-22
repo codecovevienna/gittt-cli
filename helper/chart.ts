@@ -13,10 +13,10 @@ export class ChartHelper {
 
   public static chart = (
     data: any,
-    showValue: boolean = false,
-    maxBarLength: number = 100,
-    sort: boolean = true,
-    postValue: string = "",
+    showValue = false,
+    maxBarLength = 100,
+    sort = true,
+    postValue = "",
   ): string => {
     const formatted: any[] = Object.keys(data).map((key: string) => ({ key, value: data[key] }));
     const sorted: any[] = !sort ? formatted : formatted.sort((a: any, b: any) => b.value - a.value);

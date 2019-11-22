@@ -11,7 +11,8 @@
     "interfaces",
     "types",
     "index.ts",
-    "**/*test.ts"
+    "**/*test.ts",
+    ".eslintrc.js"
   ],
   "reporter": [
     "lcov",

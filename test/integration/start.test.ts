@@ -5,18 +5,18 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
-describe("Start test", () => {
-  before(() => {
+describe("Start test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should start time tracking", async () => {
+  it("should start time tracking", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
     const startTimerStub: SinonStub = sinon.stub().resolves();
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -31,7 +31,7 @@ describe("Start test", () => {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

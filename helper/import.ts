@@ -27,7 +27,7 @@ export class ImportHelper {
           const row: ICsvRow = {
             AMOUNT: parseFloat(data.AMOUNT),
             END: parseInt(data.END, 10),
-            MESSAGE: data.MESSAGE.toString().replace(/\"/gi, ""),
+            MESSAGE: data.MESSAGE.toString().replace(/"/gi, ""),
           };
 
           assert(row.AMOUNT != null && isNumber(row.AMOUNT));

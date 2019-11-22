@@ -29,11 +29,11 @@ import {
 } from "./interfaces";
 import { RECORD_TYPES } from "./types";
 
-// tslint:disable-next-line no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
-const APP_CONFIG_DIR: string = ".gittt-cli";
+const APP_CONFIG_DIR = ".gittt-cli";
 const ORDER_TYPE: string[] = ["name", "hours"];
 const ORDER_DIRECTION: string[] = ["asc", "desc"];
 
@@ -132,7 +132,7 @@ export class App {
     }
   }
 
-  public async linkAction(cmd: Command): Promise<void> {
+  public async linkAction(): Promise<void> {
     const integration: string = await QuestionHelper.chooseIntegration();
 
     switch (integration) {
@@ -184,7 +184,7 @@ export class App {
       ]);
 
       if (linkSetupAnswer.confirm) {
-        await this.linkAction(cmd);
+        await this.linkAction();
 
         return await this.publishAction(cmd);
       } else {
@@ -281,7 +281,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        year: string,
+        year: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -315,7 +315,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        month: string,
+        month: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -349,7 +349,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        day: string,
+        day: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -486,7 +486,7 @@ export class App {
 
     await this.fileHelper.saveProjectObject(updatedProject);
 
-    let changes: string = "";
+    let changes = "";
 
     if (updatedRecord.amount !== chosenRecord.amount) {
       changes += `amount: ${updatedRecord.amount}, `;
@@ -571,7 +571,7 @@ export class App {
 
     await this.fileHelper.saveProjectObject(updatedProject);
 
-    const commitMessage: string = `Removed record ${chosenRecord.guid} from project ${updatedProject.name}`;
+    const commitMessage = `Removed record ${chosenRecord.guid} from project ${updatedProject.name}`;
 
     await this.gitHelper.commitChanges(commitMessage);
 
@@ -687,7 +687,7 @@ export class App {
     LogHelper.info("");
     LogHelper.info(`Projects:`);
     // add hours to projects
-    const projectsWithHours: any[] = [];
+    const projectsWithHours: { hours: number; project: IProject }[] = [];
     for (const prj of projects) {
       const hours: number = await this.projectHelper.getTotalHours(prj.name);
       projectsWithHours.push({
@@ -697,28 +697,75 @@ export class App {
     }
 
     // order projects
-    const orderedProjects: any[] = projectsWithHours.sort((a: any, b: any) => {
-      if (order === "hours") {
-        if (direction === "desc") {
-          return (a.hours - b.hours) * -1;
+    const orderedProjects: { hours: number; project: IProject }[] = projectsWithHours
+      .sort((a: { hours: number; project: IProject }, b: { hours: number; project: IProject }) => {
+        if (order === "hours") {
+          if (direction === "desc") {
+            return (a.hours - b.hours) * -1;
+          }
+          return (a.hours - b.hours);
         }
-        return (a.hours - b.hours);
-      }
 
-      if (a.project.name < b.project.name) {
-        return (direction === "desc") ? 1 : -1;
-      }
-      if (a.project.name > b.project.name) {
-        return (direction === "desc") ? -1 : 1;
-      }
+        if (a.project.name < b.project.name) {
+          return (direction === "desc") ? 1 : -1;
+        }
+        if (a.project.name > b.project.name) {
+          return (direction === "desc") ? -1 : 1;
+        }
 
-      return 0;
-    });
+        return 0;
+      });
 
     // print projects
     for (const prj of orderedProjects) {
       LogHelper.log(`- ${prj.project.name}: ${prj.hours || "-1"}h`);
     }
+  }
+
+  public async listAction(): Promise<void> {
+    let projectFromGit: IProject;
+    try {
+      projectFromGit = this.projectHelper.getProjectFromGit();
+    } catch (err) {
+      LogHelper.debug("Unable to get project name from git folder", err);
+      return this.exit("Unable to get project name from git folder", 1);
+    }
+
+    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
+    if (!projectWithRecords) {
+      return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
+    }
+
+    if (projectWithRecords.records.length === 0) {
+      return this.exit(`No records found for "${projectFromGit.name}"`, 1);
+    }
+
+    // sorting newest to latest
+    const records: IRecord[] = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
+      const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
+      const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
+
+      return bStartTime.diff(aStartTime);
+    });
+
+    LogHelper.info(`${projectWithRecords.name}`);
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+
+    let sumOfTime = 0;
+    for (const record of records) {
+      let line = "";
+      line += `${record.type}\t`;
+      line += chalk.yellow.bold(`${record.amount}h\t`);
+      line += `${moment(record.end).subtract(record.amount, "hours").format("DD.MM.YYYY HH:mm:ss")}\t`;
+      line += chalk.yellow.bold(`${record.message}`);
+      sumOfTime += record.amount;
+      LogHelper.print(line);
+    }
+
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.info(`SUM:\t${sumOfTime}h`);
   }
 
   public async reportAction(cmd: Command): Promise<void> {
@@ -743,7 +790,7 @@ export class App {
     now.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     now.add(1, "days");
 
-    // get all records in timeframe
+    // get all records in time frame
     for (const record of selectedProject.records) {
       const startTime: moment.Moment = moment(record.end).subtract(record.amount, "hours");
 
@@ -769,7 +816,7 @@ export class App {
     LogHelper.info(`for the last ${days} days`);
     LogHelper.info("----------------------------------------------------------------------");
 
-    // seperator
+    // separator
     LogHelper.log("");
 
     // print daysData
@@ -779,7 +826,7 @@ export class App {
       LogHelper.log(ChartHelper.chart(daysData, true, 50, false, "h"));
     }
 
-    // seperator
+    // separator
     LogHelper.log("");
 
     // print weeklyData
@@ -789,6 +836,8 @@ export class App {
   }
 
   public initCommander(): CommanderStatic {
+    // Only matters for tests to omit 'MaxListenersExceededWarning'
+    commander.removeAllListeners();
     commander.on("command:*", () => {
       commander.help();
     });
@@ -855,51 +904,7 @@ export class App {
     commander
       .command("list")
       .description("List of time tracks in project")
-      .action(async () => {
-        let projectFromGit: IProject;
-        try {
-          projectFromGit = this.projectHelper.getProjectFromGit();
-        } catch (err) {
-          LogHelper.debug("Unable to get project name from git folder", err);
-          return this.exit("Unable to get project name from git folder", 1);
-        }
-
-        const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(projectFromGit.name);
-        if (!projectWithRecords) {
-          return this.exit(`Unable to find project "${projectFromGit.name}"`, 1);
-        }
-
-        if (projectWithRecords.records.length === 0) {
-          return this.exit(`No records found for "${projectFromGit.name}"`, 1);
-        }
-
-        // sorting newest to latest
-        const records: IRecord[] = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
-          const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
-          const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
-
-          return bStartTime.diff(aStartTime);
-        });
-
-        LogHelper.info(`${projectWithRecords.name}`);
-        LogHelper.print(`--------------------------------------------------------------------------------`);
-        LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
-        LogHelper.print(`--------------------------------------------------------------------------------`);
-
-        let sumOfTime: number = 0;
-        for (const record of records) {
-          let line: string = "";
-          line += `${record.type}\t`;
-          line += chalk.yellow.bold(`${record.amount}h\t`);
-          line += `${moment(record.end).subtract(record.amount, "hours").format("DD.MM.YYYY HH:mm:ss")}\t`;
-          line += chalk.yellow.bold(`${record.message}`);
-          sumOfTime += record.amount;
-          LogHelper.print(line);
-        }
-
-        LogHelper.print(`--------------------------------------------------------------------------------`);
-        LogHelper.info(`SUM:\t${sumOfTime}h`);
-      });
+      .action(() => this.listAction());
 
     // report command
     // will be changed in GITTT-85
@@ -1000,8 +1005,8 @@ export class App {
     commander
       .command("link")
       .description("Initializes link to third party applications")
-      .action(async (cmd: Command) => {
-        await this.linkAction(cmd);
+      .action(async () => {
+        await this.linkAction();
       });
 
     // publish command

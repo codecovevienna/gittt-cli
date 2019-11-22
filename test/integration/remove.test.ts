@@ -5,16 +5,16 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
-describe("Remove test", () => {
-  before(() => {
+describe("Remove test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should remove record from project", async () => {
+  it("should remove record from project", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -25,7 +25,7 @@ describe("Remove test", () => {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

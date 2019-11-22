@@ -6,19 +6,19 @@ import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from 
 import { IIntegrationLink, IProject } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 
-const sandboxDir: string = "./sandbox";
+const sandboxDir = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
-const configFileName: string = "config.json";
-const timerFileName: string = "timer.json";
-const projectsDir: string = "projects";
+const configFileName = "config.json";
+const timerFileName = "timer.json";
+const projectsDir = "projects";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
 
-describe("ProjectHelper", () => {
+describe("ProjectHelper", function () {
   let mockedFileHelper: FileHelper;
   let mockedGitHelper: GitHelper;
-  before(() => {
+  before(function () {
     proxyquire.noCallThru();
 
     const fileProxy: any = proxyquire("../../helper/file", {});
@@ -33,13 +33,13 @@ describe("ProjectHelper", () => {
     mockedGitHelper = new gitProxy.GitHelper(configDir, mockedFileHelper);
   });
 
-  describe("General", () => {
-    it("should create instance", async () => {
+  describe("General", function () {
+    it("should create instance", async function () {
       const projectHelper: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
       expect(projectHelper).to.be.instanceOf(ProjectHelper);
     });
 
-    it("should return project file name", async () => {
+    it("should return project file name", async function () {
       expect(ProjectHelper.projectToProjectFilename({
         meta: {
           host: "github.com",
@@ -50,21 +50,21 @@ describe("ProjectHelper", () => {
       })).to.eq("mocked.json");
     });
 
-    it("should return project meta from domain", async () => {
+    it("should return project meta from domain", async function () {
       expect(ProjectHelper.domainToProjectMeta("gitlab_com_10022")).to.deep.eq({
         host: "gitlab.com",
         port: 10022,
       });
     });
 
-    it("should return project meta from domain [no port]", async () => {
+    it("should return project meta from domain [no port]", async function () {
       expect(ProjectHelper.domainToProjectMeta("gitlab_com")).to.deep.eq({
         host: "gitlab.com",
         port: 0,
       });
     });
 
-    it("should return project file path", async () => {
+    it("should return project file path", async function () {
       expect(ProjectHelper.getProjectPath({
         meta: {
           host: "github.com",
@@ -75,7 +75,7 @@ describe("ProjectHelper", () => {
       })).to.eq("github_com_443/mocked.json");
     });
 
-    it("should initialize project", async () => {
+    it("should initialize project", async function () {
       const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
       const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
@@ -105,7 +105,7 @@ describe("ProjectHelper", () => {
       getProjectFromGitStub.restore();
     });
 
-    it("should fail to initialize project", async () => {
+    it("should fail to initialize project", async function () {
       const initProjectStub: SinonStub = sinon
         .stub(mockedFileHelper, "initProject")
         .rejects(new Error("Mocked error"));
@@ -135,8 +135,8 @@ describe("ProjectHelper", () => {
     });
   });
 
-  describe("Adding records", () => {
-    it("should add record to project", async () => {
+  describe("Adding records", function () {
+    it("should add record to project", async function () {
       const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
@@ -179,7 +179,7 @@ describe("ProjectHelper", () => {
       getProjectFromGitStub.restore();
     });
 
-    it("should add record to project without message", async () => {
+    it("should add record to project without message", async function () {
       const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
@@ -221,7 +221,7 @@ describe("ProjectHelper", () => {
       getProjectFromGitStub.restore();
     });
 
-    // it("should add record of one hour to project without message", async () => {
+    // it("should add record of one hour to project without message", async function () {
     //   const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
     //     meta: {
     //       host: "github.com",
@@ -257,7 +257,7 @@ describe("ProjectHelper", () => {
     //   getProjectFromGitStub.restore();
     // });
 
-    it("should add record to project without created timestamp", async () => {
+    it("should add record to project without created timestamp", async function () {
       const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
@@ -299,7 +299,7 @@ describe("ProjectHelper", () => {
       getProjectFromGitStub.restore();
     });
 
-    it("should add record of one hour to project without message", async () => {
+    it("should add record of one hour to project without message", async function () {
       const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
@@ -341,7 +341,7 @@ describe("ProjectHelper", () => {
       getProjectFromGitStub.restore();
     });
 
-    it("should add record to non existing project", async () => {
+    it("should add record to non existing project", async function () {
       const findProjectByNameStub: SinonStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
         .resolves(undefined);
@@ -392,7 +392,7 @@ describe("ProjectHelper", () => {
       confirmMigrationStub.restore();
     });
 
-    it("should fail to add record to non existing project", async () => {
+    it("should fail to add record to non existing project", async function () {
       const exitStub: SinonStub = sinon.stub(process, "exit");
       const findProjectByNameStub: SinonStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
@@ -434,7 +434,7 @@ describe("ProjectHelper", () => {
       confirmMigrationStub.restore();
     });
 
-    it("should add record to migrated project", async () => {
+    it("should add record to migrated project", async function () {
       const findProjectByNameStub: SinonStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
         // No project found to add record to
@@ -500,7 +500,7 @@ describe("ProjectHelper", () => {
       commitChangesStub.restore();
     });
 
-    it("should fail to add record to migrated project [project not found]", async () => {
+    it("should fail to add record to migrated project [project not found]", async function () {
       const exitStub: SinonStub = sinon.stub(process, "exit");
       const findProjectByNameStub: SinonStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
@@ -565,8 +565,8 @@ describe("ProjectHelper", () => {
       exitStub.restore();
     });
 
-    describe("Overlapping records", () => {
-      it("should fail to add overlapping record [start smaller end inside]", async () => {
+    describe("Overlapping records", function () {
+      it("should fail to add overlapping record [start smaller end inside]", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const findProjectByNameStub: SinonStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
@@ -630,7 +630,7 @@ describe("ProjectHelper", () => {
         saveProjectObjectStub.restore();
       });
 
-      it("should fail to add overlapping record [start larger end inside]", async () => {
+      it("should fail to add overlapping record [start larger end inside]", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const findProjectByNameStub: SinonStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
@@ -694,7 +694,7 @@ describe("ProjectHelper", () => {
         saveProjectObjectStub.restore();
       });
 
-      it("should fail to add overlapping record [start smaller end outside]", async () => {
+      it("should fail to add overlapping record [start smaller end outside]", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const findProjectByNameStub: SinonStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
@@ -758,7 +758,7 @@ describe("ProjectHelper", () => {
         saveProjectObjectStub.restore();
       });
 
-      it("should fail to add overlapping record [start inside end outside]", async () => {
+      it("should fail to add overlapping record [start inside end outside]", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const findProjectByNameStub: SinonStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
@@ -822,7 +822,7 @@ describe("ProjectHelper", () => {
         saveProjectObjectStub.restore();
       });
 
-      it("should fail to add overlapping record [start same end same]", async () => {
+      it("should fail to add overlapping record [start same end same]", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const findProjectByNameStub: SinonStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
@@ -886,7 +886,7 @@ describe("ProjectHelper", () => {
         saveProjectObjectStub.restore();
       });
 
-      it("should fail to add overlapping record, but add non overlapping [with message]", async () => {
+      it("should fail to add overlapping record, but add non overlapping [with message]", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
         const findProjectByNameStub: SinonStub = sinon
@@ -959,7 +959,7 @@ describe("ProjectHelper", () => {
         commitChangesStub.restore();
       });
 
-      it("should fail to add overlapping record, but add non overlapping [without message]", async () => {
+      it("should fail to add overlapping record, but add non overlapping [without message]", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
         const findProjectByNameStub: SinonStub = sinon
@@ -1031,7 +1031,7 @@ describe("ProjectHelper", () => {
         commitChangesStub.restore();
       });
 
-      it("should fail to add overlapping record, but add multiple non overlapping", async () => {
+      it("should fail to add overlapping record, but add multiple non overlapping", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
         const findProjectByNameStub: SinonStub = sinon
@@ -1109,8 +1109,8 @@ describe("ProjectHelper", () => {
       });
     });
 
-    describe("Unique records", () => {
-      it("should fail to add not unique record", async () => {
+    describe("Unique records", function () {
+      it("should fail to add not unique record", async function () {
         const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const findProjectByNameStub: SinonStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
@@ -1176,8 +1176,8 @@ describe("ProjectHelper", () => {
     });
   });
 
-  describe("Total hours of project", () => {
-    it("should get total numbers of hours for project", async () => {
+  describe("Total hours of project", function () {
+    it("should get total numbers of hours for project", async function () {
       const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
@@ -1207,7 +1207,7 @@ describe("ProjectHelper", () => {
       findProjectByNameStub.restore();
     });
 
-    it("should get total numbers of hours for project", async () => {
+    it("should get total numbers of hours for project [no type]", async function () {
       const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
@@ -1236,7 +1236,7 @@ describe("ProjectHelper", () => {
       findProjectByNameStub.restore();
     });
 
-    it("should fail to get total numbers of hours for non existing project", async () => {
+    it("should fail to get total numbers of hours for non existing project", async function () {
       const findProjectByNameStub: SinonStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
         .resolves(undefined);
@@ -1254,8 +1254,8 @@ describe("ProjectHelper", () => {
     });
   });
 
-  describe("Parse project from .git", () => {
-    it("should get project from git", () => {
+  describe("Parse project from .git", function () {
+    it("should get project from git", function () {
       const shellExecStub: SinonStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
@@ -1285,7 +1285,7 @@ describe("ProjectHelper", () => {
       expect(project.meta.raw).to.eq("ssh://git@github.com:443/test/mocked.git");
     });
 
-    it("should get project from git [multiple remotes]", () => {
+    it("should get project from git [multiple remotes]", function () {
       const shellExecStub: SinonStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
@@ -1315,7 +1315,7 @@ describe("ProjectHelper", () => {
       expect(project.meta.raw).to.eq("ssh://git@github.com:443/test/mocked.git");
     });
 
-    it("should fail to get project from git [no origin remote]", () => {
+    it("should fail to get project from git [no origin remote]", function () {
       const shellExecStub: SinonStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
@@ -1340,7 +1340,7 @@ describe("ProjectHelper", () => {
       assert.isDefined(thrownError);
     });
 
-    it("should fail to get project from git [shell exec fails]", () => {
+    it("should fail to get project from git [shell exec fails]", function () {
       const shellExecStub: SinonStub = sinon.stub()
         .onCall(0).returns({
           code: 1337,
@@ -1365,7 +1365,7 @@ describe("ProjectHelper", () => {
       assert.isDefined(thrownError);
     });
 
-    it("should fail to get project from git [shell exec fails]", () => {
+    it("should fail to get project from git [shell exec fails second time]", function () {
       const shellExecStub: SinonStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
@@ -1395,7 +1395,7 @@ describe("ProjectHelper", () => {
       assert.isDefined(thrownError);
     });
 
-    it("should fail to get project from git [invalid stdout]", () => {
+    it("should fail to get project from git [invalid stdout]", function () {
       const shellExecStub: SinonStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
@@ -1426,8 +1426,8 @@ describe("ProjectHelper", () => {
     });
   });
 
-  describe("Migration", () => {
-    it("should migrate project [only project in domain]", async () => {
+  describe("Migration", function () {
+    it("should migrate project [only project in domain]", async function () {
       const fromProject: IProject = {
         meta: {
           host: "github.com",
@@ -1490,7 +1490,7 @@ describe("ProjectHelper", () => {
       findLinkByProjectStub.restore();
     });
 
-    it("should migrate project [more projects in domain]", async () => {
+    it("should migrate project [more projects in domain]", async function () {
       const additionalProject: IProject = {
         meta: {
           host: "bitbucket.com",
@@ -1571,7 +1571,7 @@ describe("ProjectHelper", () => {
       findLinkByProjectStub.restore();
     });
 
-    it("should fail migrate project [project not found]", async () => {
+    it("should fail migrate project [project not found]", async function () {
       const fromProject: IProject = {
         meta: {
           host: "github.com",
@@ -1613,7 +1613,7 @@ describe("ProjectHelper", () => {
       findProjectByNameStub.restore();
     });
 
-    it("should migrate project [only project in domain, with link]", async () => {
+    it("should migrate project [only project in domain, with link]", async function () {
       const fromProject: IProject = {
         meta: {
           host: "github.com",
@@ -1693,7 +1693,7 @@ describe("ProjectHelper", () => {
       addOrUpdateLinkStub.restore();
     });
 
-    it("should migrate project [only project in domain, invalid link]", async () => {
+    it("should migrate project [only project in domain, invalid link]", async function () {
       const fromProject: IProject = {
         meta: {
           host: "github.com",
