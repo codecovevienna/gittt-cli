@@ -11,7 +11,7 @@ describe("Report test", () => {
     proxyquire.noCallThru();
   });
 
-  it("should output project overview", async () => {
+  it.only("should output project overview", async () => {
     const mockedHelper: any = Object.assign({}, emptyHelper);
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedChartStub: SinonStub = sinon.stub();
@@ -102,6 +102,9 @@ describe("Report test", () => {
 
     process.argv = ["namespace", "mocked", "report"];
     mockedApp.start();
+
+    console.log(mockedChartStub.args);
+    console.log(mockedChartStub.callCount);
 
     assert.isTrue(mockedChartStub.called);
   });

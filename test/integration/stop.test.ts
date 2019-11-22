@@ -15,30 +15,11 @@ describe("Stop test", () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    const stopTimerStub: SinonStub = sinon.stub().resolves();
-
     // tslint:disable
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
       public isConfigFileValid = sinon.stub().resolves(true);
-    }
-
-    mockedHelper.TimerHelper = class {
-      public stopTimer = stopTimerStub;
-    }
-
-    mockedHelper.ProjectHelper = class {
-      public getProjectByName = sinon.stub().resolves(
-        {
-          meta: {
-            host: "",
-            port: 0,
-          },
-          name: "mocked",
-          records: [],
-        } as IProject
-      );
     }
 
     const proxy: any = proxyquire("../../app", {
@@ -49,11 +30,13 @@ describe("Stop test", () => {
 
     const mockedApp: App = new proxy.App();
 
+    const stopActionStub: SinonStub = sinon.stub(mockedApp, "stopAction").resolves();
+
     await mockedApp.setup();
 
     process.argv = ["namespace", "mocked", "stop", "-m", "mock"];
     mockedApp.start();
 
-    assert.isTrue(stopTimerStub.calledOnceWith("mock"));
+    assert.isTrue(stopActionStub.calledOnce);
   });
 });

@@ -925,8 +925,33 @@ export class App {
 
     // print weeklyData
     LogHelper.info("Weekday report");
-    LogHelper.log("----------------------------------------------------------------------");
+    LogHelper.log("---------------------------------------------------------------------");
+    ChartHelper.chart(weekdayData, true, 50, false, "h");
+    console.log(ChartHelper.chart);
     LogHelper.log(ChartHelper.chart(weekdayData, true, 50, false, "h"));
+    console.log(ChartHelper.chart);
+
+    console.log("ets");
+  }
+
+  public async stopAction(cmd: Command): Promise<void> {
+    let project: IProject | undefined;
+
+    if (cmd.kill) {
+      await this.timerHelper.killTimer();
+    } else {
+      if (cmd.project) {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } else {
+        project = await this.projectHelper.getOrAskForProjectFromGit();
+      }
+
+      if (!project) {
+        return this.exit("No valid git project", 1);
+      }
+
+      await this.timerHelper.stopTimer(cmd.message, project);
+    }
   }
 
   public initCommander(): CommanderStatic {
@@ -1054,23 +1079,7 @@ export class App {
       .option("-k, --kill", "Kill the timer for a project")
       .option("-m, --message <message>", "Commit message for the project")
       .option("-p, --project [project]", "Specify the project to add your time to")
-      .action(async (cmd: any): Promise<void> => {
-        const interactiveMode: boolean = process.argv.length === 3;
-
-        let project: IProject | undefined;
-
-        if (cmd.kill) {
-          await this.timerHelper.killTimer();
-        } else {
-          if (!interactiveMode) {
-            project = await this.projectHelper.getProjectByName(cmd.project);
-          } else {
-            project = await this.projectHelper.getOrAskForProjectFromGit();
-          }
-
-          await this.timerHelper.stopTimer(cmd.message, project);
-        }
-      });
+      .action(async (cmd: any): Promise<void> => await this.stopAction(cmd));
 
     // init command
     commander

@@ -183,6 +183,7 @@ describe("App", () => {
       await app.setup();
 
       assert.isTrue(exitStub.calledWith(0));
+
       exitStub.restore();
     });
 
@@ -258,6 +259,7 @@ describe("App", () => {
       await app.initConfigDir();
 
       assert.isTrue(exitStub.calledWith(1));
+
       exitStub.restore();
     });
 
@@ -609,7 +611,7 @@ describe("App", () => {
     });
   });
 
-  describe.only("Edit records", () => {
+  describe("Edit records", () => {
     it("should edit specific record", async () => {
       const mockedHelper: any = Object.assign({}, emptyHelper);
       const mockedRecords: IRecord[] = [
@@ -635,7 +637,7 @@ describe("App", () => {
         },
         name: "mocked",
         records: mockedRecords,
-      });
+      } as IProject);
       const commitChangesStub: SinonStub = sinon.stub().resolves();
       const saveProjectObjectStub: SinonStub = sinon.stub().resolves();
 
@@ -695,12 +697,14 @@ describe("App", () => {
       assert.isTrue(saveProjectObjectStub.calledOnce);
       expect(saveProjectObjectStub.args[0][0].records[0].amount).to.eq(mockedCommand.amount);
       assert.isTrue(commitChangesStub.calledOnce);
+
+      // getOrAskForProjectFromGitStub.restore();
     });
 
     it("should fail to edit specific record [unable to get project by name]", async () => {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      const getProjectByNameStub: SinonStub = sinon.stub().throws(new Error("Mocked Error"));
+      const getProjectByNameStub: SinonStub = sinon.stub().resolves(undefined);
 
       // tslint:disable
       mockedHelper.FileHelper = class {
@@ -724,10 +728,15 @@ describe("App", () => {
 
       await mockedApp.setup();
 
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
       await mockedApp.editAction(new Command());
 
       assert.isTrue(getProjectByNameStub.calledOnce);
       assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
     });
 
     it("should fail to edit specific record [unable to get project from filesystem]", async () => {
@@ -765,10 +774,15 @@ describe("App", () => {
 
       await mockedApp.setup();
 
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
       await mockedApp.editAction(new Command());
 
       assert.isTrue(getProjectByNameStub.calledOnce);
       assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
     });
 
     it("should fail to edit specific record [no records]", async () => {
@@ -814,10 +828,15 @@ describe("App", () => {
 
       await mockedApp.setup();
 
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
       await mockedApp.editAction(new Command());
 
       assert.isTrue(getProjectByNameStub.calledOnce);
       assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
     });
 
     it("should edit specific record with arguments", async () => {
@@ -882,7 +901,7 @@ describe("App", () => {
       mockedCommand.guid = "mocked-guid";
       mockedCommand.type = RECORD_TYPES.Time;
 
-      // Mock arguments array to be greater than 3
+      // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
 
       await mockedApp.editAction(mockedCommand);
@@ -949,7 +968,7 @@ describe("App", () => {
       mockedCommand.guid = "unknown-guid";
       mockedCommand.type = RECORD_TYPES.Time;
 
-      // Mock arguments array to be greater than 3
+      // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
 
       await mockedApp.editAction(mockedCommand);
@@ -957,6 +976,8 @@ describe("App", () => {
       assert.isTrue(getProjectByNameStub.calledOnce);
       assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
     });
 
     it("should fail to edit specific record with arguments [no guid]", async () => {
@@ -1013,7 +1034,7 @@ describe("App", () => {
 
       const helpStub: SinonStub = sinon.stub(mockedCommand, "help");
 
-      // Mock arguments array to be greater than 3
+      // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
 
       await mockedApp.editAction(mockedCommand);
@@ -1080,7 +1101,7 @@ describe("App", () => {
 
       const helpStub: SinonStub = sinon.stub(mockedCommand, "help");
 
-      // Mock arguments array to be greater than 3
+      // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
 
       await mockedApp.editAction(mockedCommand);
@@ -1144,7 +1165,7 @@ describe("App", () => {
 
       const helpStub: SinonStub = sinon.stub(mockedCommand, "help");
 
-      // Mock arguments array to be greater than 3
+      // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
 
       await mockedApp.editAction(mockedCommand);
@@ -1268,6 +1289,8 @@ describe("App", () => {
 
       assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
       assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
     });
 
     it("should fail to remove specific record [unable to get project from filesystem]", async () => {
@@ -1314,6 +1337,8 @@ describe("App", () => {
 
       assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
       assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
     });
 
     it("should fail to remove specific record [no records]", async () => {
@@ -1368,6 +1393,8 @@ describe("App", () => {
 
       assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
       assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
     });
 
     it("should remove specific record with arguments", async () => {
@@ -1562,6 +1589,8 @@ describe("App", () => {
       assert.isTrue(getProjectByNameStub.calledOnce);
       assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
     });
   });
 
@@ -1931,6 +1960,8 @@ describe("App", () => {
           await mockedApp.linkAction(new Command());
 
           assert.isTrue(exitStub.calledOnce);
+
+          exitStub.restore();
         });
 
         it("should fail to add new JIRA link [error while adding]", async () => {
@@ -1989,6 +2020,8 @@ describe("App", () => {
 
           assert.isTrue(addOrUpdateLinkStub.calledOnce);
           assert.isTrue(exitStub.calledOnce);
+
+          exitStub.restore();
         });
 
         it("should publish records to Jira endpoint", async () => {
@@ -2329,6 +2362,8 @@ describe("App", () => {
 
           assert.isTrue(axiosPostStub.notCalled);
           assert.isTrue(exitStub.called);
+
+          exitStub.restore();
         });
 
         it("should fail to publish records to Jira endpoint [no git directory]", async () => {
@@ -2370,6 +2405,8 @@ describe("App", () => {
 
           assert.isTrue(axiosPostStub.notCalled);
           assert.isTrue(exitStub.called);
+
+          exitStub.restore();
         });
 
         it("should fail to publish records to Jira endpoint [no link found]", async () => {
@@ -2428,6 +2465,8 @@ describe("App", () => {
 
           assert.isTrue(axiosPostStub.notCalled);
           assert.isTrue(exitStub.called);
+
+          exitStub.restore();
         });
 
         it("should fail to publish records to Jira endpoint [no project found]", async () => {
@@ -2492,6 +2531,8 @@ describe("App", () => {
 
           assert.isTrue(axiosPostStub.notCalled);
           assert.isTrue(exitStub.called);
+
+          exitStub.restore();
         });
 
         it("should fail to publish records to Jira endpoint [request fails]", async () => {
@@ -2562,6 +2603,8 @@ describe("App", () => {
 
           assert.isTrue(axiosPostStub.calledOnce);
           assert.isTrue(exitStub.called);
+
+          exitStub.restore();
         });
 
         it("should fail to publish records to Jira endpoint [unsuccessful response]", async () => {
@@ -2636,6 +2679,8 @@ describe("App", () => {
 
           assert.isTrue(axiosPostStub.calledOnce);
           assert.isTrue(exitStub.called);
+
+          exitStub.restore();
         });
 
         it("should fail to publish records to Jira endpoint [unknown link type]", async () => {
@@ -2710,6 +2755,8 @@ describe("App", () => {
 
           assert.isTrue(axiosPostStub.notCalled);
           assert.isTrue(exitStub.called);
+
+          exitStub.restore();
         });
       });
     });
