@@ -1059,15 +1059,15 @@ export class App {
 
         let project: IProject | undefined;
 
-        if (!interactiveMode) {
-          project = await this.projectHelper.getProjectByName(cmd.project);
-        } else {
-          project = await this.projectHelper.getOrAskForProjectFromGit();
-        }
-
         if (cmd.kill) {
           await this.timerHelper.killTimer();
         } else {
+          if (!interactiveMode) {
+            project = await this.projectHelper.getProjectByName(cmd.project);
+          } else {
+            project = await this.projectHelper.getOrAskForProjectFromGit();
+          }
+
           await this.timerHelper.stopTimer(cmd.message, project);
         }
       });
