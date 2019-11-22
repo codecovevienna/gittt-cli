@@ -2932,7 +2932,7 @@ describe("App", function () {
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
 
-      await mockedApp.listAction(new Command());
+      await mockedApp.listAction();
       // One for the day and one for the week report
     });
 
@@ -2963,7 +2963,7 @@ describe("App", function () {
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
 
-      await mockedApp.listAction(new Command());
+      await mockedApp.listAction();
 
       assert.isTrue(exitStub.calledOnce)
     });
@@ -3006,7 +3006,7 @@ describe("App", function () {
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
 
-      await mockedApp.listAction(new Command());
+      await mockedApp.listAction();
 
       assert.isTrue(exitStub.calledOnce)
     });
@@ -3058,7 +3058,7 @@ describe("App", function () {
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
 
-      await mockedApp.listAction(new Command());
+      await mockedApp.listAction();
 
       assert.isTrue(exitStub.calledOnce)
     });
