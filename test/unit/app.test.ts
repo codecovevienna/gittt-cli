@@ -3062,4 +3062,174 @@ describe("App", function () {
       assert.isTrue(exitStub.calledOnce)
     });
   });
+
+  describe("Export", function () {
+    it("should export records from all projects", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const mockedProjects: IProject[] = [
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: [
+            {
+              amount: 2,
+              created: 1572346125890,
+              end: 1572346125745,
+              guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+              message: "A mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1572346125890,
+            },
+            {
+              amount: 2.5,
+              created: 1571323193712,
+              end: 1571323193545,
+              guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+              message: "Some other mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1571323193712,
+            },
+          ],
+        },
+      ]
+
+      const exportStub: SinonStub = sinon.stub().resolves();
+      const findAllProjectsStub: SinonStub = sinon.stub().resolves(mockedProjects);
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findAllProjects = findAllProjectsStub;
+      }
+
+      mockedHelper.ExportHelper = class {
+        public static export = exportStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.exportAction(new Command());
+
+      assert.isTrue(exportStub.calledWith("/tmp/gittt-export.ods", mockedProjects))
+    });
+
+    it("should export records from a specific project", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const mockedProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "mocked_project",
+        records: [
+          {
+            amount: 2,
+            created: 1572346125890,
+            end: 1572346125745,
+            guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+            message: "A mocked message",
+            type: RECORD_TYPES.Time,
+            updated: 1572346125890,
+          },
+          {
+            amount: 2.5,
+            created: 1571323193712,
+            end: 1571323193545,
+            guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+            message: "Some other mocked message",
+            type: RECORD_TYPES.Time,
+            updated: 1571323193712,
+          },
+        ],
+      }
+
+      const exportStub: SinonStub = sinon.stub().resolves();
+      const findProjectByNameStub: SinonStub = sinon.stub().resolves(mockedProject);
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ExportHelper = class {
+        public static export = exportStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      const cmd = new Command();
+      cmd.project = "mocked_project"
+
+      await mockedApp.exportAction(cmd);
+
+      assert.isTrue(exportStub.calledWith("/tmp/gittt-export.ods", [mockedProject]))
+    });
+
+    it("should fail to export records from non existing project", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const mockedProject = undefined;
+
+      const exitStub: SinonStub = sinon.stub(process, "exit");
+      const exportStub: SinonStub = sinon.stub().resolves();
+      const findProjectByNameStub: SinonStub = sinon.stub().resolves(mockedProject);
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ExportHelper = class {
+        public static export = exportStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      const cmd = new Command();
+      cmd.project = "non_existing";
+
+      await mockedApp.exportAction(cmd);
+
+      assert.isTrue(exitStub.calledOnce)
+
+      exitStub.restore();
+    });
+  })
 });

@@ -9,6 +9,7 @@ import { DefaultLogFields } from "simple-git/typings/response";
 import {
   ChartHelper,
   FileHelper,
+  ExportHelper,
   GitHelper,
   ImportHelper,
   LogHelper,
@@ -28,7 +29,6 @@ import {
   IRecord,
 } from "./interfaces";
 import { RECORD_TYPES } from "./types";
-import { ExportHelper } from "./helper/export";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");

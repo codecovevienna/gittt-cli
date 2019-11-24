@@ -6,6 +6,7 @@ LogHelper.silence = true;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const emptyHelper: any = {
   FileHelper: class { },
+  ExportHelper: class { },
   GitHelper: class { },
   ImportHelper: class { },
   ProjectHelper: class { },
