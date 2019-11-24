@@ -1,9 +1,11 @@
 import * as XLSX from 'xlsx';
 import { IProject, IRecord } from '../interfaces';
 import moment = require('moment');
+import { BookType } from 'xlsx';
 
 export class ExportHelper {
-  public static export(path: string, projects: IProject[]): void {
+  public static export(path = process.cwd(), name = "gittt-export", type: BookType = "ods", projects: IProject[] = []): void {
+    const filePath = `${path}/${name}.${type}`;
     const wb = XLSX.utils.book_new();
     for (const project of projects) {
       const sheetData = [
@@ -23,9 +25,9 @@ export class ExportHelper {
       const ws = XLSX.utils.aoa_to_sheet(sheetData);
       XLSX.utils.book_append_sheet(wb, ws, project.name);
     }
-    XLSX.writeFile(wb, path, {
+    XLSX.writeFile(wb, filePath, {
       cellDates: true,
-      bookType: "ods"
+      bookType: type
     } as XLSX.WritingOptions);
   }
 }

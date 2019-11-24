@@ -134,7 +134,6 @@ export class App {
   }
 
   public async exportAction(cmd: Command): Promise<void> {
-    const filePath: string = cmd.out ? cmd.out : "/tmp/gittt-export.ods";
     LogHelper.print(`Gathering projects...`)
     let projectsToExport: IProject[] = [];
     if (cmd.project) {
@@ -147,10 +146,9 @@ export class App {
     } else {
       projectsToExport = await this.fileHelper.findAllProjects();
     }
-    LogHelper.info(`✓ Got all ${projectsToExport.length} projects`)
-    LogHelper.print(`Starting export to "${filePath}"...`)
+    LogHelper.info(`✓ Got all ${projectsToExport.length} projects`);
 
-    ExportHelper.export(filePath, projectsToExport);
+    ExportHelper.export(cmd.directory, cmd.filename, cmd.type, projectsToExport);
     LogHelper.info(`✓ Export done`)
   }
 
@@ -1078,7 +1076,9 @@ export class App {
     commander
       .command("export")
       .description("Exports projects to ods file")
-      .option("-o, --out [output file]", "Path of the output file (default: /tmp/gittt-report.ods)")
+      .option("-f, --filename [filename]", "Filename of the output file (default: gittt-report)")
+      .option("-d, --directory [directory]", "Directory where to store the export (default: current working dir)")
+      .option("-t, --type [file type]", "File type of the export (default: ods)")
       .option("-p, --project [project to export]", "Name of the project")
       .action(async (cmd: Command): Promise<void> => {
         await this.exportAction(cmd);
