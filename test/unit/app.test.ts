@@ -3220,6 +3220,7 @@ describe("App", function () {
       await mockedApp.setup();
 
       // Mock arguments array to enable interactive mode
+      // eslint-disable-next-line require-atomic-updates
       process.argv = ["1", "2", "3"];
 
       const cmd = new Command();
