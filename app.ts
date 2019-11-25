@@ -926,12 +926,7 @@ export class App {
     // print weeklyData
     LogHelper.info("Weekday report");
     LogHelper.log("---------------------------------------------------------------------");
-    ChartHelper.chart(weekdayData, true, 50, false, "h");
-    console.log(ChartHelper.chart);
     LogHelper.log(ChartHelper.chart(weekdayData, true, 50, false, "h"));
-    console.log(ChartHelper.chart);
-
-    console.log("ets");
   }
 
   public async stopAction(cmd: Command): Promise<void> {

@@ -29,13 +29,13 @@ describe("Add test", () => {
 
     const mockedApp: App = new proxy.App();
 
-    const editActionStub: SinonStub = sinon.stub(mockedApp, "addAction").resolves();
+    const addActionStub: SinonStub = sinon.stub(mockedApp, "addAction").resolves();
 
     await mockedApp.setup();
 
     process.argv = ["namespace", "mocked", "add"];
     mockedApp.start();
 
-    assert.isTrue(editActionStub.calledOnce);
+    assert.isTrue(addActionStub.calledOnce);
   });
 });
