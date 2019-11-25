@@ -934,7 +934,7 @@ describe("App", () => {
       const findProjectByNameStub: SinonStub = sinon.stub().resolves({
         meta: {
           host: "test.git.com",
-          port: 443, repo
+          port: 443,
         },
         name: "mocked",
         records: mockedRecords,
@@ -2762,7 +2762,7 @@ describe("App", () => {
     });
   });
   describe("Report", () => {
-    it.only("should output project overview", async () => {
+    it("should output project overview", async () => {
       const mockedHelper: any = Object.assign({}, emptyHelper);
       const mockedCommander: CommanderStatic = proxyquire("commander", {});
       const mockedChartStub: SinonStub = sinon.stub();
