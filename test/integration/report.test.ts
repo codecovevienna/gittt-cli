@@ -1,10 +1,10 @@
+import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
-import { assert } from "chai";
 
 describe("Report test", () => {
   before(() => {

@@ -3,8 +3,8 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
-import { emptyHelper } from "../helper";
 import { IProject } from "../../interfaces";
+import { emptyHelper } from "../helper";
 
 describe("Stop test", () => {
   before(() => {

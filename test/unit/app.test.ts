@@ -1758,7 +1758,7 @@ describe("App", () => {
           },
           name: "mocked",
           records: [],
-        } as IProject
+        } as IProject,
       );
 
       // tslint:disable
@@ -2850,4 +2850,232 @@ describe("App", () => {
       assert.isTrue(mockedChartStub.called);
     });
   });
+  describe("List", () => {
+    it("should list projects", async () => {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+      const mockedCommander: CommanderStatic = proxyquire("commander", {});
+
+      const findProjectByNameStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: [
+            {
+              amount: 2,
+              created: 1572346125890,
+              end: 1572346125745,
+              guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+              message: "A mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1572346125890,
+            },
+            {
+              amount: 2.5,
+              created: 1571323193712,
+              end: 1571323193545,
+              guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+              message: "Some other mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1571323193712,
+            },
+          ],
+        },
+      );
+      const getOrAskForProjectFromGitStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: [
+            {
+              amount: 2,
+              created: 1572346125890,
+              end: 1572346125745,
+              guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+              message: "A mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1572346125890,
+            },
+            {
+              amount: 2.5,
+              created: 1571323193712,
+              end: 1571323193545,
+              guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+              message: "Some other mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1571323193712,
+            },
+          ],
+        },
+      );
+      const printStub: SinonStub = sinon.stub();
+      const infoStub: SinonStub = sinon.stub();
+
+      // tslint:disable
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+      }
+
+      mockedHelper.LogHelper = class {
+        public static print = printStub;
+        public static info = infoStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+        "commander": mockedCommander,
+      });
+      // tslint:enable
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      process.argv = ["namespace", "mocked", "list"];
+      await mockedApp.listAction(new Command());
+
+      assert.isTrue(printStub.called);
+      assert.isTrue(printStub.callCount === 5);
+      assert.isTrue(infoStub.called);
+      assert.isTrue(infoStub.callCount === 3);
+    });
+  });
+  describe("Commit", () => {
+    it("should commit hours", async () => {
+      const mockedCommander: CommanderStatic = proxyquire("commander", {});
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const findProjectByNameStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: [
+            {
+              amount: 2,
+              created: 1572346125890,
+              end: 1572346125745,
+              guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+              message: "A mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1572346125890,
+            },
+            {
+              amount: 2.5,
+              created: 1571323193712,
+              end: 1571323193545,
+              guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+              message: "Some other mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1571323193712,
+            },
+          ],
+        },
+      );
+      const getProjectByNameStub: SinonStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project",
+          records: [
+            {
+              amount: 2,
+              created: 1572346125890,
+              end: 1572346125745,
+              guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+              message: "A mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1572346125890,
+            },
+            {
+              amount: 2.5,
+              created: 1571323193712,
+              end: 1571323193545,
+              guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+              message: "Some other mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1571323193712,
+            },
+          ],
+        },
+      );
+      const addRecordToProjectStub: SinonStub = sinon.stub().resolves();
+
+      // tslint:disable
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findProjectByName = findProjectByNameStub;
+      }
+      mockedHelper.ProjectHelper = class {
+        public addRecordToProject = addRecordToProjectStub;
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+        "commander": mockedCommander,
+      });
+      // tslint:enable
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      process.argv = ["namespace", "mocked", "commit", "1337"];
+      await mockedApp.commitAction("3.2", new Command());
+
+      assert.isTrue(addRecordToProjectStub.called);
+    });
+    it("should fail to commit hours", async () => {
+      const mockedCommander: CommanderStatic = proxyquire("commander", {});
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      // tslint:disable
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public addRecordToProject = sinon.stub();
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+        "commander": mockedCommander,
+      });
+      // tslint:enable
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      process.argv = ["namespace", "mocked", "commit", "noNumber"];
+      await mockedApp.commitAction("noNumber", new Command());
+
+      assert.isTrue(exitStub.calledOnce);
+    });
+  });
+
 });
