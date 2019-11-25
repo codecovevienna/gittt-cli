@@ -1078,7 +1078,7 @@ export class App {
       .description("Exports projects to ods file")
       .option("-f, --filename [filename]", "Filename of the output file (default: gittt-report)")
       .option("-d, --directory [directory]", "Directory where to store the export (default: current working dir)")
-      .option("-t, --type [file type]", "File type of the export (default: ods)")
+      .option("-t, --type [file type]", "File type of the export (default: ods) - supported types: https://github.com/SheetJS/sheetjs#supported-output-formats")
       .option("-p, --project [project to export]", "Name of the project")
       .action(async (cmd: Command): Promise<void> => {
         await this.exportAction(cmd);
