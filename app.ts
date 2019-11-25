@@ -9,6 +9,7 @@ import { DefaultLogFields } from "simple-git/typings/response";
 import {
   ChartHelper,
   FileHelper,
+  ExportHelper,
   GitHelper,
   ImportHelper,
   LogHelper,
@@ -130,6 +131,25 @@ export class App {
         // TODO reinitialize?
       }
     }
+  }
+
+  public async exportAction(cmd: Command): Promise<void> {
+    LogHelper.print(`Gathering projects...`)
+    let projectsToExport: IProject[] = [];
+    if (cmd.project) {
+      const projectToExport: IProject | undefined = await this.fileHelper.findProjectByName(cmd.project);
+      if (!projectToExport) {
+        this.exit(`✗ Project "${cmd.project}" not found`, 1)
+      } else {
+        projectsToExport.push(projectToExport);
+      }
+    } else {
+      projectsToExport = await this.fileHelper.findAllProjects();
+    }
+    LogHelper.info(`✓ Got all ${projectsToExport.length} projects`);
+
+    ExportHelper.export(cmd.directory, cmd.filename, cmd.type, projectsToExport);
+    LogHelper.info(`✓ Export done`)
   }
 
   public async linkAction(): Promise<void> {
@@ -1050,6 +1070,18 @@ export class App {
       .option("-f, --file [file]", "CSV file with format (MESSAGE,END[int],AMOUNT[double])")
       .action(async (cmd: Command): Promise<void> => {
         await this.importCsv(cmd);
+      });
+
+    // export command
+    commander
+      .command("export")
+      .description("Exports projects to ods file")
+      .option("-f, --filename [filename]", "Filename of the output file (default: gittt-report)")
+      .option("-d, --directory [directory]", "Directory where to store the export (default: current working dir)")
+      .option("-t, --type [file type]", "File type of the export (default: ods) - supported types: https://github.com/SheetJS/sheetjs#supported-output-formats")
+      .option("-p, --project [project to export]", "Name of the project")
+      .action(async (cmd: Command): Promise<void> => {
+        await this.exportAction(cmd);
       });
 
     return commander;
