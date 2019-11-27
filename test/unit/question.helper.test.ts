@@ -158,6 +158,35 @@ describe("QuestionHelper", function () {
       expect(choice.linkType).to.eq("Jira");
       expect(choice.projectName).to.eq("mocked_project_1");
     });
+
+    it.only("should ask for jira link with epic", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            host: "http://mocked.com/",
+            key: "MOCKED",
+            epic: "EPIC-1",
+            password: "mocked",
+            username: "mocked",
+          }),
+        },
+      });
+
+      const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
+        meta: {
+          host: "mocked.com",
+          port: 443,
+        },
+        name: "mocked_project_1",
+      } as IProject);
+
+      expect(choice.endpoint).to.eq("http://mocked.com/rest/gittt/latest/");
+      expect(choice.key).to.eq("MOCKED/EPIC-1");
+      expect(choice.username).to.eq("mocked");
+      expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
+      expect(choice.linkType).to.eq("Jira");
+      expect(choice.projectName).to.eq("mocked_project_1");
+    });
   });
 
   describe("Choose", function () {

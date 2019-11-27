@@ -79,4 +79,11 @@ describe("ValidationHelper", function () {
 
     assert.isString(ValidationHelper.validateJiraKey("M"));
   });
+
+  it.only("should validate jira epic", async function () {
+    assert.isTrue(ValidationHelper.validateJiraEpic("EPIC-1"));
+
+    assert.isString(ValidationHelper.validateJiraEpic("E"));
+    assert.isString(ValidationHelper.validateJiraEpic("EPIC1"));
+  });
 });

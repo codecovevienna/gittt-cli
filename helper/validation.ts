@@ -90,4 +90,16 @@ export class ValidationHelper {
       return "The key has to be longer than one character";
     }
   }
+
+  public static validateJiraEpic = (input: any): boolean | string | Promise<boolean | string> => {
+    const inputString: string = input;
+    if (inputString.length > 1) {
+      if (inputString.indexOf("-") != -1) {
+        return true;
+      }
+      return "The epic has to contain a dash ('-')";
+    } else {
+      return "The epic has to be longer than one character";
+    }
+  }
 }
