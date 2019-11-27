@@ -131,11 +131,11 @@ describe("QuestionHelper", function () {
       expect(choice).to.eq("ssh://git@github.com/company/project.git");
     });
 
-    it("should ask for jira link", async function () {
+    it.only("should ask for jira link", async function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
           prompt: sinon.stub().resolves({
-            host: "http://mocked.com/",
+            host: "http://mocked.com",
             key: "MOCKED",
             password: "mocked",
             username: "mocked",
@@ -151,7 +151,8 @@ describe("QuestionHelper", function () {
         name: "mocked_project_1",
       } as IProject);
 
-      expect(choice.endpoint).to.eq("http://mocked.com/rest/gittt/latest/");
+      expect(choice.host).to.eq("http://mocked.com");
+      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
       expect(choice.key).to.eq("MOCKED");
       expect(choice.username).to.eq("mocked");
       expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
@@ -163,7 +164,7 @@ describe("QuestionHelper", function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
           prompt: sinon.stub().resolves({
-            host: "http://mocked.com/",
+            host: "http://mocked.com",
             key: "MOCKED",
             issue: "EPIC-1",
             password: "mocked",
@@ -180,7 +181,8 @@ describe("QuestionHelper", function () {
         name: "mocked_project_1",
       } as IProject);
 
-      expect(choice.endpoint).to.eq("http://mocked.com/rest/gittt/latest/");
+      expect(choice.host).to.eq("http://mocked.com");
+      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
       expect(choice.key).to.eq("MOCKED");
       expect(choice.issue).to.eq("EPIC-1");
       expect(choice.username).to.eq("mocked");
