@@ -1864,6 +1864,72 @@ describe("App", function () {
         assert.isTrue(addOrUpdateLinkStub.calledOnce);
       });
 
+      it("should edit previous JIRA link", async function () {
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+        const mockedCommander: CommanderStatic = proxyquire("commander", {});
+
+        const getProjectFromGitStub: SinonStub = sinon.stub().returns({
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+        } as IProject);
+        const addOrUpdateLinkStub: SinonStub = sinon.stub().resolves();
+
+
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public addOrUpdateLink = addOrUpdateLinkStub;
+          public findLinkByProject = sinon.stub().resolves(
+            {
+              endpoint: "/rest/gittt/latest/",
+              hash: "bW9ja2VkOm1vY2tlZA==",
+              host: "http://github.com",
+              issue: "EPIC-1",
+              key: "MOCKED",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "mocked"
+            } as IJiraLink
+          );
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public addLink = sinon.stub().resolves();
+          public getProjectFromGit = getProjectFromGitStub;
+        }
+
+        mockedHelper.QuestionHelper = class {
+          public static askJiraLink = sinon.stub().resolves(
+            {
+              endpoint: "http://mocked.com/rest/gittt/latest/",
+              hash: "shaHash",
+              key: "MOCKED",
+              linkType: "Jira",
+              projectName: "mocked_,project_1",
+              username: "mocked",
+            } as IJiraLink
+          );
+          public static chooseIntegration = sinon.stub().resolves("Jira");
+        }
+
+        const proxy: any = proxyquire("../../app", {
+          "./helper": mockedHelper,
+          "commander": mockedCommander,
+        });
+
+        const mockedApp: App = new proxy.App();
+
+        await mockedApp.setup();
+
+        await mockedApp.linkAction();
+
+        assert.isTrue(addOrUpdateLinkStub.calledOnce);
+      });
+
       it("should fail to add new JIRA link [no git directory]", async function () {
         const mockedHelper: any = Object.assign({}, emptyHelper);
         const mockedCommander: CommanderStatic = proxyquire("commander", {});

@@ -90,6 +90,8 @@ describe("ValidationHelper", function () {
   it("should validate jira issue", async function () {
     assert.isTrue(ValidationHelper.validateJiraIssueKey("EPIC-1"));
     assert.isTrue(ValidationHelper.validateJiraIssueKey("E-1"));
+    // issue may be empty
+    assert.isTrue(ValidationHelper.validateJiraIssueKey(""));
 
     assert.isString(ValidationHelper.validateJiraIssueKey("-"));
     assert.isString(ValidationHelper.validateJiraIssueKey("E-"));
