@@ -1827,6 +1827,7 @@ describe("App", function () {
           public configDirExists = sinon.stub().resolves(true);
           public isConfigFileValid = sinon.stub().resolves(true);
           public addOrUpdateLink = addOrUpdateLinkStub;
+          public findLinkByProject = sinon.stub().resolves();
         }
 
         mockedHelper.ProjectHelper = class {
@@ -1921,6 +1922,7 @@ describe("App", function () {
           public configDirExists = sinon.stub().resolves(true);
           public isConfigFileValid = sinon.stub().resolves(true);
           public addOrUpdateLink = addOrUpdateLinkStub;
+          public findLinkByProject = sinon.stub().resolves();
         }
 
         mockedHelper.ProjectHelper = class {

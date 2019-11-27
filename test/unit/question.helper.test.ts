@@ -7,7 +7,7 @@ import { RECORD_TYPES } from "../../types";
 
 describe("QuestionHelper", function () {
   describe("Static", function () {
-    it.only("should filter jira endpoint", async function () {
+    it("should filter jira endpoint", async function () {
       expect(QuestionHelper.filterJiraEndpoint("http://test.com")).to.eq("http://test.com");
       expect(QuestionHelper.filterJiraEndpoint("http://test.com/")).to.eq("http://test.com");
     });
@@ -131,7 +131,7 @@ describe("QuestionHelper", function () {
       expect(choice).to.eq("ssh://git@github.com/company/project.git");
     });
 
-    it.only("should ask for jira link", async function () {
+    it("should ask for jira link", async function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
           prompt: sinon.stub().resolves({
@@ -160,7 +160,7 @@ describe("QuestionHelper", function () {
       expect(choice.projectName).to.eq("mocked_project_1");
     });
 
-    it.only("should ask for jira link with issue", async function () {
+    it("should ask for jira link with issue", async function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
           prompt: sinon.stub().resolves({

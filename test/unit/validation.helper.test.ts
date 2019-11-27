@@ -65,7 +65,7 @@ describe("ValidationHelper", function () {
     assert.isString(ValidationHelper.validateGitUrl("http://github.com/company/project.git"));
   });
 
-  it.only("should validate jira user", async function () {
+  it("should validate jira user", async function () {
     assert.isTrue(ValidationHelper.validateJiraUsername("gittt-user"));
 
     assert.isString(ValidationHelper.validateJiraUsername(undefined));
@@ -87,7 +87,7 @@ describe("ValidationHelper", function () {
     assert.isString(ValidationHelper.validateJiraKey("M"));
   });
 
-  it.only("should validate jira issue", async function () {
+  it("should validate jira issue", async function () {
     assert.isTrue(ValidationHelper.validateJiraIssueKey("EPIC-1"));
     assert.isTrue(ValidationHelper.validateJiraIssueKey("E-1"));
 

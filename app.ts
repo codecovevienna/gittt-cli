@@ -279,7 +279,7 @@ export class App {
           delete err.request;
           delete err.response;
           LogHelper.debug("Publish request failed", err);
-          this.exit(`Publish request failed`, 1);
+          this.exit(`Publish request failed, please consider updating the link`, 1);
         }
 
         break;
