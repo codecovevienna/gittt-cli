@@ -1024,8 +1024,10 @@ export class App {
     // link command
     commander
       .command("link")
+      // .command('edit', 'update installed packages', { executableFile: 'app-asdf' })
       .description("Initializes link to third party applications")
-      .action(async () => {
+      // .option("-e, --guid [guid]", "GUID of the record to edit")
+      .action(async (cmd: Command) => {
         await this.linkAction();
       });
 

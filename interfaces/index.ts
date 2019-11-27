@@ -29,6 +29,7 @@ export interface IJiraLink extends IIntegrationLink {
   hash: string;
   endpoint: string;
   key: string;
+  issue: string;
 }
 
 export interface IConfigFile {

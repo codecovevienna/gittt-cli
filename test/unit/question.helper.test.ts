@@ -159,13 +159,13 @@ describe("QuestionHelper", function () {
       expect(choice.projectName).to.eq("mocked_project_1");
     });
 
-    it.only("should ask for jira link with epic", async function () {
+    it.only("should ask for jira link with issue", async function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
           prompt: sinon.stub().resolves({
             host: "http://mocked.com/",
             key: "MOCKED",
-            epic: "EPIC-1",
+            issue: "EPIC-1",
             password: "mocked",
             username: "mocked",
           }),
@@ -181,7 +181,8 @@ describe("QuestionHelper", function () {
       } as IProject);
 
       expect(choice.endpoint).to.eq("http://mocked.com/rest/gittt/latest/");
-      expect(choice.key).to.eq("MOCKED/EPIC-1");
+      expect(choice.key).to.eq("MOCKED");
+      expect(choice.issue).to.eq("EPIC-1");
       expect(choice.username).to.eq("mocked");
       expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
       expect(choice.linkType).to.eq("Jira");

@@ -159,29 +159,25 @@ export class QuestionHelper {
         validate: ValidationHelper.validateJiraKey,
       },
       {
-        message: "Jira epic key (e.g. EPIC-1), may be empty",
-        name: "epic",
+        message: "Jira issue key (e.g. EPIC-1 or STORY-1337), may be empty",
+        name: "issue",
         type: "input",
-        validate: ValidationHelper.validateJiraKey,
+        validate: ValidationHelper.validateJiraIssueKey,
       },
     ]);
-    const { host, key, epic, username, password } = jiraAnswers;
+    const { host, key, issue, username, password } = jiraAnswers;
     const hash: string = Buffer
       .from(`${username}:${password}`)
       .toString("base64");
 
     const projectName: string = project.name;
 
-    let modifiedKey = key;
-    if (epic) {
-      modifiedKey = modifiedKey.concat(`/${epic}`);
-    }
-
     const link: IJiraLink = {
       // Tailing slash is ensured by the filter
       endpoint: `${host}rest/gittt/latest/`,
       hash,
-      key: modifiedKey,
+      key,
+      issue,
       linkType: "Jira",
       projectName,
       username,
