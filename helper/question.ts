@@ -142,24 +142,27 @@ export class QuestionHelper {
         validate: ValidationHelper.validateJiraEndpoint,
       },
       {
+        default: prevData ? prevData.username : undefined,
         message: "Jira username",
         name: "username",
         type: "input",
         // TODO validate
       },
       {
-        message: "Jira password",
+        message: prevData ? "Jira password (leave empty if not changed)" : "Jira password",
         name: "password",
         type: "password",
         // TODO validate
       },
       {
+        default: prevData ? prevData.key : undefined,
         message: "Jira project key (e.g. GITTT)",
         name: "key",
         type: "input",
         validate: ValidationHelper.validateJiraKey,
       },
       {
+        default: prevData ? prevData.issue : undefined,
         message: "Jira issue key (e.g. EPIC-1 or STORY-1337), may be empty",
         name: "issue",
         type: "input",
@@ -167,9 +170,16 @@ export class QuestionHelper {
       },
     ]);
     const { host, key, issue, username, password } = jiraAnswers;
-    const hash: string = Buffer
-      .from(`${username}:${password}`)
-      .toString("base64");
+
+    let hash: string;
+    // Assuming edit mode, use hash from prevData
+    if (!password && prevData) {
+      hash = prevData.hash;
+    } else {
+      hash = Buffer
+        .from(`${username}:${password}`)
+        .toString("base64");
+    }
 
     const projectName: string = project.name;
 

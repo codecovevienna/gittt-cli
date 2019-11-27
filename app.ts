@@ -152,7 +152,7 @@ export class App {
     LogHelper.info(`✓ Export done`)
   }
 
-  public async linkAction(cmd: Command): Promise<void> {
+  public async linkAction(): Promise<void> {
     const integration: string = await QuestionHelper.chooseIntegration();
 
     switch (integration) {
@@ -164,7 +164,16 @@ export class App {
         }
         // TODO validate if record exists in projects dir(?)
 
-        const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project);
+        LogHelper.debug(`Trying to find links for "${project.name}"`)
+        // Check for previous data
+        const prevIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        let prevJiraLink: IJiraLink | undefined;
+        if (prevIntegrationLink) {
+          LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
+          prevJiraLink = prevIntegrationLink as IJiraLink;
+        }
+
+        const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project, prevJiraLink);
 
         try {
           await this.fileHelper.addOrUpdateLink(jiraLink);
@@ -204,7 +213,7 @@ export class App {
       ]);
 
       if (linkSetupAnswer.confirm) {
-        await this.linkAction(new Command());
+        await this.linkAction();
 
         return await this.publishAction(cmd);
       } else {
@@ -1024,11 +1033,9 @@ export class App {
     // link command
     commander
       .command("link")
-      .description("Initializes link to third party applications")
-      // TODO find a way to get commander's sub-commands to work
-      .option("-e, --edit", "Edit link")
-      .action(async (cmd: Command) => {
-        await this.linkAction(cmd);
+      .description("Initialize or edit link to third party applications")
+      .action(async () => {
+        await this.linkAction();
       });
 
     // publish command

@@ -190,6 +190,46 @@ describe("QuestionHelper", function () {
       expect(choice.linkType).to.eq("Jira");
       expect(choice.projectName).to.eq("mocked_project_1");
     });
+
+    it("should ask for jira link with previous data", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            host: "http://mocked.com",
+            key: "MOCKED",
+            issue: "EPIC-1",
+            username: "mocked",
+          }),
+        },
+      });
+
+      const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
+        meta: {
+          host: "mocked.com",
+          port: 443,
+        },
+        name: "mocked_project_1",
+      } as IProject
+        , {
+          endpoint: "/rest/gittt/latest/",
+          hash: "bW9ja2VkOm1vY2tlZA==",
+          host: "http://mocked.com",
+          issue: "EPIC-1",
+          key: "MOCKED",
+          linkType: "Jira",
+          projectName: "mocked_project_1",
+          username: "mocked"
+        } as IJiraLink);
+
+      expect(choice.host).to.eq("http://mocked.com");
+      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
+      expect(choice.key).to.eq("MOCKED");
+      expect(choice.issue).to.eq("EPIC-1");
+      expect(choice.username).to.eq("mocked");
+      expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
+      expect(choice.linkType).to.eq("Jira");
+      expect(choice.projectName).to.eq("mocked_project_1");
+    });
   });
 
   describe("Choose", function () {

@@ -65,6 +65,13 @@ describe("ValidationHelper", function () {
     assert.isString(ValidationHelper.validateGitUrl("http://github.com/company/project.git"));
   });
 
+  it.only("should validate jira user", async function () {
+    assert.isTrue(ValidationHelper.validateJiraUsername("gittt-user"));
+
+    assert.isString(ValidationHelper.validateJiraUsername(undefined));
+    assert.isString(ValidationHelper.validateJiraUsername("1"));
+  });
+
   it("should validate jira endpoint", async function () {
     assert.isTrue(ValidationHelper.validateJiraEndpoint("http://test.com"));
     assert.isTrue(ValidationHelper.validateJiraEndpoint("https://test.com"));
@@ -82,8 +89,13 @@ describe("ValidationHelper", function () {
 
   it.only("should validate jira issue", async function () {
     assert.isTrue(ValidationHelper.validateJiraIssueKey("EPIC-1"));
+    assert.isTrue(ValidationHelper.validateJiraIssueKey("E-1"));
 
-    assert.isString(ValidationHelper.validateJiraIssueKey("E"));
+    assert.isString(ValidationHelper.validateJiraIssueKey("-"));
+    assert.isString(ValidationHelper.validateJiraIssueKey("E-"));
+    assert.isString(ValidationHelper.validateJiraIssueKey("-1"));
+    assert.isString(ValidationHelper.validateJiraIssueKey("-E"));
+    assert.isString(ValidationHelper.validateJiraIssueKey("1-E"));
     assert.isString(ValidationHelper.validateJiraIssueKey("EPIC1"));
   });
 });

@@ -72,6 +72,19 @@ export class ValidationHelper {
     }
   }
 
+  public static validateJiraUsername = (input: any): boolean | string | Promise<boolean | string> => {
+    // TODO improve
+    if (!input) {
+      return "The username has to be a longer than one character";
+    }
+    const inputString: string = input;
+    if (inputString.length > 1) {
+      return true;
+    } else {
+      return "The username has to be a longer than one character";
+    }
+  }
+
   public static validateJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
     // TODO improve
     const inputString: string = input;
@@ -93,13 +106,14 @@ export class ValidationHelper {
 
   public static validateJiraIssueKey = (input: any): boolean | string | Promise<boolean | string> => {
     const inputString: string = input;
-    if (inputString.length > 1) {
-      if (inputString.indexOf("-") != -1) {
+    if (inputString.length > 0) {
+      const issueRegex = new RegExp('[A-Z]+-[1-9]+');
+      if (issueRegex.test(inputString)) {
         return true;
       }
       return "The issue key has to contain a dash ('-')";
     } else {
-      return "The issue key has to be longer than one character";
+      return true;
     }
   }
 }
