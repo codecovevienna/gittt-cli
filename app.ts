@@ -707,7 +707,24 @@ export class App {
       const foundProject: IProject = projects.filter((p: IProject) => p.name === project.name)[0];
       if (foundProject) {
         const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
-        LogHelper.log(`- ${foundProject.name}: ${hours}h`);
+        LogHelper.log(`Name:\t${foundProject.name}`);
+        LogHelper.log(`Hours:\t${hours}h`);
+
+        const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        if (link) {
+          switch (link.linkType) {
+            case "Jira":
+              const jiraLink: IJiraLink = link as IJiraLink;
+              LogHelper.log("");
+              LogHelper.log("Jira link:");
+              LogHelper.log(`> Host:\t\t${jiraLink.host}`);
+              LogHelper.log(`> Project:\t${jiraLink.key}`);
+              if (jiraLink.issue) {
+                LogHelper.log(`> Issue:\t${jiraLink.issue}`);
+              }
+              break;
+          }
+        }
       } else {
         LogHelper.error("No gittt project in current git project.");
       }
