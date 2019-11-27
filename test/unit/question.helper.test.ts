@@ -7,9 +7,9 @@ import { RECORD_TYPES } from "../../types";
 
 describe("QuestionHelper", function () {
   describe("Static", function () {
-    it("should filter jira endpoint", async function () {
-      expect(QuestionHelper.filterJiraEndpoint("http://test.com")).to.eq("http://test.com/");
-      expect(QuestionHelper.filterJiraEndpoint("http://test.com/")).to.eq("http://test.com/");
+    it.only("should filter jira endpoint", async function () {
+      expect(QuestionHelper.filterJiraEndpoint("http://test.com")).to.eq("http://test.com");
+      expect(QuestionHelper.filterJiraEndpoint("http://test.com/")).to.eq("http://test.com");
     });
   });
 

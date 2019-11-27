@@ -7,11 +7,12 @@ import { ProjectHelper, ValidationHelper } from "./";
 
 export class QuestionHelper {
   public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
-    // Ensure trailing slash
-    if (input[input.length - 1] !== "/") {
-      return input + "/";
+    const inputString = input as string;
+    // Ensure no trailing slash
+    if (inputString[inputString.length - 1] === "/") {
+      return inputString.slice(0, inputString.length - 1);
     } else {
-      return input;
+      return inputString;
     }
   }
 
@@ -130,10 +131,10 @@ export class QuestionHelper {
     return choice.choice;
   }
 
-  public static askJiraLink = async (project: IProject): Promise<IJiraLink> => {
+  public static askJiraLink = async (project: IProject, prevData?: IJiraLink): Promise<IJiraLink> => {
     const jiraAnswers: any = await inquirer.prompt([
       {
-        default: "https://jira.gittt.org",
+        default: prevData ? prevData.host : "https://jira.gittt.org",
         filter: QuestionHelper.filterJiraEndpoint,
         message: "Jira host",
         name: "host",
@@ -173,8 +174,9 @@ export class QuestionHelper {
     const projectName: string = project.name;
 
     const link: IJiraLink = {
+      host,
       // Tailing slash is ensured by the filter
-      endpoint: `${host}rest/gittt/latest/`,
+      endpoint: `/rest/gittt/latest/`,
       hash,
       key,
       issue,

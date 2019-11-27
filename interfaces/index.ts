@@ -27,6 +27,7 @@ export interface IIntegrationLink {
 export interface IJiraLink extends IIntegrationLink {
   username: string;
   hash: string;
+  host: string;
   endpoint: string;
   key: string;
   issue: string;
