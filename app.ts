@@ -152,7 +152,7 @@ export class App {
     LogHelper.info(`✓ Export done`)
   }
 
-  public async linkAction(): Promise<void> {
+  public async linkAction(cmd: Command): Promise<void> {
     const integration: string = await QuestionHelper.chooseIntegration();
 
     switch (integration) {
@@ -204,7 +204,7 @@ export class App {
       ]);
 
       if (linkSetupAnswer.confirm) {
-        await this.linkAction();
+        await this.linkAction(new Command());
 
         return await this.publishAction(cmd);
       } else {
@@ -247,7 +247,7 @@ export class App {
 
         try {
           const publishResult: AxiosResponse = await axios
-            .post(jiraLink.endpoint,
+            .post(`${jiraLink.host}${jiraLink.endpoint}`,
               populatedProject,
               {
                 headers: {
@@ -1024,11 +1024,11 @@ export class App {
     // link command
     commander
       .command("link")
-      // .command('edit', 'update installed packages', { executableFile: 'app-asdf' })
       .description("Initializes link to third party applications")
-      // .option("-e, --guid [guid]", "GUID of the record to edit")
+      // TODO find a way to get commander's sub-commands to work
+      .option("-e, --edit", "Edit link")
       .action(async (cmd: Command) => {
-        await this.linkAction();
+        await this.linkAction(cmd);
       });
 
     // publish command

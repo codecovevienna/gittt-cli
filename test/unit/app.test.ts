@@ -1858,7 +1858,7 @@ describe("App", function () {
 
         await mockedApp.setup();
 
-        await mockedApp.linkAction();
+        await mockedApp.linkAction(new Command());
 
         assert.isTrue(addOrUpdateLinkStub.calledOnce);
       });
@@ -1897,7 +1897,7 @@ describe("App", function () {
 
         await mockedApp.setup();
 
-        await mockedApp.linkAction();
+        await mockedApp.linkAction(new Command());
 
         assert.isTrue(exitStub.calledOnce);
       });
@@ -1954,7 +1954,7 @@ describe("App", function () {
 
         await mockedApp.setup();
 
-        await mockedApp.linkAction();
+        await mockedApp.linkAction(new Command());
 
         assert.isTrue(addOrUpdateLinkStub.calledOnce);
         assert.isTrue(exitStub.calledOnce);
