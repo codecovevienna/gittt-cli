@@ -10,10 +10,9 @@ describe("Report test", function () {
     proxyquire.noCallThru();
   });
 
-  it("should call report Action", async () => {
+  it("should call report Action", async function () {
     const mockedHelper: any = Object.assign({}, emptyHelper);
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
-    const mockedChartStub: SinonStub = sinon.stub();
 
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");

@@ -3,7 +3,6 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
-import { IInitAnswers, IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
 describe("Commit test", function () {
@@ -11,7 +10,7 @@ describe("Commit test", function () {
     proxyquire.noCallThru();
   });
 
-  it("should call commit action", async () => {
+  it("should call commit action", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 

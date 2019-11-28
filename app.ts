@@ -6,7 +6,6 @@ import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
 import { DefaultLogFields } from "simple-git/typings/response";
-import { isNullOrUndefined } from "util";
 import {
   ChartHelper,
   FileHelper,
@@ -29,13 +28,13 @@ import {
   IProject,
   IRecord,
 } from "./interfaces";
-import { GitNoOriginError, GitNoUrlError, GitRemoteError, ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
+import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
-const APP_CONFIG_DIR: string = ".gittt-cli";
+const APP_CONFIG_DIR = ".gittt-cli";
 
 export class App {
   private homeDir: string;
@@ -635,14 +634,13 @@ export class App {
     const interactiveMode: boolean = process.argv.length === 4;
 
     const amount: number = parseFloat(cmd);
-    let message: string | undefined;
+    const message: string | undefined = options.message;
     let project: IProject | undefined;
 
     if (isNaN(amount)) {
       return this.exit("Unable to parse hours", 1);
     }
 
-    message = options.message;
     project = await this.projectHelper.getProjectByName(options.project);
 
     if (interactiveMode) {
@@ -752,8 +750,6 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    console.log("importing");
-
     const records: IRecord[] = await this.importHelper.importCsv(filePath);
     await this.projectHelper.addRecordsToProject(records, project, true, false);
   }
@@ -761,12 +757,9 @@ export class App {
   public async infoAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
-    let order: string;
-    let direction: string;
+    const order: string = ORDER_TYPE.indexOf(cmd.order) === -1 ? ORDER_TYPE[0] : cmd.order;
+    const direction: string = ORDER_DIRECTION.indexOf(cmd.direction) === -1 ? ORDER_DIRECTION[0] : cmd.direction;
     let project: IProject | undefined;
-
-    order = ORDER_TYPE.indexOf(cmd.order) === -1 ? ORDER_TYPE[0] : cmd.order;
-    direction = ORDER_DIRECTION.indexOf(cmd.direction) === -1 ? ORDER_DIRECTION[0] : cmd.direction;
 
     if (!interactiveMode) {
       project = await this.projectHelper.getProjectByName(cmd.project);
@@ -865,9 +858,9 @@ export class App {
     LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
 
-    let sumOfTime: number = 0;
+    let sumOfTime = 0;
     for (const record of records) {
-      let line: string = "";
+      let line = "";
       line += `${record.type}\t`;
       line += chalk.yellow.bold(`${record.amount}h\t`);
       line += `${moment(record.end).subtract(record.amount, "hours").format("DD.MM.YYYY HH:mm:ss")}\t`;

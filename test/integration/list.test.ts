@@ -3,7 +3,6 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
-import { IProject } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -12,7 +11,7 @@ describe("List test", function () {
     proxyquire.noCallThru();
   });
 
-  it("should call list action", async () => {
+  it("should call list action", async function () {
     const mockedHelper: any = Object.assign({}, emptyHelper);
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
 
