@@ -258,9 +258,16 @@ export class App {
         }
         populatedProject.name = jiraLink.key;
 
+        let url: string;
+        if (jiraLink.host) {
+          url = `${jiraLink.host}${jiraLink.endpoint}`;
+        } else {
+          url = `${jiraLink.endpoint}`;
+        }
+
         try {
           const publishResult: AxiosResponse = await axios
-            .post(`${jiraLink.host}${jiraLink.endpoint}`,
+            .post(url,
               // TODO send issue key to endpoint
               populatedProject,
               {
