@@ -5,18 +5,18 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
-describe("Unknown command test", () => {
-  before(() => {
+describe("Unknown command test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should show help", async () => {
+  it("should show help", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
     const helpStub: SinonStub = sinon.stub(mockedCommander, "help");
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -27,7 +27,7 @@ describe("Unknown command test", () => {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

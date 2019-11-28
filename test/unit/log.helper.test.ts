@@ -2,12 +2,12 @@ import { assert } from "chai";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 
-describe("LogHelper", () => {
-  before(() => {
+describe("LogHelper", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should debug message", async () => {
+  it("should debug message", async function () {
     const proxy: any = proxyquire("../../helper/log", {});
 
     const logStub: SinonStub = sinon.stub(console, "log").returns();
@@ -19,7 +19,7 @@ describe("LogHelper", () => {
     logStub.restore();
   });
 
-  it("should debug message with error", async () => {
+  it("should debug message with error", async function () {
     const mockedError: Error = new Error("Mocked error");
     const proxy: any = proxyquire("../../helper/log", {});
 
@@ -32,7 +32,7 @@ describe("LogHelper", () => {
     logStub.restore();
   });
 
-  it("should not debug message", async () => {
+  it("should not debug message", async function () {
     const proxy: any = proxyquire("../../helper/log", {});
 
     const logStub: SinonStub = sinon.stub(console, "log").returns();
@@ -44,7 +44,7 @@ describe("LogHelper", () => {
     logStub.restore();
   });
 
-  it("should not debug message", async () => {
+  it("should not debug message [silent: true]", async function () {
     const proxy: any = proxyquire("../../helper/log", {});
 
     const logStub: SinonStub = sinon.stub(console, "log").returns();
@@ -57,7 +57,7 @@ describe("LogHelper", () => {
     logStub.restore();
   });
 
-  it("should log message", async () => {
+  it("should log message", async function () {
     const whiteStub: SinonStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
@@ -77,7 +77,7 @@ describe("LogHelper", () => {
     assert.isTrue(whiteStub.calledOnce);
   });
 
-  it("should not log message", async () => {
+  it("should not log message", async function () {
     const whiteStub: SinonStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
@@ -98,7 +98,7 @@ describe("LogHelper", () => {
     assert.isTrue(whiteStub.notCalled);
   });
 
-  it("should warn message", async () => {
+  it("should warn message", async function () {
     const yellowStub: SinonStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
@@ -118,7 +118,7 @@ describe("LogHelper", () => {
     assert.isTrue(yellowStub.calledOnce);
   });
 
-  it("should not warn message", async () => {
+  it("should not warn message", async function () {
     const yellowStub: SinonStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
@@ -139,7 +139,7 @@ describe("LogHelper", () => {
     assert.isTrue(yellowStub.notCalled);
   });
 
-  it("should error message", async () => {
+  it("should error message", async function () {
     const redStub: SinonStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
@@ -159,7 +159,7 @@ describe("LogHelper", () => {
     assert.isTrue(redStub.calledOnce);
   });
 
-  it("should not error message", async () => {
+  it("should not error message", async function () {
     const redStub: SinonStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
@@ -180,7 +180,7 @@ describe("LogHelper", () => {
     assert.isTrue(redStub.notCalled);
   });
 
-  it("should info message", async () => {
+  it("should info message", async function () {
     const greenStub: SinonStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
@@ -200,7 +200,7 @@ describe("LogHelper", () => {
     assert.isTrue(greenStub.calledOnce);
   });
 
-  it("should not info message", async () => {
+  it("should not info message", async function () {
     const greenStub: SinonStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
@@ -219,5 +219,28 @@ describe("LogHelper", () => {
     logStub.restore();
 
     assert.isTrue(greenStub.notCalled);
+  });
+
+  it("should print message", async function () {
+    const proxy: any = proxyquire("../../helper/log", {});
+
+    const logStub: SinonStub = sinon.stub(console, "log").returns();
+
+    proxy.LogHelper.print("Message");
+
+    assert.isTrue(logStub.calledOnce);
+    logStub.restore();
+  });
+
+  it("should not print message", async function () {
+    const proxy: any = proxyquire("../../helper/log", {});
+
+    const logStub: SinonStub = sinon.stub(console, "log").returns();
+
+    proxy.LogHelper.silence = true;
+    proxy.LogHelper.print("Message");
+
+    assert.isTrue(logStub.notCalled);
+    logStub.restore();
   });
 });

@@ -6,16 +6,15 @@ import { App } from "../../app";
 import { IProject } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
-describe("Stop test", () => {
-  before(() => {
+describe("Stop test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should stop time tracking", async () => {
+  it("should stop time tracking", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    // tslint:disable
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -26,7 +25,7 @@ describe("Stop test", () => {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

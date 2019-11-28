@@ -7,13 +7,14 @@ export { ProjectHelper } from "./project";
 export { TimerHelper } from "./timer";
 export { QuestionHelper } from "./question";
 export { ImportHelper } from "./import";
+export { ExportHelper } from "./export";
 export { ValidationHelper } from "./validation";
 export { RecordHelper } from "./record";
 export { ChartHelper } from "./chart";
 
 export function parseProjectNameFromGitUrl(input: string): IProject {
   const split: RegExpMatchArray | null = input
-    .match(new RegExp("(\\w+:\/\/){0,1}(.+@)*([\\w\\d\.]+)(:[\\d]*){0,1}\/*(.*)\.git"));
+    .match(new RegExp("(\\w+://){0,1}(.+@)*([\\w\\d.]+)(:[\\d]*){0,1}/*(.*).git"));
 
   if (!split || split.length !== 6) {
     throw new Error("Unable to get project information from repo URL");

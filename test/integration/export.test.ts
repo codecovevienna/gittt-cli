@@ -5,15 +5,14 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
-describe("Remove test", function () {
+describe("Export test", function () {
   before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should remove record from project", async function () {
+  it("should export records", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
-
 
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
@@ -26,16 +25,15 @@ describe("Remove test", function () {
       "commander": mockedCommander,
     });
 
-
     const mockedApp: App = new proxy.App();
 
-    const removeActionStub: SinonStub = sinon.stub(mockedApp, "removeAction").resolves();
+    const exportActionStub: SinonStub = sinon.stub(mockedApp, "exportAction").resolves();
 
     await mockedApp.setup();
 
-    process.argv = ["namespace", "mocked", "remove"];
+    process.argv = ["namespace", "mocked", "export"];
     mockedApp.start();
 
-    assert.isTrue(removeActionStub.calledOnce);
+    assert.isTrue(exportActionStub.calledOnce);
   });
 });

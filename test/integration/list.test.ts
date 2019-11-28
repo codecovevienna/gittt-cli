@@ -7,8 +7,8 @@ import { IProject } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
-describe("List test", () => {
-  before(() => {
+describe("List test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
@@ -58,7 +58,6 @@ describe("List test", () => {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
 
     const mockedApp: App = new proxy.App();
 

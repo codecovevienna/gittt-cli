@@ -6,18 +6,18 @@ import { App } from "../../app";
 import { IProject } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
-describe("Kill test", () => {
-  before(() => {
+describe("Kill test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should kill time tracking", async () => {
+  it("should kill time tracking", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
     const killTimerStub: SinonStub = sinon.stub().resolves();
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -45,7 +45,7 @@ describe("Kill test", () => {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

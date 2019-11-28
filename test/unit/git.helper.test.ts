@@ -6,21 +6,21 @@ import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper } from "../../helper/";
 
-const sandboxDir: string = "./sandbox";
+const sandboxDir = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
-const configFileName: string = "config.json";
-const timerFileName: string = "timer.json";
-const projectsDir: string = "projects";
+const configFileName = "config.json";
+const timerFileName = "timer.json";
+const projectsDir = "projects";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
 
-describe("GitHelper", () => {
-  before(() => {
+describe("GitHelper", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should create instance", async () => {
+  it("should create instance", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -37,7 +37,7 @@ describe("GitHelper", () => {
     assert.isDefined(gitHelper);
   });
 
-  it("should log changes", async () => {
+  it("should log changes", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -49,7 +49,9 @@ describe("GitHelper", () => {
             return {
               all: [
                 {
+                  // eslint-disable-next-line @typescript-eslint/camelcase
                   author_email: "mock@mail.com",
+                  // eslint-disable-next-line @typescript-eslint/camelcase
                   author_name: "mockAuthor",
                   body: "mockedBody",
                   date: Date.UTC.toString(),
@@ -59,7 +61,9 @@ describe("GitHelper", () => {
                 },
               ],
               latest: {
+                // eslint-disable-next-line @typescript-eslint/camelcase
                 author_email: "mock@mail.com",
+                // eslint-disable-next-line @typescript-eslint/camelcase
                 author_name: "mockAuthor",
                 body: "mockedBody",
                 date: Date.UTC.toString(),
@@ -81,7 +85,7 @@ describe("GitHelper", () => {
     expect(logs.length).to.eq(1);
   });
 
-  it("should push changes", async () => {
+  it("should push changes", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -105,7 +109,7 @@ describe("GitHelper", () => {
     assert.isTrue(pushSpy.calledOnce);
   });
 
-  it("should commit changes", async () => {
+  it("should commit changes", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -132,7 +136,7 @@ describe("GitHelper", () => {
     assert.isTrue(commitSpy.calledOnce);
   });
 
-  it("should commit changes with message", async () => {
+  it("should commit changes with message", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -159,7 +163,7 @@ describe("GitHelper", () => {
     assert.isTrue(commitSpy.calledWith("message"));
   });
 
-  it("should init repo", async () => {
+  it("should init repo", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -184,7 +188,7 @@ describe("GitHelper", () => {
     assert.isTrue(addRemoteSpy.calledWith("origin", "url"));
   });
 
-  it("should pull repo [reset: default, choice: 0]", async () => {
+  it("should pull repo [reset: default, choice: 0]", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -196,7 +200,7 @@ describe("GitHelper", () => {
       .onCall(0).rejects(new Error("Mocked error"))
       .onCall(1).resolves();
 
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -211,7 +215,7 @@ describe("GitHelper", () => {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -223,7 +227,7 @@ describe("GitHelper", () => {
     assert.isTrue(invalidateCacheSpy.calledOnce);
   });
 
-  it("should pull repo [reset: default, choice: 1]", async () => {
+  it("should pull repo [reset: default, choice: 1]", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -233,7 +237,7 @@ describe("GitHelper", () => {
     const addSpy: SinonSpy = sinon.spy();
     const commitSpy: SinonSpy = sinon.spy();
     const rawSpy: SinonSpy = sinon.spy();
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -251,7 +255,7 @@ describe("GitHelper", () => {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -264,7 +268,7 @@ describe("GitHelper", () => {
     assert.isTrue(invalidateCacheSpy.calledOnce);
   });
 
-  it("should pull repo [reset: true, override: 1]", async () => {
+  it("should pull repo [reset: true, override: 1]", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -274,7 +278,7 @@ describe("GitHelper", () => {
     const resetSpy: SinonSpy = sinon.spy();
     const pullSpy: SinonSpy = sinon.spy();
 
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -289,7 +293,7 @@ describe("GitHelper", () => {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -302,7 +306,7 @@ describe("GitHelper", () => {
     assert.isTrue(invalidateCacheSpy.notCalled);
   });
 
-  it("should pull repo [no master branch]", async () => {
+  it("should pull repo [no master branch]", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -342,7 +346,7 @@ describe("GitHelper", () => {
     assert.isTrue(invalidateCacheSpy.calledOnce);
   });
 
-  it("should fail to pull repo [error in add]", async () => {
+  it("should fail to pull repo [error in add]", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -369,14 +373,14 @@ describe("GitHelper", () => {
     }
   });
 
-  it("should exit by choice", async () => {
+  it("should exit by choice", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
     const exitStub: SinonStub = sinon.stub(process, "exit");
 
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -390,7 +394,7 @@ describe("GitHelper", () => {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 
@@ -400,12 +404,12 @@ describe("GitHelper", () => {
     exitStub.restore();
   });
 
-  it("should fail to pull repo [unknown override option]", async () => {
+  it("should fail to pull repo [unknown override option]", async function () {
     const fileProxy: any = proxyquire("../../helper/file", {});
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    // tslint:disable
+
     const proxy: any = proxyquire("../../helper/git", {
       "./": {
         QuestionHelper: class {
@@ -419,7 +423,7 @@ describe("GitHelper", () => {
         };
       },
     });
-    // tslint:enable
+
 
     const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
 

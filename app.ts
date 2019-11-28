@@ -10,6 +10,7 @@ import { isNullOrUndefined } from "util";
 import {
   ChartHelper,
   FileHelper,
+  ExportHelper,
   GitHelper,
   ImportHelper,
   LogHelper,
@@ -30,7 +31,7 @@ import {
 } from "./interfaces";
 import { GitNoOriginError, GitNoUrlError, GitRemoteError, ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 
-// tslint:disable-next-line no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
@@ -131,6 +132,25 @@ export class App {
     }
   }
 
+  public async exportAction(cmd: Command): Promise<void> {
+    LogHelper.print(`Gathering projects...`)
+    let projectsToExport: IProject[] = [];
+    if (cmd.project) {
+      const projectToExport: IProject | undefined = await this.fileHelper.findProjectByName(cmd.project);
+      if (!projectToExport) {
+        this.exit(`✗ Project "${cmd.project}" not found`, 1)
+      } else {
+        projectsToExport.push(projectToExport);
+      }
+    } else {
+      projectsToExport = await this.fileHelper.findAllProjects();
+    }
+    LogHelper.info(`✓ Got all ${projectsToExport.length} projects`);
+
+    ExportHelper.export(cmd.directory, cmd.filename, cmd.type, projectsToExport);
+    LogHelper.info(`✓ Export done`)
+  }
+
   public async linkAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
@@ -145,7 +165,6 @@ export class App {
     if (!project) {
       return this.exit("No valid git project", 1);
     }
-
     const integration: string = await QuestionHelper.chooseIntegration();
 
     switch (integration) {
@@ -200,7 +219,7 @@ export class App {
       ]);
 
       if (linkSetupAnswer.confirm) {
-        await this.linkAction(cmd);
+        await this.linkAction(new Command());
 
         return await this.publishAction(cmd);
       } else {
@@ -297,7 +316,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        year: string,
+        year: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -331,7 +350,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        month: string,
+        month: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -365,7 +384,7 @@ export class App {
           type: "list",
         },
       ]) as {
-        day: string,
+        day: string;
       };
 
       return records.filter((rc: IRecord) => {
@@ -511,7 +530,7 @@ export class App {
 
     await this.fileHelper.saveProjectObject(updatedProject);
 
-    let changes: string = "";
+    let changes = "";
 
     if (updatedRecord.amount !== chosenRecord.amount) {
       changes += `amount: ${updatedRecord.amount}, `;
@@ -604,7 +623,7 @@ export class App {
 
     await this.fileHelper.saveProjectObject(updatedProject);
 
-    const commitMessage: string = `Removed record ${chosenRecord.guid} from project ${updatedProject.name}`;
+    const commitMessage = `Removed record ${chosenRecord.guid} from project ${updatedProject.name}`;
 
     await this.gitHelper.commitChanges(commitMessage);
 
@@ -774,7 +793,7 @@ export class App {
     LogHelper.info("");
     LogHelper.info(`Projects:`);
     // add hours to projects
-    const projectsWithHours: any[] = [];
+    const projectsWithHours: { hours: number; project: IProject }[] = [];
     for (const prj of projects) {
       const hours: number = await this.projectHelper.getTotalHours(prj.name);
       projectsWithHours.push({
@@ -784,23 +803,24 @@ export class App {
     }
 
     // order projects
-    const orderedProjects: any[] = projectsWithHours.sort((a: any, b: any) => {
-      if (order === "hours") {
-        if (direction === "desc") {
-          return (a.hours - b.hours) * -1;
+    const orderedProjects: { hours: number; project: IProject }[] = projectsWithHours
+      .sort((a: { hours: number; project: IProject }, b: { hours: number; project: IProject }) => {
+        if (order === "hours") {
+          if (direction === "desc") {
+            return (a.hours - b.hours) * -1;
+          }
+          return (a.hours - b.hours);
         }
-        return (a.hours - b.hours);
-      }
 
-      if (a.project.name < b.project.name) {
-        return (direction === "desc") ? 1 : -1;
-      }
-      if (a.project.name > b.project.name) {
-        return (direction === "desc") ? -1 : 1;
-      }
+        if (a.project.name < b.project.name) {
+          return (direction === "desc") ? 1 : -1;
+        }
+        if (a.project.name > b.project.name) {
+          return (direction === "desc") ? -1 : 1;
+        }
 
-      return 0;
-    });
+        return 0;
+      });
 
     // print projects
     for (const prj of orderedProjects) {
@@ -910,7 +930,7 @@ export class App {
     LogHelper.info(`for the last ${days} days`);
     LogHelper.info("----------------------------------------------------------------------");
 
-    // seperator
+    // separator
     LogHelper.log("");
 
     // print daysData
@@ -920,7 +940,7 @@ export class App {
       LogHelper.log(ChartHelper.chart(daysData, true, 50, false, "h"));
     }
 
-    // seperator
+    // separator
     LogHelper.log("");
 
     // print weeklyData
@@ -950,6 +970,8 @@ export class App {
   }
 
   public initCommander(): CommanderStatic {
+    // Only matters for tests to omit 'MaxListenersExceededWarning'
+    commander.removeAllListeners();
     commander.on("command:*", () => {
       commander.help();
     });
@@ -1138,6 +1160,18 @@ export class App {
       .description("Import records from csv file to current project")
       .option("-p, --project [project]", "Specify the project to import records to")
       .action(async (cmd: string, options: any): Promise<void> => await this.importCsv(cmd, options));
+
+    // export command
+    commander
+      .command("export")
+      .description("Exports projects to ods file")
+      .option("-f, --filename [filename]", "Filename of the output file (default: gittt-report)")
+      .option("-d, --directory [directory]", "Directory where to store the export (default: current working dir)")
+      .option("-t, --type [file type]", "File type of the export (default: ods) - supported types: https://github.com/SheetJS/sheetjs#supported-output-formats")
+      .option("-p, --project [project to export]", "Name of the project")
+      .action(async (cmd: Command): Promise<void> => {
+        await this.exportAction(cmd);
+      });
 
     return commander;
   }

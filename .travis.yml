@@ -4,7 +4,7 @@ jobs:
     language: node_js
     cache: npm
     node_js:
-      - 10.14.1
+      - 12.2.0
     script:
       - npm install
       - npm run lint
@@ -15,7 +15,7 @@ jobs:
     language: node_js
     cache: npm
     node_js:
-      - 10.14.1
+      - 12.2.0
     script:
       - npm install
       - npm run test:ci
@@ -29,17 +29,17 @@ jobs:
     language: node_js
     cache: npm
     node_js:
-      - 10.14.1
+      - 12.2.0
     script:
       # Install packages
       - npm install --production
       - npm install --no-save pkg
       # Compile ts into js
-      - ./node_modules/.bin/tsc
+      - npm run build
       # File is used by app.ts
       - cp package.json dist
       # Compile package for various systems
-      - ./node_modules/.bin/pkg -t node10-linux-x64,node10-macos-x64,node10-win-x64 dist/index.js --output gittt-${TRAVIS_TAG}
+      - ./node_modules/.bin/pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/index.js --output gittt-${TRAVIS_TAG}
     deploy:
       - provider: releases
         api_key:

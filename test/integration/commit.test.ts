@@ -6,8 +6,8 @@ import { App } from "../../app";
 import { IInitAnswers, IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
-describe("Commit test", () => {
-  before(() => {
+describe("Commit test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
@@ -26,7 +26,7 @@ describe("Commit test", () => {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

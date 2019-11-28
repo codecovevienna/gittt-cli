@@ -6,12 +6,12 @@ import { IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
-describe("Info test", () => {
-  before(() => {
+describe("Info test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should output project overview", async () => {
+  it("should output project overview", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
@@ -60,7 +60,7 @@ describe("Info test", () => {
       } as IProject,
     ]);
 
-    // tslint:disable
+
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -87,7 +87,7 @@ describe("Info test", () => {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
+
 
     const mockedApp: App = new proxy.App();
 

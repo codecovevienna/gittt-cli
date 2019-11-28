@@ -3,11 +3,10 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
-import { IProject, IRecord } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
-describe("Report test", () => {
-  before(() => {
+describe("Report test", function () {
+  before(function () {
     proxyquire.noCallThru();
   });
 
@@ -16,25 +15,20 @@ describe("Report test", () => {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedChartStub: SinonStub = sinon.stub();
 
-    // tslint:disable
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
       public isConfigFileValid = sinon.stub().resolves(true);
     }
 
-    mockedHelper.ProjectHelper = class {
-    }
-
     mockedHelper.ChartHelper = class {
-      public static chart = mockedChartStub;
+      public static chart = sinon.stub();
     }
 
     const proxy: any = proxyquire("../../app", {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-    // tslint:enable
 
     const mockedApp: App = new proxy.App();
 
