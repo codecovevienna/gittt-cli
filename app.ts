@@ -252,9 +252,9 @@ export class App {
 
         // Map local project to jira key
         if (jiraLink.issue) {
-          LogHelper.info(`Mapping "${populatedProject.name}" to Jira project "${jiraLink.key}"`);
-        } else {
           LogHelper.info(`Mapping "${populatedProject.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
+        } else {
+          LogHelper.info(`Mapping "${populatedProject.name}" to Jira project "${jiraLink.key}"`);
         }
         populatedProject.name = jiraLink.key;
 
@@ -264,6 +264,8 @@ export class App {
         } else {
           url = `${jiraLink.endpoint}`;
         }
+
+        LogHelper.debug(`Publishing to ${url}`);
 
         try {
           const publishResult: AxiosResponse = await axios
