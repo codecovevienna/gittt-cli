@@ -1590,6 +1590,77 @@ describe("App", function () {
     });
   });
 
+  describe("Commit", function () {
+    it("should commit hours", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const addRecordStub: SinonStub = sinon.stub().resolves();
+
+      const getProjectByNameStub: SinonStub = sinon.stub().returns({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+      } as IProject);
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+      mockedHelper.ProjectHelper = class {
+        public addRecordToProject = addRecordStub;
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      process.argv = ["namespace", "mocked", "commit", "1337"];
+
+      await mockedApp.commitAction("3.0", mockedCommand);
+
+      assert.isTrue(addRecordStub.called);
+
+    });
+
+    it("should fail to commit hours", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      process.argv = ["namespace", "mocked", "commit", "noNumber"];
+
+      await mockedApp.commitAction("noNumber", mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+    });
+  })
+
   describe("Add records", function () {
     it("should not add record [no cmd amount]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
@@ -1859,6 +1930,41 @@ describe("App", function () {
       await mockedApp.importCsv(mockedCommand.file, mockedCommand);
 
       assert.isTrue(addRecordsToProjectStub.calledOnce);
+    });
+
+    it("should fail to add records from csv [file does not exist]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      mockedHelper.FileHelper = class {
+        public static isFile = sinon.stub().returns(true);
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateFile = sinon.stub().returns(false);
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.file = "mockedFile.csv";
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.importCsv(mockedCommand.file, mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
     });
   });
 
@@ -3318,5 +3424,49 @@ describe("App", function () {
 
       exitStub.restore();
     });
-  })
+  });
+
+  describe("Timer", function () {
+    it("should stop time tracking", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const stopTimerStub: SinonStub = sinon.stub().resolves();
+
+      const getOrAskForProjectFromGitStub: SinonStub = sinon.stub().resolves({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+      } as IProject);
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+      }
+
+      mockedHelper.TimerHelper = class {
+        public stopTimer = stopTimerStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      process.argv = ["namespace", "mocked", "stop", "-m", "mock"];
+
+      await mockedApp.stopAction(new Command());
+
+      assert.isTrue(stopTimerStub.calledOnce);
+    });
+  });
 });

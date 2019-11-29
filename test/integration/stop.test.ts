@@ -10,7 +10,7 @@ describe("Stop test", function () {
     proxyquire.noCallThru();
   });
 
-  it("should stop time tracking", async function () {
+  it("should call stop action", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
@@ -24,7 +24,6 @@ describe("Stop test", function () {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-
 
     const mockedApp: App = new proxy.App();
 
