@@ -242,7 +242,7 @@ describe("ProjectHelper", function () {
 
       let thrownError: Error | undefined;
       try {
-        const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
+        await instance.getOrAskForProjectFromGit();
       } catch (err) {
         thrownError = err;
       }
@@ -282,7 +282,7 @@ describe("ProjectHelper", function () {
 
       let thrownError: Error | undefined;
       try {
-        const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
+        await instance.getOrAskForProjectFromGit();
       } catch (err) {
         thrownError = err;
       }

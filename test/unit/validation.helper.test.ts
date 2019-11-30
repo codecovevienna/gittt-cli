@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { ValidationHelper } from "../../helper";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 
 describe("ValidationHelper", function () {
   before(function () {
