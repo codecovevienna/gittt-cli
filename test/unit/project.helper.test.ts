@@ -4,7 +4,8 @@ import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from "../../helper/index";
 import { IIntegrationLink, IProject } from "../../interfaces";
-import { RECORD_TYPES } from "../../types";
+import { RECORD_TYPES, GitRemoteError } from "../../types";
+import { emptyHelper } from "../helper";
 
 const sandboxDir = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -132,6 +133,164 @@ describe("ProjectHelper", function () {
 
       initProjectStub.restore();
       getProjectFromGitStub.restore();
+    });
+
+    it("should get project by name", async function () {
+      const mockedProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [],
+      };
+
+      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
+
+      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const project: IProject | undefined = await instance.getProjectByName("test_mocked");
+
+      expect(project).to.eq(mockedProject);
+
+      initProjectStub.restore();
+    });
+
+    it("should get or ask project from git [git directory]", async function () {
+      const mockedProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [],
+      };
+
+      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const initProjectStub: SinonStub = sinon.stub(instance, "getProjectFromGit").resolves(mockedProject);
+
+      const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
+
+      expect(project).to.eq(mockedProject);
+
+      initProjectStub.restore();
+    });
+
+    it("should get or ask project from git [not a git directory]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const mockedProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [],
+      };
+
+      mockedHelper.QuestionHelper = class {
+        public static chooseProjectFile = sinon.stub().resolves("domain/test_mocked");
+      }
+
+      const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
+      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(mockedProject);
+
+      const proxy: any = proxyquire("../../helper/project", {
+        "./": mockedHelper,
+      });
+
+      const instance: ProjectHelper = new proxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").throws(new GitRemoteError("Mocked Error"));
+
+      const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
+
+      expect(project).to.eq(mockedProject);
+
+      getProjectFromGitStub.restore();
+      findProjectByNameStub.restore();
+      findAllProjectsStub.restore();
+    });
+
+    it("should fail to get or ask project from git [wrong error type]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const mockedProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [],
+      };
+
+      mockedHelper.QuestionHelper = class {
+        public static chooseProjectFile = sinon.stub().resolves("domain/test_mocked");
+      }
+
+      const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
+      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(mockedProject);
+
+      const proxy: any = proxyquire("../../helper/project", {
+        "./": mockedHelper,
+      });
+
+      const instance: ProjectHelper = new proxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("Mocked Error"));
+
+      let thrownError: Error | undefined;
+      try {
+        const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
+      } catch (err) {
+        thrownError = err;
+      }
+      assert.isDefined(thrownError);
+
+      getProjectFromGitStub.restore();
+      findProjectByNameStub.restore();
+      findAllProjectsStub.restore();
+    });
+
+    it("should fail to get or ask project from git [no project]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const mockedProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [],
+      };
+
+      mockedHelper.QuestionHelper = class {
+        public static chooseProjectFile = sinon.stub().resolves("domain/test_mocked");
+      }
+
+      const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
+      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(undefined);
+
+      const proxy: any = proxyquire("../../helper/project", {
+        "./": mockedHelper,
+      });
+
+      const instance: ProjectHelper = new proxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").throws(new GitRemoteError("Mocked Error"));
+
+      let thrownError: Error | undefined;
+      try {
+        const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
+      } catch (err) {
+        thrownError = err;
+      }
+      assert.isDefined(thrownError);
+
+      getProjectFromGitStub.restore();
+      findProjectByNameStub.restore();
+      findAllProjectsStub.restore();
     });
   });
 

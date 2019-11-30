@@ -1,4 +1,6 @@
-import * as fs from "fs";
+
+import plainFs from "fs";
+import fs, { WriteOptions } from "fs-extra";
 import { isString } from "util";
 import { parseProjectNameFromGitUrl } from "./";
 
@@ -100,7 +102,7 @@ export class ValidationHelper {
         const stats: fs.Stats = fs.statSync(inputFilePath);
         if (stats.isFile) {
           // tslint:disable-next-line no-bitwise
-          fs.accessSync(inputFilePath, fs.constants.R_OK | fs.constants.W_OK);
+          fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
           return true;
         }
       } catch (err) {
