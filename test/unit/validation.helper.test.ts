@@ -1,7 +1,13 @@
 import { assert } from "chai";
 import { ValidationHelper } from "../../helper";
+import proxyquire from "proxyquire";
+import sinon from "sinon";
 
 describe("ValidationHelper", function () {
+  before(function () {
+    proxyquire.noCallThru();
+  });
+
   it("should validate number", async function () {
     assert.isTrue(ValidationHelper.validateNumber("1337"));
     assert.isTrue(ValidationHelper.validateNumber("1.234"));
@@ -78,5 +84,45 @@ describe("ValidationHelper", function () {
     assert.isTrue(ValidationHelper.validateJiraKey("MOCKED"));
 
     assert.isString(ValidationHelper.validateJiraKey("M"));
+  });
+
+  it("should validate file", async function () {
+    const proxy: any = proxyquire("../../helper/validation", {
+      "fs-extra": {
+        accessSync: sinon.stub().returns(true),
+        statSync: sinon.stub()
+          .returns({
+            isFile: true,
+          }),
+      },
+    });
+    assert.isTrue(proxy.ValidationHelper.validateFile("/tmp/mocked"));
+  });
+
+  it("should fail to validate file [throws error]", async function () {
+    const proxy: any = proxyquire("../../helper/validation", {
+      "fs-extra": {
+        accessSync: sinon.stub().throws(new Error("Mocked Error")),
+        statSync: sinon.stub()
+          .returns({
+            isFile: true,
+          }),
+      },
+    });
+    assert.isFalse(proxy.ValidationHelper.validateFile("/tmp/mocked"));
+  });
+
+
+  it("should fail to validate file [wrong input]", async function () {
+    const proxy: any = proxyquire("../../helper/validation", {
+      "fs-extra": {
+        accessSync: sinon.stub().throws(new Error("Mocked Error")),
+        statSync: sinon.stub()
+          .returns({
+            isFile: true,
+          }),
+      },
+    });
+    assert.isFalse(proxy.ValidationHelper.validateFile(23));
   });
 });
