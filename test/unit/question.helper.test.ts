@@ -373,5 +373,31 @@ describe("QuestionHelper", function () {
       const choice: string = await proxy.QuestionHelper.confirmMigration();
       expect(choice).to.eq(true);
     });
+
+    it("should confirm jira link creation", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: true,
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.confirmJiraLinkCreation();
+      expect(choice).to.eq(true);
+    });
+
+    it("should confirm pushing of local changes", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: true,
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.confirmPushLocalChanges();
+      expect(choice).to.eq(true);
+    });
   });
 });
