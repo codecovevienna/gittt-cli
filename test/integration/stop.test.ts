@@ -10,12 +10,9 @@ describe("Stop test", function () {
     proxyquire.noCallThru();
   });
 
-  it("should stop time tracking", async function () {
+  it("should call stop action", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
-
-    const stopTimerStub: SinonStub = sinon.stub().resolves();
-
 
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
@@ -23,23 +20,20 @@ describe("Stop test", function () {
       public isConfigFileValid = sinon.stub().resolves(true);
     }
 
-    mockedHelper.TimerHelper = class {
-      public stopTimer = stopTimerStub;
-    }
-
     const proxy: any = proxyquire("../../app", {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
 
-
     const mockedApp: App = new proxy.App();
+
+    const stopActionStub: SinonStub = sinon.stub(mockedApp, "stopAction").resolves();
 
     await mockedApp.setup();
 
     process.argv = ["namespace", "mocked", "stop", "-m", "mock"];
     mockedApp.start();
 
-    assert.isTrue(stopTimerStub.calledOnceWith("mock"));
+    assert.isTrue(stopActionStub.calledOnce);
   });
 });

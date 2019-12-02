@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import { isNumber, isString } from "util";
 import { ICsvRow, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
+import { LogHelper } from "./log";
 
 export class ImportHelper {
   public importCsv = async (filePath: string): Promise<IRecord[]> => {
@@ -46,7 +47,7 @@ export class ImportHelper {
 
           result.push(record);
         } catch (err) {
-          // LogHelper.debug(data, err);
+          LogHelper.debug(data, err);
         }
       });
 

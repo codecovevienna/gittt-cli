@@ -152,7 +152,7 @@ describe("QuestionHelper", function () {
       } as IProject);
 
       expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
+      expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
       expect(choice.key).to.eq("MOCKED");
       expect(choice.username).to.eq("mocked");
       expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
@@ -182,7 +182,7 @@ describe("QuestionHelper", function () {
       } as IProject);
 
       expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
+      expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
       expect(choice.key).to.eq("MOCKED");
       expect(choice.issue).to.eq("EPIC-1");
       expect(choice.username).to.eq("mocked");
@@ -222,7 +222,7 @@ describe("QuestionHelper", function () {
         } as IJiraLink);
 
       expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
+      expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
       expect(choice.key).to.eq("MOCKED");
       expect(choice.issue).to.eq("EPIC-1");
       expect(choice.username).to.eq("mocked");

@@ -185,8 +185,8 @@ export class QuestionHelper {
 
     const link: IJiraLink = {
       host,
-      // Tailing slash is ensured by the filter
-      endpoint: `/rest/gittt/latest/`,
+      // TODO use constant for endpoint version
+      endpoint: `/rest/gittt/2.0.0/`,
       hash,
       key,
       issue,
@@ -319,6 +319,30 @@ export class QuestionHelper {
       name: "choice",
       type: "confirm",
     };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmJiraLinkCreation = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `Do you want to setup a new link for this project?`,
+      name: "choice",
+      type: "confirm",
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmPushLocalChanges = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `Found local changes, they have to be pushed before publishing`,
+      name: "choice",
+      type: "confirm",
+    }
 
     const choice: any = await inquirer.prompt([question]);
 
