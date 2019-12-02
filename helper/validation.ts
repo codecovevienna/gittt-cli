@@ -1,3 +1,7 @@
+
+import plainFs from "fs";
+import fs, { WriteOptions } from "fs-extra";
+import { isString } from "util";
 import { parseProjectNameFromGitUrl } from "./";
 
 export class ValidationHelper {
@@ -89,5 +93,22 @@ export class ValidationHelper {
     } else {
       return "The key has to be longer than one character";
     }
+  }
+
+  public static validateFile = (input: any): boolean => {
+    if (isString(input)) {
+      try {
+        const inputFilePath: string = input;
+        const stats: fs.Stats = fs.statSync(inputFilePath);
+        if (stats.isFile) {
+          // tslint:disable-next-line no-bitwise
+          fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
+          return true;
+        }
+      } catch (err) {
+        return false;
+      }
+    }
+    return false;
   }
 }

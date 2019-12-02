@@ -34,7 +34,7 @@ describe("Import test", function () {
 
     await mockedApp.setup();
 
-    process.argv = ["namespace", "mocked", "import"];
+    process.argv = ["namespace", "mocked", "import", "mocked.csv"];
     mockedApp.start();
 
     assert.isTrue(importActionStub.calledOnce);

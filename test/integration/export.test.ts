@@ -5,12 +5,12 @@ import sinon, { SinonStub } from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
-describe("Stop test", function () {
+describe("Export test", function () {
   before(function () {
     proxyquire.noCallThru();
   });
 
-  it("should call stop action", async function () {
+  it("should export records", async function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
@@ -27,13 +27,13 @@ describe("Stop test", function () {
 
     const mockedApp: App = new proxy.App();
 
-    const stopActionStub: SinonStub = sinon.stub(mockedApp, "stopAction").resolves();
+    const exportActionStub: SinonStub = sinon.stub(mockedApp, "exportAction").resolves();
 
     await mockedApp.setup();
 
-    process.argv = ["namespace", "mocked", "stop", "-m", "mock"];
+    process.argv = ["namespace", "mocked", "export"];
     mockedApp.start();
 
-    assert.isTrue(stopActionStub.calledOnce);
+    assert.isTrue(exportActionStub.calledOnce);
   });
 });

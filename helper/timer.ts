@@ -1,7 +1,7 @@
 import inquirer from "inquirer";
 import _ from "lodash";
 import moment, { Moment } from "moment";
-import { IGitCommitMessageAnswers, ITimerFile } from "../interfaces";
+import { IGitCommitMessageAnswers, IProject, ITimerFile } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { FileHelper, LogHelper, ProjectHelper } from "./";
 
@@ -43,7 +43,7 @@ export class TimerHelper {
     }
   }
 
-  public stopTimer = async (gitCommitMessage?: string): Promise<void> => {
+  public stopTimer = async (gitCommitMessage?: string, project?: IProject): Promise<void> => {
     const now: Moment = moment();
     if (await this.isTimerRunning(now)) {
       const timer: ITimerFile = await this.fileHelper.getTimerObject();
@@ -67,7 +67,7 @@ export class TimerHelper {
         end: now.valueOf(),
         message: _.isEmpty(finalCommitMessage) ? undefined : finalCommitMessage,
         type: RECORD_TYPES.Time,
-      });
+      }, project);
 
       timer.stop = now.valueOf();
       await this.fileHelper.saveTimerObject(timer);
