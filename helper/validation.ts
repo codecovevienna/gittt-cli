@@ -1,6 +1,6 @@
 
 import plainFs from "fs";
-import fs, { WriteOptions } from "fs-extra";
+import fs from "fs-extra";
 import { isString } from "util";
 import { parseProjectNameFromGitUrl } from "./";
 
@@ -100,7 +100,7 @@ export class ValidationHelper {
       try {
         const inputFilePath: string = input;
         const stats: fs.Stats = fs.statSync(inputFilePath);
-        if (stats.isFile) {
+        if (stats.isFile()) {
           // tslint:disable-next-line no-bitwise
           fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
           return true;
