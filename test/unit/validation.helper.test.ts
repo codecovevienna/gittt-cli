@@ -92,7 +92,7 @@ describe("ValidationHelper", function () {
         accessSync: sinon.stub().returns(true),
         statSync: sinon.stub()
           .returns({
-            isFile: true,
+            isFile: sinon.stub().returns(true),
           }),
       },
     });
@@ -105,7 +105,7 @@ describe("ValidationHelper", function () {
         accessSync: sinon.stub().throws(new Error("Mocked Error")),
         statSync: sinon.stub()
           .returns({
-            isFile: true,
+            isFile: sinon.stub().returns(true),
           }),
       },
     });
@@ -119,7 +119,7 @@ describe("ValidationHelper", function () {
         accessSync: sinon.stub().throws(new Error("Mocked Error")),
         statSync: sinon.stub()
           .returns({
-            isFile: true,
+            isFile: sinon.stub().returns(true),
           }),
       },
     });
