@@ -259,9 +259,14 @@ export class App {
         LogHelper.debug(`Mapping "${populatedProject.name}" to Jira key "${jiraLink.key}"`);
         populatedProject.name = jiraLink.key;
 
+        // HOTFIX force publishing to version 1.0.1 endpoint
+        const hotfixEndpoint = jiraLink.endpoint.replace("/rest/gittt/latest/", "/rest/gittt/1.0.1/")
+
+        LogHelper.debug(`Publishing to "${hotfixEndpoint}"`);
+
         try {
           const publishResult: AxiosResponse = await axios
-            .post(jiraLink.endpoint,
+            .post(hotfixEndpoint,
               populatedProject,
               {
                 headers: {
