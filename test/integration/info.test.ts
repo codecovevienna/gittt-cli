@@ -1,6 +1,6 @@
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import { App } from "../../app";
 import { IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
@@ -15,7 +15,7 @@ describe("Info test", function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    const findAllProjectsStub: SinonStub = sinon.stub().resolves([
+    const findAllProjectsStub = sinon.stub().resolves([
       {
         meta: {
           host: "github.com",

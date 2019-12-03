@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
@@ -14,7 +14,7 @@ describe("Push test", function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    const pushChangesStub: SinonStub = sinon.stub().resolves();
+    const pushChangesStub = sinon.stub().resolves();
 
 
     mockedHelper.FileHelper = class {

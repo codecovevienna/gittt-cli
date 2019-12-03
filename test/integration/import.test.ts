@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
@@ -30,7 +30,7 @@ describe("Import test", function () {
 
     const mockedApp: App = new proxy.App();
 
-    const importActionStub: SinonStub = sinon.stub(mockedApp, "importCsv").resolves();
+    const importActionStub = sinon.stub(mockedApp, "importCsv").resolves();
 
     await mockedApp.setup();
 

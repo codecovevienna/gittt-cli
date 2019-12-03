@@ -1041,7 +1041,7 @@ export class App {
     commander
       .command("push")
       .description("Pushing changes to repository")
-      .action(async (cmd: Command): Promise<void> => {
+      .action(async (): Promise<void> => {
         LogHelper.info("Pushing changes...");
         await this.gitHelper.pushChanges();
         LogHelper.info("Done");
