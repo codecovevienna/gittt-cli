@@ -1,5 +1,6 @@
 export * from "./errors/gitNoOriginError";
 export * from "./errors/gitNoUrlError";
+export * from "./errors/gitNoRepoError";
 export * from "./errors/gitRemoteError";
 
 export enum RECORD_TYPES {

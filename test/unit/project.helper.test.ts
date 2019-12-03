@@ -4,7 +4,7 @@ import proxyquire from "proxyquire";
 import sinon, { SinonStub } from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from "../../helper/index";
 import { IIntegrationLink, IProject } from "../../interfaces";
-import { RECORD_TYPES, GitRemoteError } from "../../types";
+import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoRepoError, GitNoUrlError } from "../../types";
 import { emptyHelper } from "../helper";
 
 const sandboxDir = "./sandbox";
@@ -1506,6 +1506,33 @@ describe("ProjectHelper", function () {
         thrownError = err;
       }
       assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitNoOriginError);
+    });
+
+    it("should fail to get project from git [no git repository]", function () {
+      const shellExecStub: SinonStub = sinon.stub()
+        .onCall(0).returns({
+          code: 128,
+          stderr: "No git repository",
+          stdout: "",
+        });
+
+      const projectProxy: any = proxyquire("../../helper/project", {
+        shelljs: {
+          exec: shellExecStub,
+        },
+      });
+
+      const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      let thrownError: Error | undefined;
+      try {
+        instance.getProjectFromGit();
+      } catch (err) {
+        thrownError = err;
+      }
+      assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitNoRepoError);
     });
 
     it("should fail to get project from git [shell exec fails]", function () {
@@ -1531,6 +1558,7 @@ describe("ProjectHelper", function () {
         thrownError = err;
       }
       assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitRemoteError);
     });
 
     it("should fail to get project from git [shell exec fails second time]", function () {
@@ -1561,6 +1589,7 @@ describe("ProjectHelper", function () {
         thrownError = err;
       }
       assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitNoUrlError);
     });
 
     it("should fail to get project from git [invalid stdout]", function () {
@@ -1591,6 +1620,7 @@ describe("ProjectHelper", function () {
         thrownError = err;
       }
       assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitNoUrlError);
     });
   });
 

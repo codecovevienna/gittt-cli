@@ -360,6 +360,108 @@ describe("App", function () {
     });
   });
 
+  describe("Init", function () {
+    it("should init current git repository", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+      const initProjectStub: SinonStub = sinon.stub().resolves();
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public initProject = initProjectStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+        "inquirer": {
+          prompt: sinon.stub().resolves({
+            confirm: true,
+          }),
+        },
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      await mockedApp.initAction();
+
+      assert.isTrue(initProjectStub.calledOnce);
+    })
+
+    it("should fail to init current git repository [canceled]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+      const initProjectStub: SinonStub = sinon.stub().resolves();
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public initProject = initProjectStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+        "inquirer": {
+          prompt: sinon.stub().resolves({
+            confirm: false,
+          }),
+        },
+      });
+
+      const mockedApp: App = new proxy.App();
+      const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      await mockedApp.initAction();
+
+      assert.isTrue(exitStub.calledOnce);
+      exitStub.restore();
+    })
+
+    it("should fail to init current git repository [initProject throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+      const initProjectStub: SinonStub = sinon.stub().throws(new Error("mocked"));
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public initProject = initProjectStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+        "inquirer": {
+          prompt: sinon.stub().resolves({
+            confirm: true,
+          }),
+        },
+      });
+
+      const mockedApp: App = new proxy.App();
+      const exitStub: SinonStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      await mockedApp.initAction();
+
+      assert.isTrue(exitStub.calledOnce);
+      exitStub.restore();
+    })
+  })
+
   describe("Filter records", function () {
     it("should filter records by year", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
