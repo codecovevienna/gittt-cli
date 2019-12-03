@@ -7,11 +7,12 @@ import { ProjectHelper, ValidationHelper } from "./";
 
 export class QuestionHelper {
   public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
-    // Ensure trailing slash
-    if (input[input.length - 1] !== "/") {
-      return input + "/";
+    const inputString = input as string;
+    // Ensure no trailing slash
+    if (inputString[inputString.length - 1] === "/") {
+      return inputString.slice(0, inputString.length - 1);
     } else {
-      return input;
+      return inputString;
     }
   }
 
@@ -130,10 +131,10 @@ export class QuestionHelper {
     return choice.choice;
   }
 
-  public static askJiraLink = async (project: IProject): Promise<IJiraLink> => {
+  public static askJiraLink = async (project: IProject, prevData?: IJiraLink, endpointVersion = "latest"): Promise<IJiraLink> => {
     const jiraAnswers: any = await inquirer.prompt([
       {
-        default: "https://jira.gittt.org",
+        default: prevData ? prevData.host : "https://jira.gittt.org",
         filter: QuestionHelper.filterJiraEndpoint,
         message: "Jira host",
         name: "host",
@@ -141,36 +142,53 @@ export class QuestionHelper {
         validate: ValidationHelper.validateJiraEndpoint,
       },
       {
+        default: prevData ? prevData.username : undefined,
         message: "Jira username",
         name: "username",
         type: "input",
         // TODO validate
       },
       {
-        message: "Jira password",
+        message: prevData ? "Jira password (leave empty if not changed)" : "Jira password",
         name: "password",
         type: "password",
         // TODO validate
       },
       {
+        default: prevData ? prevData.key : undefined,
         message: "Jira project key (e.g. GITTT)",
         name: "key",
         type: "input",
         validate: ValidationHelper.validateJiraKey,
       },
+      {
+        default: prevData ? prevData.issue : undefined,
+        message: "Jira issue key (e.g. EPIC-1 or STORY-1337), may be empty",
+        name: "issue",
+        type: "input",
+        validate: ValidationHelper.validateJiraIssueKey,
+      },
     ]);
-    const { host, key, username, password } = jiraAnswers;
-    const hash: string = Buffer
-      .from(`${username}:${password}`)
-      .toString("base64");
+    const { host, key, issue, username, password } = jiraAnswers;
+
+    let hash: string;
+    // Assuming edit mode, use hash from prevData
+    if (!password && prevData) {
+      hash = prevData.hash;
+    } else {
+      hash = Buffer
+        .from(`${username}:${password}`)
+        .toString("base64");
+    }
 
     const projectName: string = project.name;
 
     const link: IJiraLink = {
-      // Tailing slash is ensured by the filter
-      endpoint: `${host}rest/gittt/latest/`,
+      host,
+      endpoint: `/rest/gittt/${endpointVersion}/`,
       hash,
       key,
+      issue,
       linkType: "Jira",
       projectName,
       username,
@@ -300,6 +318,30 @@ export class QuestionHelper {
       name: "choice",
       type: "confirm",
     };
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmJiraLinkCreation = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `Do you want to setup a new link for this project?`,
+      name: "choice",
+      type: "confirm",
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmPushLocalChanges = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `Found local changes, they have to be pushed before publishing`,
+      name: "choice",
+      type: "confirm",
+    }
 
     const choice: any = await inquirer.prompt([question]);
 

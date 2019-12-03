@@ -35,9 +35,9 @@ const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
 const APP_CONFIG_DIR = ".gittt-cli";
+const JIRA_ENDPOINT_VERSION = "2.0.0";
 
 export class App {
-  private homeDir: string;
   private configDir: string;
   private fileHelper: FileHelper;
   private timerHelper: TimerHelper;
@@ -170,7 +170,16 @@ export class App {
       case "Jira":
         // TODO validate if record exists in projects dir(?)
 
-        const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project);
+        LogHelper.debug(`Trying to find links for "${project.name}"`)
+        // Check for previous data
+        const prevIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        let prevJiraLink: IJiraLink | undefined;
+        if (prevIntegrationLink) {
+          LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
+          prevJiraLink = prevIntegrationLink as IJiraLink;
+        }
+
+        const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project, prevJiraLink, JIRA_ENDPOINT_VERSION);
 
         try {
           await this.fileHelper.addOrUpdateLink(jiraLink);
@@ -182,6 +191,7 @@ export class App {
         break;
 
       default:
+        this.exit(`Integration "${integration}" not implemented`, 1);
         break;
     }
   }
@@ -209,15 +219,7 @@ export class App {
 
     if (!link) {
       LogHelper.warn(`Unable to find a link for "${project.name}"`);
-      const linkSetupAnswer: any = await inquirer.prompt([
-        {
-          message: `Do you want to setup a new link for this project?`,
-          name: "confirm",
-          type: "confirm",
-        },
-      ]);
-
-      if (linkSetupAnswer.confirm) {
+      if (await QuestionHelper.confirmJiraLinkCreation()) {
         await this.linkAction(new Command());
 
         return await this.publishAction(cmd);
@@ -234,16 +236,7 @@ export class App {
 
     const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
     if (logs.length > 0) {
-      const pushConfirm: any = await inquirer.prompt([
-        {
-          default: true,
-          message: "Found local changes, they have to be pushed before publishing",
-          name: "push",
-          type: "confirm",
-        },
-      ]);
-
-      if (pushConfirm.push) {
+      if (await QuestionHelper.confirmPushLocalChanges()) {
         await this.gitHelper.pushChanges();
       } else {
         return this.exit("Unable to publish with local changes", 1);
@@ -256,18 +249,29 @@ export class App {
         const jiraLink: IJiraLink = link;
 
         // Map local project to jira key
-        LogHelper.debug(`Mapping "${populatedProject.name}" to Jira key "${jiraLink.key}"`);
-        populatedProject.name = jiraLink.key;
+        if (jiraLink.issue) {
+          LogHelper.info(`Mapping "${populatedProject.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
+        } else {
+          LogHelper.info(`Mapping "${populatedProject.name}" to Jira project "${jiraLink.key}"`);
+        }
 
-        // HOTFIX force publishing to version 1.0.1 endpoint
-        const hotfixEndpoint = jiraLink.endpoint.replace("/rest/gittt/latest/", "/rest/gittt/1.0.1/")
+        if (!jiraLink.host) {
+          // Handle deprecated config
+          return this.exit('The configuration of this jira link is deprecated, please consider updating the link with "gittt link"', 1)
+        }
 
-        LogHelper.debug(`Publishing to "${hotfixEndpoint}"`);
+        const url = `${jiraLink.host}${jiraLink.endpoint}`;
+
+        LogHelper.debug(`Publishing to ${url}`);
 
         try {
           const publishResult: AxiosResponse = await axios
-            .post(hotfixEndpoint,
-              populatedProject,
+            .post(url,
+              {
+                projectKey: jiraLink.key,
+                issueKey: jiraLink.issue,
+                project: populatedProject,
+              },
               {
                 headers: {
                   "Authorization": `Basic ${jiraLink.hash}`,
@@ -289,7 +293,7 @@ export class App {
           delete err.request;
           delete err.response;
           LogHelper.debug("Publish request failed", err);
-          this.exit(`Publish request failed`, 1);
+          this.exit(`Publish request failed, please consider updating the link`, 1);
         }
 
         break;
@@ -407,15 +411,10 @@ export class App {
     let project: IProject | undefined;
 
     // TODO move to own function, is used multiple times
-    try {
-      if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
-      } else {
-        project = await this.projectHelper.getOrAskForProjectFromGit();
-      }
-    } catch (err) {
-      LogHelper.debug("Unable to get project name from git folder", err);
-      return this.exit("Unable to get project name from git folder", 1);
+    if (!interactiveMode) {
+      project = await this.projectHelper.getProjectByName(cmd.project);
+    } else {
+      project = await this.projectHelper.getOrAskForProjectFromGit();
     }
 
     if (!project) {
@@ -782,7 +781,24 @@ export class App {
       const foundProject: IProject = projects.filter((p: IProject) => project && p.name === project.name)[0];
       if (foundProject) {
         const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
-        LogHelper.log(`- ${foundProject.name}: ${hours}h`);
+        LogHelper.log(`Name:\t${foundProject.name}`);
+        LogHelper.log(`Hours:\t${hours}h`);
+
+        const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        if (link) {
+          switch (link.linkType) {
+            case "Jira":
+              const jiraLink: IJiraLink = link as IJiraLink;
+              LogHelper.log("");
+              LogHelper.log("Jira link:");
+              LogHelper.log(`> Host:\t\t${jiraLink.host}`);
+              LogHelper.log(`> Project:\t${jiraLink.key}`);
+              if (jiraLink.issue) {
+                LogHelper.log(`> Issue:\t${jiraLink.issue}`);
+              }
+              break;
+          }
+        }
       } else {
         LogHelper.error("No gittt project in current git project.");
       }
@@ -1117,7 +1133,7 @@ export class App {
     // link command
     commander
       .command("link")
-      .description("Initializes link to third party applications")
+      .description("Initialize or edit link to third party applications")
       .option("-p, --project [project]", "Specify the project to link")
       .action(async (cmd: Command): Promise<void> => await this.linkAction(cmd));
 
