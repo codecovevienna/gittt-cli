@@ -152,7 +152,7 @@ describe("QuestionHelper", function () {
       } as IProject);
 
       expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
+      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
       expect(choice.key).to.eq("MOCKED");
       expect(choice.username).to.eq("mocked");
       expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
@@ -182,7 +182,7 @@ describe("QuestionHelper", function () {
       } as IProject);
 
       expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
+      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
       expect(choice.key).to.eq("MOCKED");
       expect(choice.issue).to.eq("EPIC-1");
       expect(choice.username).to.eq("mocked");
@@ -222,9 +222,38 @@ describe("QuestionHelper", function () {
         } as IJiraLink);
 
       expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
+      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
       expect(choice.key).to.eq("MOCKED");
       expect(choice.issue).to.eq("EPIC-1");
+      expect(choice.username).to.eq("mocked");
+      expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
+      expect(choice.linkType).to.eq("Jira");
+      expect(choice.projectName).to.eq("mocked_project_1");
+    });
+
+    it("should ask for jira link [with endpoint version]", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            host: "http://mocked.com",
+            key: "MOCKED",
+            password: "mocked",
+            username: "mocked",
+          }),
+        },
+      });
+
+      const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
+        meta: {
+          host: "mocked.com",
+          port: 443,
+        },
+        name: "mocked_project_1",
+      } as IProject, undefined, "2.0.0");
+
+      expect(choice.host).to.eq("http://mocked.com");
+      expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
+      expect(choice.key).to.eq("MOCKED");
       expect(choice.username).to.eq("mocked");
       expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
       expect(choice.linkType).to.eq("Jira");

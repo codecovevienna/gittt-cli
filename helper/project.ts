@@ -223,11 +223,8 @@ export class ProjectHelper {
   }
 
   public getProjectByName = async (name: string): Promise<IProject | undefined> => {
-    if (!isString(name)) {
-      return undefined;
-    }
     const projects: IProject[] = await this.fileHelper.findAllProjects();
-    return projects.find((p: IProject) => p.name === name) || undefined;
+    return projects.find((p: IProject) => p.name === name);
   }
 
   public getProjectFromGit = (): IProject => {

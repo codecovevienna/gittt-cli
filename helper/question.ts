@@ -131,7 +131,7 @@ export class QuestionHelper {
     return choice.choice;
   }
 
-  public static askJiraLink = async (project: IProject, prevData?: IJiraLink): Promise<IJiraLink> => {
+  public static askJiraLink = async (project: IProject, prevData?: IJiraLink, endpointVersion = "latest"): Promise<IJiraLink> => {
     const jiraAnswers: any = await inquirer.prompt([
       {
         default: prevData ? prevData.host : "https://jira.gittt.org",
@@ -185,8 +185,7 @@ export class QuestionHelper {
 
     const link: IJiraLink = {
       host,
-      // TODO use constant for endpoint version
-      endpoint: `/rest/gittt/2.0.0/`,
+      endpoint: `/rest/gittt/${endpointVersion}/`,
       hash,
       key,
       issue,
