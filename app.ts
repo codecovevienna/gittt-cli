@@ -983,6 +983,26 @@ export class App {
     }
   }
 
+  public async initAction(): Promise<void> {
+    const initProjectAnswers: IInitProjectAnswers = await inquirer.prompt([
+      {
+        message: "This will reset the project if it is already initialized, are you sure?",
+        name: "confirm",
+        type: "confirm",
+      },
+    ]);
+
+    if (initProjectAnswers.confirm) {
+      try {
+        await this.projectHelper.initProject();
+      } catch (err) {
+        this.exit("Error initializing project", 1);
+      }
+    } else {
+      this.exit("Initialization canceled", 0)
+    }
+  }
+
   public initCommander(): CommanderStatic {
     // Only matters for tests to omit 'MaxListenersExceededWarning'
     commander.removeAllListeners();
@@ -1116,19 +1136,7 @@ export class App {
     commander
       .command("init")
       .description("Initializes the project in current git directory")
-      .action(async (): Promise<void> => {
-        const initProjectAnswers: IInitProjectAnswers = await inquirer.prompt([
-          {
-            message: "This will reset the project if it is already initialized, are you sure?",
-            name: "confirm",
-            type: "confirm",
-          },
-        ]);
-
-        if (initProjectAnswers.confirm) {
-          await this.projectHelper.initProject();
-        }
-      });
+      .action(async (): Promise<void> => await this.initAction());
 
     // link command
     commander
