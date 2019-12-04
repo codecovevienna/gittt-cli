@@ -1,6 +1,6 @@
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import { App } from "../../app";
 import { IInitProjectAnswers } from "../../interfaces";
 import { emptyHelper } from "../helper";
@@ -14,7 +14,7 @@ describe("Init test", function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    const initProjectStub: SinonStub = sinon.stub().resolves();
+    const initProjectStub = sinon.stub().resolves();
 
 
     mockedHelper.FileHelper = class {

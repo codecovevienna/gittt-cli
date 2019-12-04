@@ -1,10 +1,10 @@
 import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from "../../helper/index";
 import { IIntegrationLink, IProject } from "../../interfaces";
-import { RECORD_TYPES, GitRemoteError } from "../../types";
+import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoRepoError, GitNoUrlError } from "../../types";
 import { emptyHelper } from "../helper";
 
 const sandboxDir = "./sandbox";
@@ -77,12 +77,12 @@ describe("ProjectHelper", function () {
     });
 
     it("should initialize project", async function () {
-      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-      const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+      const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "github.com",
           port: 443,
@@ -107,13 +107,13 @@ describe("ProjectHelper", function () {
     });
 
     it("should fail to initialize project", async function () {
-      const initProjectStub: SinonStub = sinon
+      const initProjectStub = sinon
         .stub(mockedFileHelper, "initProject")
         .rejects(new Error("Mocked error"));
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "github.com",
           port: 443,
@@ -145,7 +145,7 @@ describe("ProjectHelper", function () {
         records: [],
       };
 
-      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
+      const initProjectStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -168,7 +168,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const initProjectStub: SinonStub = sinon.stub(instance, "getProjectFromGit").resolves(mockedProject);
+      const initProjectStub = sinon.stub(instance, "getProjectFromGit").resolves(mockedProject);
 
       const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
 
@@ -193,8 +193,8 @@ describe("ProjectHelper", function () {
         public static chooseProjectFile = sinon.stub().resolves("domain/test_mocked");
       }
 
-      const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(mockedProject);
+      const findAllProjectsStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(mockedProject);
 
       const proxy: any = proxyquire("../../helper/project", {
         "./": mockedHelper,
@@ -202,7 +202,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new proxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").throws(new GitRemoteError("Mocked Error"));
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new GitRemoteError("Mocked Error"));
 
       const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
 
@@ -229,8 +229,8 @@ describe("ProjectHelper", function () {
         public static chooseProjectFile = sinon.stub().resolves("domain/test_mocked");
       }
 
-      const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(mockedProject);
+      const findAllProjectsStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(mockedProject);
 
       const proxy: any = proxyquire("../../helper/project", {
         "./": mockedHelper,
@@ -238,7 +238,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new proxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("Mocked Error"));
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("Mocked Error"));
 
       let thrownError: Error | undefined;
       try {
@@ -269,8 +269,8 @@ describe("ProjectHelper", function () {
         public static chooseProjectFile = sinon.stub().resolves("domain/test_mocked");
       }
 
-      const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(undefined);
+      const findAllProjectsStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([mockedProject]);
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(undefined);
 
       const proxy: any = proxyquire("../../helper/project", {
         "./": mockedHelper,
@@ -278,7 +278,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new proxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").throws(new GitRemoteError("Mocked Error"));
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new GitRemoteError("Mocked Error"));
 
       let thrownError: Error | undefined;
       try {
@@ -296,7 +296,7 @@ describe("ProjectHelper", function () {
 
   describe("Adding records", function () {
     it("should add record to project", async function () {
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -304,13 +304,13 @@ describe("ProjectHelper", function () {
         name: "test_mocked",
         records: [],
       } as IProject);
-      const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+      const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-      const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "github.com",
           port: 443,
@@ -339,7 +339,7 @@ describe("ProjectHelper", function () {
     });
 
     it("should add record to project without message", async function () {
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -347,13 +347,13 @@ describe("ProjectHelper", function () {
         name: "test_mocked",
         records: [],
       } as IProject);
-      const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+      const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-      const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "github.com",
           port: 443,
@@ -381,7 +381,7 @@ describe("ProjectHelper", function () {
     });
 
     // it("should add record of one hour to project without message", async function () {
-    //   const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+    //   const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
     //     meta: {
     //       host: "github.com",
     //       port: 443,
@@ -389,13 +389,13 @@ describe("ProjectHelper", function () {
     //     name: "test_mocked",
     //     records: [],
     //   } as IProject);
-    //   const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    //   const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-    //   const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    //   const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
     //   const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-    //   const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+    //   const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
     //     meta: {
     //       host: "github.com",
     //       port: 443,
@@ -417,7 +417,7 @@ describe("ProjectHelper", function () {
     // });
 
     it("should add record to project without created timestamp", async function () {
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -425,13 +425,13 @@ describe("ProjectHelper", function () {
         name: "test_mocked",
         records: [],
       } as IProject);
-      const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+      const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-      const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "github.com",
           port: 443,
@@ -459,7 +459,7 @@ describe("ProjectHelper", function () {
     });
 
     it("should add record of one hour to project without message", async function () {
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -467,13 +467,13 @@ describe("ProjectHelper", function () {
         name: "test_mocked",
         records: [],
       } as IProject);
-      const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+      const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-      const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "github.com",
           port: 443,
@@ -501,11 +501,11 @@ describe("ProjectHelper", function () {
     });
 
     it("should add record to non existing project", async function () {
-      const findProjectByNameStub: SinonStub = sinon
+      const findProjectByNameStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
         .resolves(undefined);
 
-      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves({
+      const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -513,14 +513,14 @@ describe("ProjectHelper", function () {
         name: "test_mocked",
         records: [],
       } as IProject);
-      const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+      const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-      const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
-      const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+      const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "github.com",
           port: 443,
@@ -552,19 +552,19 @@ describe("ProjectHelper", function () {
     });
 
     it("should fail to add record to non existing project", async function () {
-      const exitStub: SinonStub = sinon.stub(process, "exit");
-      const findProjectByNameStub: SinonStub = sinon
+      const exitStub = sinon.stub(process, "exit");
+      const findProjectByNameStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
         .resolves(undefined);
-      const initProjectStub: SinonStub = sinon
+      const initProjectStub = sinon
         .stub(mockedFileHelper, "initProject")
         .rejects(new Error("Mocked error"));
 
-      const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+      const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "github.com",
           port: 443,
@@ -594,7 +594,7 @@ describe("ProjectHelper", function () {
     });
 
     it("should add record to migrated project", async function () {
-      const findProjectByNameStub: SinonStub = sinon
+      const findProjectByNameStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
         // No project found to add record to
         .onCall(0).resolves(undefined)
@@ -608,15 +608,15 @@ describe("ProjectHelper", function () {
           records: [],
         } as IProject);
 
-      const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(true);
-      const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
-      const chooseProjectFileStub: SinonStub = sinon.stub(QuestionHelper, "chooseProjectFile")
+      const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(true);
+      const findAllProjectsStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
+      const chooseProjectFileStub = sinon.stub(QuestionHelper, "chooseProjectFile")
         .resolves("from_com/migrate_from.json");
-      const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-      const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+      const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "to.com",
           port: 2212,
@@ -625,7 +625,7 @@ describe("ProjectHelper", function () {
         records: [],
       } as IProject);
 
-      const migrateStub: SinonStub = sinon.stub(instance, "migrate").resolves({
+      const migrateStub = sinon.stub(instance, "migrate").resolves({
         meta: {
           host: "to.com",
           port: 2212,
@@ -660,23 +660,23 @@ describe("ProjectHelper", function () {
     });
 
     it("should fail to add record to migrated project [project not found]", async function () {
-      const exitStub: SinonStub = sinon.stub(process, "exit");
-      const findProjectByNameStub: SinonStub = sinon
+      const exitStub = sinon.stub(process, "exit");
+      const findProjectByNameStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
         // No project found to add record to
         .onCall(0).resolves(undefined)
         // Unable to find project on disk
         .onCall(1).resolves(undefined);
 
-      const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(true);
-      const findAllProjectsStub: SinonStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
-      const chooseProjectFileStub: SinonStub = sinon.stub(QuestionHelper, "chooseProjectFile")
+      const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(true);
+      const findAllProjectsStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
+      const chooseProjectFileStub = sinon.stub(QuestionHelper, "chooseProjectFile")
         .resolves("from_com/migrate_from.json");
-      const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-      const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+      const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
-      const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
         meta: {
           host: "to.com",
           port: 2212,
@@ -685,7 +685,7 @@ describe("ProjectHelper", function () {
         records: [],
       } as IProject);
 
-      const migrateStub: SinonStub = sinon.stub(instance, "migrate").resolves({
+      const migrateStub = sinon.stub(instance, "migrate").resolves({
         meta: {
           host: "to.com",
           port: 2212,
@@ -726,11 +726,11 @@ describe("ProjectHelper", function () {
 
     describe("Overlapping records", function () {
       it("should fail to add overlapping record [start smaller end inside]", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -750,11 +750,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -791,11 +791,11 @@ describe("ProjectHelper", function () {
       });
 
       it("should fail to add overlapping record [start larger end inside]", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -815,11 +815,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -856,11 +856,11 @@ describe("ProjectHelper", function () {
       });
 
       it("should fail to add overlapping record [start smaller end outside]", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -880,11 +880,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -921,11 +921,11 @@ describe("ProjectHelper", function () {
       });
 
       it("should fail to add overlapping record [start inside end outside]", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -945,11 +945,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -986,11 +986,11 @@ describe("ProjectHelper", function () {
       });
 
       it("should fail to add overlapping record [start same end same]", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -1010,11 +1010,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -1051,12 +1051,12 @@ describe("ProjectHelper", function () {
       });
 
       it("should fail to add overlapping record, but add non overlapping [with message]", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -1076,11 +1076,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -1125,12 +1125,12 @@ describe("ProjectHelper", function () {
       });
 
       it("should fail to add overlapping record, but add non overlapping [without message]", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -1150,11 +1150,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -1198,12 +1198,12 @@ describe("ProjectHelper", function () {
       });
 
       it("should fail to add overlapping record, but add multiple non overlapping", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const commitChangesStub: SinonStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -1223,11 +1223,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -1278,11 +1278,11 @@ describe("ProjectHelper", function () {
 
     describe("Unique records", function () {
       it("should fail to add not unique record", async function () {
-        const saveProjectObjectStub: SinonStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub: SinonStub = sinon
+        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+        const findProjectByNameStub = sinon
           .stub(mockedFileHelper, "findProjectByName")
           .resolves(undefined);
-        const initProjectStub: SinonStub = sinon
+        const initProjectStub = sinon
           .stub(mockedFileHelper, "initProject")
           .resolves(
             {
@@ -1302,11 +1302,11 @@ describe("ProjectHelper", function () {
             } as IProject,
           );
 
-        const confirmMigrationStub: SinonStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub: SinonStub = sinon.stub(instance, "getProjectFromGit").returns({
+        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
           meta: {
             host: "github.com",
             port: 443,
@@ -1346,7 +1346,7 @@ describe("ProjectHelper", function () {
 
   describe("Total hours of project", function () {
     it("should get total numbers of hours for project", async function () {
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -1376,7 +1376,7 @@ describe("ProjectHelper", function () {
     });
 
     it("should get total numbers of hours for project [no type]", async function () {
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -1405,7 +1405,7 @@ describe("ProjectHelper", function () {
     });
 
     it("should fail to get total numbers of hours for non existing project", async function () {
-      const findProjectByNameStub: SinonStub = sinon
+      const findProjectByNameStub = sinon
         .stub(mockedFileHelper, "findProjectByName")
         .resolves(undefined);
 
@@ -1424,7 +1424,7 @@ describe("ProjectHelper", function () {
 
   describe("Parse project from .git", function () {
     it("should get project from git", function () {
-      const shellExecStub: SinonStub = sinon.stub()
+      const shellExecStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
           stderr: "",
@@ -1454,7 +1454,7 @@ describe("ProjectHelper", function () {
     });
 
     it("should get project from git [multiple remotes]", function () {
-      const shellExecStub: SinonStub = sinon.stub()
+      const shellExecStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
           stderr: "",
@@ -1484,7 +1484,7 @@ describe("ProjectHelper", function () {
     });
 
     it("should fail to get project from git [no origin remote]", function () {
-      const shellExecStub: SinonStub = sinon.stub()
+      const shellExecStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
           stderr: "",
@@ -1506,10 +1506,37 @@ describe("ProjectHelper", function () {
         thrownError = err;
       }
       assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitNoOriginError);
+    });
+
+    it("should fail to get project from git [no git repository]", function () {
+      const shellExecStub = sinon.stub()
+        .onCall(0).returns({
+          code: 128,
+          stderr: "No git repository",
+          stdout: "",
+        });
+
+      const projectProxy: any = proxyquire("../../helper/project", {
+        shelljs: {
+          exec: shellExecStub,
+        },
+      });
+
+      const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      let thrownError: Error | undefined;
+      try {
+        instance.getProjectFromGit();
+      } catch (err) {
+        thrownError = err;
+      }
+      assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitNoRepoError);
     });
 
     it("should fail to get project from git [shell exec fails]", function () {
-      const shellExecStub: SinonStub = sinon.stub()
+      const shellExecStub = sinon.stub()
         .onCall(0).returns({
           code: 1337,
           stderr: "",
@@ -1531,10 +1558,11 @@ describe("ProjectHelper", function () {
         thrownError = err;
       }
       assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitRemoteError);
     });
 
     it("should fail to get project from git [shell exec fails second time]", function () {
-      const shellExecStub: SinonStub = sinon.stub()
+      const shellExecStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
           stderr: "",
@@ -1561,10 +1589,11 @@ describe("ProjectHelper", function () {
         thrownError = err;
       }
       assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitNoUrlError);
     });
 
     it("should fail to get project from git [invalid stdout]", function () {
-      const shellExecStub: SinonStub = sinon.stub()
+      const shellExecStub = sinon.stub()
         .onCall(0).returns({
           code: 0,
           stderr: "",
@@ -1591,6 +1620,7 @@ describe("ProjectHelper", function () {
         thrownError = err;
       }
       assert.isDefined(thrownError);
+      expect(thrownError).to.be.instanceOf(GitNoUrlError);
     });
   });
 
@@ -1622,12 +1652,12 @@ describe("ProjectHelper", function () {
 
       const projectProxy: any = proxyquire("../../helper/project", {});
 
-      const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      const findProjectsForDomainStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
       ]);
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
-      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-      const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-      const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+      const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const removeDomainStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+      const findLinkByProjectStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -1700,14 +1730,14 @@ describe("ProjectHelper", function () {
 
       const projectProxy: any = proxyquire("../../helper/project", {});
 
-      const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      const findProjectsForDomainStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
         fromProject,
         additionalProject,
       ]);
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
-      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-      const removeProjectFileStub: SinonStub = sinon.stub(mockedFileHelper, "removeProjectFile").resolves();
-      const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+      const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const removeProjectFileStub = sinon.stub(mockedFileHelper, "removeProjectFile").resolves();
+      const findLinkByProjectStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -1766,7 +1796,7 @@ describe("ProjectHelper", function () {
 
       const projectProxy: any = proxyquire("../../helper/project", {});
 
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(undefined);
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(undefined);
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -1808,12 +1838,12 @@ describe("ProjectHelper", function () {
 
       const projectProxy: any = proxyquire("../../helper/project", {});
 
-      const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      const findProjectsForDomainStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
       ]);
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
-      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-      const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-      const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+      const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const removeDomainStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+      const findLinkByProjectStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
         endpoint: "https://jira.com/rest/gittt/latest/",
         hash: "caetaep2gaediWea",
         key: "GITTT",
@@ -1821,7 +1851,7 @@ describe("ProjectHelper", function () {
         projectName: "test_mocked",
         username: "gittt",
       } as IIntegrationLink);
-      const addOrUpdateLinkStub: SinonStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
+      const addOrUpdateLinkStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -1888,12 +1918,12 @@ describe("ProjectHelper", function () {
 
       const projectProxy: any = proxyquire("../../helper/project", {});
 
-      const findProjectsForDomainStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
+      const findProjectsForDomainStub = sinon.stub(mockedFileHelper, "findProjectsForDomain").resolves([
       ]);
-      const findProjectByNameStub: SinonStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
-      const initProjectStub: SinonStub = sinon.stub(mockedFileHelper, "initProject").resolves();
-      const removeDomainStub: SinonStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-      const findLinkByProjectStub: SinonStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
+      const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
+      const removeDomainStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
+      const findLinkByProjectStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
         endpoint: "https://jira.com/rest/gittt/latest/",
         hash: "caetaep2gaediWea",
         key: "GITTT",
@@ -1901,7 +1931,7 @@ describe("ProjectHelper", function () {
         projectName: "test_mocked",
         username: "gittt",
       } as IIntegrationLink);
-      const addOrUpdateLinkStub: SinonStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
+      const addOrUpdateLinkStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 

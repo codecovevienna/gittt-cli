@@ -127,7 +127,6 @@ export class ValidationHelper {
         const inputFilePath: string = input;
         const stats: fs.Stats = fs.statSync(inputFilePath);
         if (stats.isFile()) {
-          // tslint:disable-next-line no-bitwise
           fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
           return true;
         }

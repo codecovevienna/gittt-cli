@@ -1,7 +1,6 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
-import { isString } from "util";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
-import { GitNoOriginError, GitNoUrlError, GitRemoteError, RECORD_TYPES } from "../types";
+import { GitNoOriginError, GitNoUrlError, GitRemoteError, GitNoRepoError, RECORD_TYPES } from "../types";
 import {
   FileHelper,
   GitHelper,
@@ -234,6 +233,10 @@ export class ProjectHelper {
     }) as ExecOutputReturnValue;
 
     if (gitRemoteExec.code !== 0) {
+      if (gitRemoteExec.code === 128) {
+        LogHelper.debug(`"git remote" returned with exit code 128`);
+        throw new GitNoRepoError("Current directory does not appear to be a valid git repository");
+      }
       LogHelper.debug("Error executing git remote", new Error(gitRemoteExec.stdout));
       throw new GitRemoteError("Unable to get remotes from git config");
     }
