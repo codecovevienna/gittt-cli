@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 
 describe("LogHelper", function () {
   before(function () {
@@ -10,7 +10,7 @@ describe("LogHelper", function () {
   it("should debug message", async function () {
     const proxy: any = proxyquire("../../helper/log", {});
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.DEBUG = true;
     proxy.LogHelper.debug("Debug");
@@ -23,7 +23,7 @@ describe("LogHelper", function () {
     const mockedError: Error = new Error("Mocked error");
     const proxy: any = proxyquire("../../helper/log", {});
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.DEBUG = true;
     proxy.LogHelper.debug("Debug", mockedError);
@@ -35,7 +35,7 @@ describe("LogHelper", function () {
   it("should not debug message", async function () {
     const proxy: any = proxyquire("../../helper/log", {});
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.DEBUG = false;
     proxy.LogHelper.debug("Debug");
@@ -47,7 +47,7 @@ describe("LogHelper", function () {
   it("should not debug message [silent: true]", async function () {
     const proxy: any = proxyquire("../../helper/log", {});
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.DEBUG = true;
     proxy.LogHelper.silence = true;
@@ -58,7 +58,7 @@ describe("LogHelper", function () {
   });
 
   it("should log message", async function () {
-    const whiteStub: SinonStub = sinon.stub();
+    const whiteStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
         white: {
@@ -67,7 +67,7 @@ describe("LogHelper", function () {
       },
     });
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.log("Message");
 
@@ -78,7 +78,7 @@ describe("LogHelper", function () {
   });
 
   it("should not log message", async function () {
-    const whiteStub: SinonStub = sinon.stub();
+    const whiteStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
         white: {
@@ -87,7 +87,7 @@ describe("LogHelper", function () {
       },
     });
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.silence = true;
     proxy.LogHelper.log("Message");
@@ -99,7 +99,7 @@ describe("LogHelper", function () {
   });
 
   it("should warn message", async function () {
-    const yellowStub: SinonStub = sinon.stub();
+    const yellowStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
         yellow: {
@@ -108,7 +108,7 @@ describe("LogHelper", function () {
       },
     });
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.warn("Message");
 
@@ -119,7 +119,7 @@ describe("LogHelper", function () {
   });
 
   it("should not warn message", async function () {
-    const yellowStub: SinonStub = sinon.stub();
+    const yellowStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
         yellow: {
@@ -128,7 +128,7 @@ describe("LogHelper", function () {
       },
     });
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.silence = true;
     proxy.LogHelper.warn("Message");
@@ -140,7 +140,7 @@ describe("LogHelper", function () {
   });
 
   it("should error message", async function () {
-    const redStub: SinonStub = sinon.stub();
+    const redStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
         red: {
@@ -149,7 +149,7 @@ describe("LogHelper", function () {
       },
     });
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.error("Message");
 
@@ -160,7 +160,7 @@ describe("LogHelper", function () {
   });
 
   it("should not error message", async function () {
-    const redStub: SinonStub = sinon.stub();
+    const redStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
         red: {
@@ -169,7 +169,7 @@ describe("LogHelper", function () {
       },
     });
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.silence = true;
     proxy.LogHelper.error("Message");
@@ -181,7 +181,7 @@ describe("LogHelper", function () {
   });
 
   it("should info message", async function () {
-    const greenStub: SinonStub = sinon.stub();
+    const greenStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
         green: {
@@ -190,7 +190,7 @@ describe("LogHelper", function () {
       },
     });
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.info("Message");
 
@@ -201,7 +201,7 @@ describe("LogHelper", function () {
   });
 
   it("should not info message", async function () {
-    const greenStub: SinonStub = sinon.stub();
+    const greenStub = sinon.stub();
     const proxy: any = proxyquire("../../helper/log", {
       chalk: {
         green: {
@@ -210,7 +210,7 @@ describe("LogHelper", function () {
       },
     });
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.silence = true;
     proxy.LogHelper.info("Message");
@@ -224,7 +224,7 @@ describe("LogHelper", function () {
   it("should print message", async function () {
     const proxy: any = proxyquire("../../helper/log", {});
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.print("Message");
 
@@ -235,7 +235,7 @@ describe("LogHelper", function () {
   it("should not print message", async function () {
     const proxy: any = proxyquire("../../helper/log", {});
 
-    const logStub: SinonStub = sinon.stub(console, "log").returns();
+    const logStub = sinon.stub(console, "log").returns();
 
     proxy.LogHelper.silence = true;
     proxy.LogHelper.print("Message");

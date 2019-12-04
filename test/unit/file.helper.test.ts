@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
-import sinon, { SinonSpy, SinonStub } from "sinon";
+import sinon from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
 import { IConfigFile, IIntegrationLink, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
@@ -123,7 +123,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to get home directory", async function () {
-      const homedirStub: SinonStub = sinon.stub().returns(undefined);
+      const homedirStub = sinon.stub().returns(undefined);
       const proxy: any = proxyquire("../../helper/file", {
         os: {
           homedir: homedirStub,
@@ -147,7 +147,7 @@ describe("FileHelper", function () {
     });
 
     it("should initialize readme", async function () {
-      const writeFileSpy: SinonStub = sinon.stub().resolves();
+      const writeFileSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeFile: writeFileSpy,
@@ -162,7 +162,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to initialize readme", async function () {
-      const writeFileSpy: SinonStub = sinon.stub().rejects();
+      const writeFileSpy = sinon.stub().rejects();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeFile: writeFileSpy,
@@ -180,8 +180,8 @@ describe("FileHelper", function () {
     });
 
     it("should invalidate cache", async function () {
-      const writeJsonSpy: SinonStub = sinon.stub().resolves();
-      const readJsonSpy: SinonStub = sinon.stub().resolves();
+      const writeJsonSpy = sinon.stub().resolves();
+      const readJsonSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           readJson: readJsonSpy,
@@ -213,7 +213,7 @@ describe("FileHelper", function () {
 
   describe("Config file", function () {
     it("should create config directories", async function () {
-      const ensureDirSyncSpy: SinonSpy = sinon.spy();
+      const ensureDirSyncSpy = sinon.spy();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           ensureDirSync: ensureDirSyncSpy,
@@ -229,7 +229,7 @@ describe("FileHelper", function () {
     });
 
     it("should init config file", async function () {
-      const writeJsonSpy: SinonStub = sinon.stub().resolves();
+      const writeJsonSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonSpy,
@@ -246,7 +246,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to init config file", async function () {
-      const writeJsonSpy: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
+      const writeJsonSpy = sinon.stub().rejects(new Error("Mocked error"));
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonSpy,
@@ -267,7 +267,7 @@ describe("FileHelper", function () {
     });
 
     it("should check validity of config file", async function () {
-      const parseProjectNameFromGitUrlStub: SinonStub = sinon.stub().returns(true);
+      const parseProjectNameFromGitUrlStub = sinon.stub().returns(true);
       const fileProxy: any = proxyquire("../../helper/file", {
         "./": {
           parseProjectNameFromGitUrl: parseProjectNameFromGitUrlStub,
@@ -288,7 +288,7 @@ describe("FileHelper", function () {
     });
 
     it("should check validity of config file [getConfigObject: throws]", async function () {
-      const parseProjectNameFromGitUrlStub: SinonStub = sinon.stub().returns(true);
+      const parseProjectNameFromGitUrlStub = sinon.stub().returns(true);
       const fileProxy: any = proxyquire("../../helper/file", {
         "./": {
           parseProjectNameFromGitUrl: parseProjectNameFromGitUrlStub,
@@ -304,7 +304,7 @@ describe("FileHelper", function () {
     });
 
     it("should check validity of config file [parseProjectNameFromGitUrl: throws]", async function () {
-      const parseProjectNameFromGitUrlStub: SinonStub = sinon.stub().throws(new Error("Mocked error"))
+      const parseProjectNameFromGitUrlStub = sinon.stub().throws(new Error("Mocked error"))
       const fileProxy: any = proxyquire("../../helper/file", {
         "./": {
           parseProjectNameFromGitUrl: parseProjectNameFromGitUrlStub,
@@ -324,7 +324,7 @@ describe("FileHelper", function () {
     });
 
     it("should check existence of config file", async function () {
-      const pathExistsSpy: SinonStub = sinon.stub().resolves(true);
+      const pathExistsSpy = sinon.stub().resolves(true);
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           pathExists: pathExistsSpy,
@@ -340,7 +340,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to check existence of config file", async function () {
-      const pathExistsSpy: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
+      const pathExistsSpy = sinon.stub().rejects(new Error("Mocked error"));
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           pathExists: pathExistsSpy,
@@ -362,7 +362,7 @@ describe("FileHelper", function () {
         links: [],
       };
 
-      const readJsonSpy: SinonStub = sinon.stub().resolves(mockedConfig);
+      const readJsonSpy = sinon.stub().resolves(mockedConfig);
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           readJson: readJsonSpy,
@@ -377,8 +377,8 @@ describe("FileHelper", function () {
     });
 
     it("should get config file as IConfigFile from cache", async function () {
-      const writeJsonSpy: SinonStub = sinon.stub().resolves();
-      const readJsonSpy: SinonStub = sinon.stub();
+      const writeJsonSpy = sinon.stub().resolves();
+      const readJsonSpy = sinon.stub();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           readJson: readJsonSpy,
@@ -401,7 +401,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to get config file as IConfigFile", async function () {
-      const readJsonSpy: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
+      const readJsonSpy = sinon.stub().rejects(new Error("Mocked error"));
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           readJson: readJsonSpy,
@@ -422,7 +422,7 @@ describe("FileHelper", function () {
 
   describe("Timer file", function () {
     it("should init timer file", async function () {
-      const writeJsonStub: SinonStub = sinon.stub().resolves(true);
+      const writeJsonStub = sinon.stub().resolves(true);
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonStub,
@@ -437,7 +437,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to init timer file", async function () {
-      const writeJsonStub: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
+      const writeJsonStub = sinon.stub().rejects(new Error("Mocked error"));
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonStub,
@@ -461,7 +461,7 @@ describe("FileHelper", function () {
         stop: 9,
       };
 
-      const readJsonStub: SinonStub = sinon.stub().resolves(mockedTimerFile);
+      const readJsonStub = sinon.stub().resolves(mockedTimerFile);
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           readJson: readJsonStub,
@@ -477,7 +477,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to get timer object", async function () {
-      const readJsonStub: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
+      const readJsonStub = sinon.stub().rejects(new Error("Mocked error"));
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           readJson: readJsonStub,
@@ -496,7 +496,7 @@ describe("FileHelper", function () {
     });
 
     it("should check if timer file exists [true]", async function () {
-      const existsSyncStub: SinonStub = sinon.stub().returns(true);
+      const existsSyncStub = sinon.stub().returns(true);
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           existsSync: existsSyncStub,
@@ -512,7 +512,7 @@ describe("FileHelper", function () {
     });
 
     it("should check if timer file exists [false]", async function () {
-      const existsSyncStub: SinonStub = sinon.stub().returns(false);
+      const existsSyncStub = sinon.stub().returns(false);
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           existsSync: existsSyncStub,
@@ -528,7 +528,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to check if timer file exists", async function () {
-      const existsSyncStub: SinonStub = sinon.stub().throws(new Error("Mocked error"));
+      const existsSyncStub = sinon.stub().throws(new Error("Mocked error"));
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           existsSync: existsSyncStub,
@@ -547,7 +547,7 @@ describe("FileHelper", function () {
     });
 
     it("should save timer object", async function () {
-      const writeJsonStub: SinonStub = sinon.stub().resolves();
+      const writeJsonStub = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonStub,
@@ -565,7 +565,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to save timer object", async function () {
-      const writeJsonStub: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
+      const writeJsonStub = sinon.stub().rejects(new Error("Mocked error"));
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonStub,
@@ -589,8 +589,8 @@ describe("FileHelper", function () {
 
   describe("Project file", function () {
     it("should init project", async function () {
-      const ensureDirSpy: SinonSpy = sinon.spy();
-      const writeJsonSpy: SinonStub = sinon.stub().resolves();
+      const ensureDirSpy = sinon.spy();
+      const writeJsonSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           ensureDir: ensureDirSpy,
@@ -616,7 +616,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to init project", async function () {
-      const ensureDirSpy: SinonStub = sinon.stub().rejects(new Error("Mocked error"));
+      const ensureDirSpy = sinon.stub().rejects(new Error("Mocked error"));
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           ensureDir: ensureDirSpy,
@@ -644,7 +644,7 @@ describe("FileHelper", function () {
     });
 
     it("should save project object", async function () {
-      const writeJsonSpy: SinonStub = sinon.stub().resolves();
+      const writeJsonSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonSpy,
@@ -677,7 +677,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to save project object", async function () {
-      const writeJsonSpy: SinonStub = sinon.stub().rejects();
+      const writeJsonSpy = sinon.stub().rejects();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonSpy,
@@ -714,7 +714,7 @@ describe("FileHelper", function () {
     });
 
     it("should remove project file", async function () {
-      const removeStub: SinonStub = sinon.stub().resolves();
+      const removeStub = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           remove: removeStub,
@@ -737,7 +737,7 @@ describe("FileHelper", function () {
 
   describe("Links", function () {
     it("should add link to config file", async function () {
-      const writeJsonSpy: SinonStub = sinon.stub().resolves();
+      const writeJsonSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonSpy,
@@ -746,7 +746,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
+      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
         created: 1234,
         gitRepo: "ssh://mocked",
         links: [],
@@ -764,7 +764,7 @@ describe("FileHelper", function () {
     });
 
     it("should update link in config file", async function () {
-      const writeJsonSpy: SinonStub = sinon.stub().resolves();
+      const writeJsonSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           writeJson: writeJsonSpy,
@@ -773,7 +773,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
+      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
         created: 1234,
         gitRepo: "ssh://mocked",
         links: [
@@ -804,7 +804,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
+      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
         created: 1234,
         gitRepo: "ssh://mocked",
         links: [
@@ -834,7 +834,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
+      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
         created: 1234,
         gitRepo: "ssh://mocked",
         links: [
@@ -864,7 +864,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      const getConfigObjectStub: SinonStub = sinon.stub(instance, "getConfigObject").resolves({
+      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
         created: 1234,
         gitRepo: "ssh://mocked",
         links: [
@@ -896,7 +896,7 @@ describe("FileHelper", function () {
 
   describe("Get projects", function () {
     it("should get all projects", async function () {
-      const readdirSyncSpy: SinonStub = sinon.stub()
+      const readdirSyncSpy = sinon.stub()
         .onCall(0).returns([
           "domain_one_1",
           "domain_one_2",
@@ -908,7 +908,7 @@ describe("FileHelper", function () {
         .onCall(2).returns([
           "mock_project_3",
         ]);
-      const readJsonSpy: SinonStub = sinon.stub()
+      const readJsonSpy = sinon.stub()
         .onCall(0).resolves({
           meta: {
             host: "domain.one",
@@ -951,12 +951,12 @@ describe("FileHelper", function () {
     });
 
     it("should get all projects of one domain", async function () {
-      const readdirSyncSpy: SinonStub = sinon.stub()
+      const readdirSyncSpy = sinon.stub()
         .onCall(0).returns([
           "mock_project_1",
           "mock_project_2",
         ]);
-      const readJsonSpy: SinonStub = sinon.stub()
+      const readJsonSpy = sinon.stub()
         .onCall(0).resolves({
           meta: {
             host: "domain.one",
@@ -1020,7 +1020,7 @@ describe("FileHelper", function () {
         records: [],
       };
 
-      const readdirSyncSpy: SinonStub = sinon.stub()
+      const readdirSyncSpy = sinon.stub()
         .onCall(0).returns([
           "domain_one_1",
           "domain_one_2",
@@ -1032,7 +1032,7 @@ describe("FileHelper", function () {
         .onCall(2).returns([
           "mock_project_3",
         ]);
-      const readJsonSpy: SinonStub = sinon.stub()
+      const readJsonSpy = sinon.stub()
         .onCall(0).resolves({
           meta: {
             host: "domain.one",
@@ -1077,11 +1077,11 @@ describe("FileHelper", function () {
         records: [],
       };
 
-      const readdirSyncSpy: SinonStub = sinon.stub()
+      const readdirSyncSpy = sinon.stub()
         .onCall(0).returns([
           "mock_project_3",
         ]);
-      const readJsonSpy: SinonStub = sinon.stub()
+      const readJsonSpy = sinon.stub()
         .onCall(0).resolves(projectToFind);
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
@@ -1105,14 +1105,14 @@ describe("FileHelper", function () {
     });
 
     it("should get no project", async function () {
-      const readdirSyncSpy: SinonStub = sinon.stub()
+      const readdirSyncSpy = sinon.stub()
         .onCall(0).returns([
           "domain_one_1",
         ])
         .onCall(1).returns([
           "mock_project_1",
         ]);
-      const readJsonSpy: SinonStub = sinon.stub()
+      const readJsonSpy = sinon.stub()
         .onCall(0).resolves({
           meta: {
             host: "domain.one",
@@ -1140,7 +1140,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to get duplicated project by name", async function () {
-      const readdirSyncSpy: SinonStub = sinon.stub()
+      const readdirSyncSpy = sinon.stub()
         .onCall(0).returns([
           "domain_one_1",
         ])
@@ -1148,7 +1148,7 @@ describe("FileHelper", function () {
           "mock_project_1",
           "mock_project_1",
         ]);
-      const readJsonSpy: SinonStub = sinon.stub()
+      const readJsonSpy = sinon.stub()
         .onCall(0).resolves({
           meta: {
             host: "domain.one",
@@ -1187,7 +1187,7 @@ describe("FileHelper", function () {
 
   describe("Domain directories", function () {
     it("should remove domain directory", async function () {
-      const removeStub: SinonStub = sinon.stub().resolves();
+      const removeStub = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           remove: removeStub,
@@ -1196,7 +1196,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      const findProjectsForDomainStub: SinonStub = sinon.stub(instance, "findProjectsForDomain").resolves([]);
+      const findProjectsForDomainStub = sinon.stub(instance, "findProjectsForDomain").resolves([]);
 
       await instance.removeDomainDirectory({
         host: "github.com",
@@ -1208,7 +1208,7 @@ describe("FileHelper", function () {
     });
 
     it("should remove domain directory [force]", async function () {
-      const removeStub: SinonStub = sinon.stub().resolves();
+      const removeStub = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           remove: removeStub,
@@ -1217,7 +1217,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      const findProjectsForDomainStub: SinonStub = sinon.stub(instance, "findProjectsForDomain").resolves([
+      const findProjectsForDomainStub = sinon.stub(instance, "findProjectsForDomain").resolves([
         {
           meta: {
             host: "github.com",
@@ -1237,7 +1237,7 @@ describe("FileHelper", function () {
     });
 
     it("should fail to remove domain directory [not empty]", async function () {
-      const removeStub: SinonStub = sinon.stub().resolves();
+      const removeStub = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
           remove: removeStub,
@@ -1246,7 +1246,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      const findProjectsForDomainStub: SinonStub = sinon.stub(instance, "findProjectsForDomain").resolves([
+      const findProjectsForDomainStub = sinon.stub(instance, "findProjectsForDomain").resolves([
         {
           meta: {
             host: "github.com",

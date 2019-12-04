@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import { App } from "../../app";
 import { IProject } from "../../interfaces";
 import { emptyHelper } from "../helper";
@@ -15,7 +15,7 @@ describe("Kill test", function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    const killTimerStub: SinonStub = sinon.stub().resolves();
+    const killTimerStub = sinon.stub().resolves();
 
 
     mockedHelper.FileHelper = class {

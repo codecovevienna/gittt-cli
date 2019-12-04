@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import { App } from "../../app";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
@@ -15,7 +15,7 @@ describe("List test", function () {
     const mockedHelper: any = Object.assign({}, emptyHelper);
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
 
-    const findProjectByNameStub: SinonStub = sinon.stub().resolves(
+    const findProjectByNameStub = sinon.stub().resolves(
       {
         meta: {
           host: "github.com",
@@ -45,7 +45,6 @@ describe("List test", function () {
       },
     );
 
-    // tslint:disable
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
       public configDirExists = sinon.stub().resolves(true);
@@ -60,7 +59,7 @@ describe("List test", function () {
 
     const mockedApp: App = new proxy.App();
 
-    const listActionStub: SinonStub = sinon.stub(mockedApp, "listAction").resolves();
+    const listActionStub = sinon.stub(mockedApp, "listAction").resolves();
 
     await mockedApp.setup();
 

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import sinon, { SinonStub } from "sinon";
+import sinon from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
@@ -14,7 +14,7 @@ describe("Unknown command test", function () {
     const mockedCommander: CommanderStatic = proxyquire("commander", {});
     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-    const helpStub: SinonStub = sinon.stub(mockedCommander, "help");
+    const helpStub = sinon.stub(mockedCommander, "help");
 
 
     mockedHelper.FileHelper = class {
