@@ -871,7 +871,7 @@ export class App {
       const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
       const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
 
-      return bStartTime.diff(aStartTime);
+      return aStartTime.diff(bStartTime);
     });
 
     LogHelper.info(`${projectWithRecords.name}`);
@@ -884,7 +884,7 @@ export class App {
       let line = "";
       line += `${record.type}\t`;
       line += chalk.yellow.bold(`${record.amount}h\t`);
-      line += `${moment(record.end).subtract(record.amount, "hours").format("DD.MM.YYYY HH:mm:ss")}\t`;
+      line += `${moment(record.end).format("DD.MM.YYYY HH:mm:ss")}\t`;
       line += chalk.yellow.bold(`${record.message}`);
       sumOfTime += record.amount;
       LogHelper.print(line);
