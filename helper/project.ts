@@ -331,7 +331,7 @@ export class ProjectHelper {
     try {
       return this.getProjectFromGit();
     } catch (e) {
-      if (e instanceof GitRemoteError) {
+      if (e instanceof GitRemoteError || e instanceof GitNoRepoError) {
         const selectedProjectName: string = await QuestionHelper.
           chooseProjectFile(await this.fileHelper.findAllProjects());
         const [domain, name] = selectedProjectName.split("/");
