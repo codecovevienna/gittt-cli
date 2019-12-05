@@ -35,7 +35,7 @@ const packageJson: any = require("./package.json");
 const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
 const APP_CONFIG_DIR = ".gittt-cli";
-const JIRA_ENDPOINT_VERSION = "2.0.0";
+const JIRA_ENDPOINT_VERSION = "v2";
 
 export class App {
   private configDir: string;
