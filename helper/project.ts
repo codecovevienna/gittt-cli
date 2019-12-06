@@ -328,27 +328,34 @@ export class ProjectHelper {
   }
 
   public getOrAskForProjectFromGit = async (): Promise<IProject | undefined> => {
+    let projectName: string;
+    let projectMeta: IProjectMeta | undefined;
+
     try {
-      return this.getProjectFromGit();
+      const projectFromGit: IProject = this.getProjectFromGit();
+      projectName = projectFromGit.name;
     } catch (e) {
       if (e instanceof GitRemoteError || e instanceof GitNoRepoError) {
         const selectedProjectName: string = await QuestionHelper.
           chooseProjectFile(await this.fileHelper.findAllProjects());
         const [domain, name] = selectedProjectName.split("/");
-        const project: IProject | undefined = await this.fileHelper.findProjectByName(
-          // TODO find a better way?
-          name.replace(".json", ""),
-          ProjectHelper.domainToProjectMeta(domain),
-        );
-
-        if (!project) {
-          throw new Error("Unable to find project on disk");
-        }
-
-        return project;
+        // TODO find a better way?
+        projectName = name.replace(".json", "");
+        projectMeta = ProjectHelper.domainToProjectMeta(domain);
       } else {
         throw e;
       }
     }
+
+    const project: IProject | undefined = await this.fileHelper.findProjectByName(
+      projectName,
+      projectMeta,
+    );
+
+    if (!project) {
+      throw new Error("Unable to find project on disk");
+    }
+
+    return project;
   }
 }
