@@ -281,7 +281,7 @@ export class QuestionHelper {
       choices: projects.map((project: IProject) => {
         const { host, port } = project.meta;
         return {
-          name: `${host}:${port} ${project.name}`,
+          name: `${host}${port ? `:${port}` : ""} ${project.name}`,
           value: ProjectHelper.getProjectPath(project),
         };
       }),
