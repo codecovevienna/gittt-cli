@@ -3,7 +3,7 @@ import path from "path";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from "../../helper/index";
-import { IIntegrationLink, IProject } from "../../interfaces";
+import { IIntegrationLink, IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoRepoError, GitNoUrlError } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -166,15 +166,34 @@ describe("ProjectHelper", function () {
         records: [],
       };
 
+      const populatedMockedProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [
+          {
+            amount: 1337,
+            end: 123456789,
+            type: RECORD_TYPES.Time,
+          } as IRecord
+        ],
+      };
+
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(populatedMockedProject);
+
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
       const initProjectStub = sinon.stub(instance, "getProjectFromGit").resolves(mockedProject);
 
       const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
 
-      expect(project).to.eq(mockedProject);
+      expect(project).to.eq(populatedMockedProject);
+      assert.isTrue(findProjectByNameStub.calledOnce);
 
       initProjectStub.restore();
+      findProjectByNameStub.restore();
     });
 
     it("should get or ask project from git [not a git directory]", async function () {

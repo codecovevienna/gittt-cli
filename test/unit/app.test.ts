@@ -1897,7 +1897,6 @@ describe("App", function () {
         "./helper": mockedHelper,
       });
 
-
       const mockedApp: App = new proxy.App();
 
       await mockedApp.setup();
