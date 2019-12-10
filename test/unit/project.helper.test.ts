@@ -156,6 +156,45 @@ describe("ProjectHelper", function () {
       initProjectStub.restore();
     });
 
+    it("should get project by name [tryGit true]", async function () {
+      const mockedProject: IProject = {
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [],
+      };
+
+      const findAllProjectsStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
+
+      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").resolves(mockedProject);
+
+      const project: IProject | undefined = await instance.getProjectByName("test_mocked", true);
+
+      expect(project).to.eq(mockedProject);
+      assert.isTrue(getProjectFromGitStub.calledOnce);
+
+      findAllProjectsStub.restore();
+    });
+
+    it("should fail to get project by name [tryGit true, but no git folder]", async function () {
+      const findAllProjectsStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
+
+      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("Mocked"));
+
+      const project: IProject | undefined = await instance.getProjectByName("test_mocked", true);
+
+      expect(project).to.eq(undefined);
+      assert.isTrue(getProjectFromGitStub.calledOnce);
+
+      findAllProjectsStub.restore();
+    });
+
     it("should get or ask project from git [git directory]", async function () {
       const mockedProject: IProject = {
         meta: {
