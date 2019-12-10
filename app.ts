@@ -634,29 +634,42 @@ export class App {
       }: ${chosenRecord.amount} ${chosenRecord.type} - "${_.truncate(chosenRecord.message)}") from project ${updatedProject.name}`);
   }
 
-  public async commitAction(cmd: string, options: any): Promise<void> {
-    const interactiveMode: boolean = process.argv.length === 4;
+  public async commitAction(cmd: Command): Promise<void> {
+    const interactiveMode: boolean = process.argv.length === 3;
 
-    const amount: number = parseFloat(cmd);
-    const message: string | undefined = options.message;
+    let amount: number;
+    let message: string | undefined;
+    let commitMessage: string;
     let project: IProject | undefined;
 
-    if (isNaN(amount)) {
-      return this.exit("Unable to parse hours", 1);
+    if (!interactiveMode) {
+      amount = parseFloat(cmd.amount);
+      project = await this.projectHelper.getProjectByName(cmd.project, true);
+      message = cmd.message;
+    } else {
+      amount = await QuestionHelper.askAmount(1);
+      project = await this.projectHelper.getOrAskForProjectFromGit();
+      message = await QuestionHelper.askMessage();
     }
 
-    project = await this.projectHelper.getProjectByName(options.project);
+    if (isNaN(amount)) {
+      return this.exit("No valid amount", 1);
+    }
 
-    if (interactiveMode) {
-      if (!project) {
-        project = await this.projectHelper.getOrAskForProjectFromGit();
-      }
+    if (!project) {
+      return this.exit("No valid git project", 1);
+    }
+
+    if (message && message.length > 0) {
+      commitMessage = message;
+    } else {
+      commitMessage = `Committed ${amount} hour${amount > 1 ? "s" : ""} to ${project.name}`
     }
 
     await this.projectHelper.addRecordToProject({
       amount,
       end: Date.now(),
-      message,
+      message: commitMessage,
       type: RECORD_TYPES.Time,
     }, project);
   }
@@ -684,7 +697,7 @@ export class App {
         return cmd.help();
       }
 
-      amount = parseInt(cmd.amount, 10);
+      amount = parseFloat(cmd.amount);
       type = cmd.type;
 
       year = ValidationHelper.validateNumber(cmd.year)
@@ -1016,11 +1029,12 @@ export class App {
 
     // Commit action
     commander
-      .command("commit <hours>")
-      .description("Committing current hours to the project")
-      .option("-m, --message <message>", "Description of the spent hours")
-      .option("-p, --project [project]", "Specify the project to commit to")
-      .action(async (cmd: string, options: any): Promise<void> => await this.commitAction(cmd, options));
+      .command("commit")
+      .description("Committing certain hours to a project")
+      .option("-a, --amount <amount>", "Amount of hours spent")
+      .option("-m, --message [message]", "Description of the spent hours")
+      .option("-p, --project [project]", "Specify a project to commit to")
+      .action(async (cmd: Command): Promise<void> => await this.commitAction(cmd));
 
     // add command
     commander
