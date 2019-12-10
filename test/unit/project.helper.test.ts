@@ -187,8 +187,9 @@ describe("ProjectHelper", function () {
 
       const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("Mocked"));
 
-      await instance.getProjectByName("test_mocked", true);
+      const project: IProject | undefined = await instance.getProjectByName("test_mocked", true);
 
+      expect(project).to.eq(undefined);
       assert.isTrue(getProjectFromGitStub.calledOnce);
 
       findAllProjectsStub.restore();
