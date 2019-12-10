@@ -896,7 +896,7 @@ export class App {
     for (const record of records) {
       let line = "";
       line += `${record.type}\t`;
-      line += chalk.yellow.bold(`${record.amount}h\t`);
+      line += chalk.yellow.bold(`${record.amount.toFixed(2)}h\t`);
       line += `${moment(record.end).format("DD.MM.YYYY HH:mm:ss")}\t`;
       line += chalk.yellow.bold(`${record.message}`);
       sumOfTime += record.amount;
