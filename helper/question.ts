@@ -87,23 +87,6 @@ export class QuestionHelper {
   }
 
   public static askAmount = async (oldAmount?: number): Promise<number> => {
-    // const question: Question = {
-    //   message: "Amount",
-    //   name: "choice",
-    //   type: "number",
-    //   validate: ValidationHelper.validateAmount,
-    // };
-
-    // if (oldAmount) {
-    //   question.default = oldAmount;
-    // }
-
-    // const choice: any = await inquirer.prompt([question]) as {
-    //   amount: number;
-    // };
-
-    // return parseFloat(choice.choice);
-
     const choice: any = await inquirer.prompt([
       {
         default: _.isNumber(oldAmount) ? oldAmount : undefined,
