@@ -19,5 +19,5 @@ jobs:
       # Remove tests from dist
       - rm -rf dist/test
       # Compile package for various systems
-      - ./node_modules/.bin/pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/index.js --output gittt-debug
+      - pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/index.js --output gittt-debug
       - ls -ahl 
