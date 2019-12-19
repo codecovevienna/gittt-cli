@@ -228,6 +228,10 @@ export class ProjectHelper {
     if (!foundProject && tryGit) {
       try {
         foundProject = this.getProjectFromGit();
+        // Loads the records from the filesystem to avoid empty record array
+        foundProject = await this.fileHelper.findProjectByName(
+          foundProject.name,
+        );
       } catch (err) {
         LogHelper.debug("Unable to get project from git directory");
       }
