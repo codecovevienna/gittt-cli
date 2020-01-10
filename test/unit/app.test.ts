@@ -1272,6 +1272,40 @@ describe("App", function () {
       assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(helpStub.calledOnce);
     });
+
+    it("should fail to edit specific record with arguments [throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.editAction(mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+    });
   });
 
   describe("Remove records", function () {
