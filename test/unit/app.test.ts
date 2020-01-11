@@ -1724,6 +1724,40 @@ describe("App", function () {
 
       exitStub.restore();
     });
+
+    it("should fail to remove specific record with arguments [throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.removeAction(mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+    });
   });
 
   describe("Commit", function () {
@@ -1966,6 +2000,40 @@ describe("App", function () {
 
       exitStub.restore();
     });
+
+    it("should fail to commit hours [throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.commitAction(mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+    });
   })
 
   describe("Add records", function () {
@@ -2175,6 +2243,7 @@ describe("App", function () {
 
       assert.isTrue(addRecordToProjectStub.calledOnce);
     });
+
   });
 
   describe("Import records from csv", function () {
@@ -2662,6 +2731,40 @@ describe("App", function () {
           assert.isTrue(exitStub.calledOnce);
 
           exitStub.restore();
+        });
+
+        it("should fail to add new JIRA link [throws]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getProjectByName = getProjectByNameStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to disable interactive mode
+          process.argv = ["1", "2", "3", "4"];
+
+          await mockedApp.linkAction(mockedCommand);
+
+          assert.isTrue(exitStub.calledOnce);
         });
       });
       describe("Publish", function () {
@@ -3775,6 +3878,40 @@ describe("App", function () {
 
           exitStub.restore();
         });
+
+        it("should fail to publish records to Jira endpoint [throws]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getProjectByName = getProjectByNameStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to disable interactive mode
+          process.argv = ["1", "2", "3", "4"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(exitStub.calledOnce);
+        });
       });
     });
   });
@@ -3943,6 +4080,40 @@ describe("App", function () {
       expect(exitStub.calledOnce);
 
       exitStub.restore();
+    });
+
+    it("should not show report [throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.reportAction(mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
     });
   });
 
