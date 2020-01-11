@@ -33,6 +33,12 @@ export interface IJiraLink extends IIntegrationLink {
   issue: string;
 }
 
+export interface IMultipieLink extends IIntegrationLink {
+  username: string;
+  host: string;
+  endpoint: string;
+}
+
 export interface IConfigFile {
   created: number;
   gitRepo: string;

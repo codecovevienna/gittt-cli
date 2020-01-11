@@ -27,6 +27,7 @@ import {
   IJiraPublishResult,
   IProject,
   IRecord,
+  IMultipieLink,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 
@@ -172,17 +173,38 @@ export class App {
 
         LogHelper.debug(`Trying to find links for "${project.name}"`)
         // Check for previous data
-        const prevIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        const prevJiraIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project, "Jira");
         let prevJiraLink: IJiraLink | undefined;
-        if (prevIntegrationLink) {
+        if (prevJiraIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
-          prevJiraLink = prevIntegrationLink as IJiraLink;
+          prevJiraLink = prevJiraIntegrationLink as IJiraLink;
         }
 
         const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project, prevJiraLink, JIRA_ENDPOINT_VERSION);
 
         try {
-          await this.fileHelper.addOrUpdateLink(jiraLink);
+          await this.fileHelper.addOrUpdateLink(jiraLink, "Jira");
+        } catch (err) {
+          LogHelper.debug(`Unable to add link to config file`, err);
+          return this.exit(`Unable to add link to config file`, 1);
+        }
+
+        break;
+
+      case "Multipie":
+        LogHelper.debug(`Trying to find links for "${project.name}"`)
+        // Check for previous data
+        const prevMultipieIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project, "Multipie");
+        let prevMultipieLink: IMultipieLink | undefined;
+        if (prevMultipieIntegrationLink) {
+          LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
+          prevMultipieLink = prevMultipieIntegrationLink as IMultipieLink;
+        }
+
+        const multiPieLink: IMultipieLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
+
+        try {
+          await this.fileHelper.addOrUpdateLink(multiPieLink, "Multipie");
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -287,6 +309,44 @@ export class App {
             LogHelper.info("Successfully published data to Jira");
           } else {
             this.exit(`Unable to publish to Jira: ${data.message}`, 1);
+          }
+        } catch (err) {
+          delete err.config;
+          delete err.request;
+          delete err.response;
+          LogHelper.debug("Publish request failed", err);
+          this.exit(`Publish request failed, please consider updating the link`, 1);
+        }
+
+        break;
+
+      case "Multipie":
+        // cast generic link to jira link
+        const multipieLink: IMultipieLink = link;
+
+        const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
+
+        LogHelper.debug(`Publishing to ${multipieUrl}`);
+
+        try {
+          const publishResult: AxiosResponse = await axios
+            .post(multipieUrl,
+              populatedProject,
+              {
+                headers: {
+                  "Authorization": `${multipieLink.username}`,
+                  "Cache-Control": "no-cache",
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+
+          const data: any = publishResult.data;
+
+          if (data && (publishResult.status === 200 || publishResult.status === 201)) {
+            LogHelper.info("Successfully published data to Multipie");
+          } else {
+            this.exit(`Unable to publish to Multipie`, 1);
           }
         } catch (err) {
           delete err.config;
@@ -797,7 +857,8 @@ export class App {
         LogHelper.log(`Name:\t${foundProject.name}`);
         LogHelper.log(`Hours:\t${hours}h`);
 
-        const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        // TODO make this multi link capable
+        const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project, "Jira");
         if (link) {
           switch (link.linkType) {
             case "Jira":

@@ -319,7 +319,8 @@ export class ProjectHelper {
       LogHelper.info(`✓ Removed old domain directory`);
     }
 
-    const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from);
+    // TODO handle multiple links
+    const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from, "Jira");
     if (!link) {
       LogHelper.debug(`No link found for project "${from.name}"`);
     } else {
@@ -328,7 +329,7 @@ export class ProjectHelper {
           const migratedLink: IJiraLink = link as IJiraLink;
           migratedLink.projectName = to.name;
 
-          await this.fileHelper.addOrUpdateLink(migratedLink);
+          await this.fileHelper.addOrUpdateLink(migratedLink, "Jira");
           LogHelper.info(`✓ Updated jira link`);
           break;
 
