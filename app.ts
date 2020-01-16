@@ -173,7 +173,7 @@ export class App {
 
         LogHelper.debug(`Trying to find links for "${project.name}"`)
         // Check for previous data
-        const prevJiraIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project, "Jira");
+        const prevJiraIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
         let prevJiraLink: IJiraLink | undefined;
         if (prevJiraIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
@@ -183,7 +183,7 @@ export class App {
         const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project, prevJiraLink, JIRA_ENDPOINT_VERSION);
 
         try {
-          await this.fileHelper.addOrUpdateLink(jiraLink, "Jira");
+          await this.fileHelper.addOrUpdateLink(jiraLink);
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -194,7 +194,7 @@ export class App {
       case "Multipie":
         LogHelper.debug(`Trying to find links for "${project.name}"`)
         // Check for previous data
-        const prevMultipieIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project, "Multipie");
+        const prevMultipieIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
         let prevMultipieLink: IMultipieLink | undefined;
         if (prevMultipieIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
@@ -204,7 +204,7 @@ export class App {
         const multiPieLink: IMultipieLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
 
         try {
-          await this.fileHelper.addOrUpdateLink(multiPieLink, "Multipie");
+          await this.fileHelper.addOrUpdateLink(multiPieLink);
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -858,7 +858,7 @@ export class App {
         LogHelper.log(`Hours:\t${hours}h`);
 
         // TODO make this multi link capable
-        const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project, "Jira");
+        const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
         if (link) {
           switch (link.linkType) {
             case "Jira":

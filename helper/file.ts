@@ -68,14 +68,14 @@ export class FileHelper {
     return initial;
   }
 
-  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieLink, linkType: string): Promise<IConfigFile> => {
+  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieLink): Promise<IConfigFile> => {
     const configObject: IConfigFile = await this.getConfigObject();
 
     // TODO check if already exists
     const cleanLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
       // TODO linkType can be taken from class
       // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      return li.projectName !== link.projectName && li.linkType !== linkType;
+      return li.projectName !== link.projectName && li.linkType !== link.linkType;
     });
 
     cleanLinks.push(link);
@@ -87,12 +87,12 @@ export class FileHelper {
     return configObject;
   }
 
-  public findLinkByProject = async (project: IProject, linkType: string): Promise<IIntegrationLink | undefined> => {
+  public findLinkByProject = async (project: IProject): Promise<IIntegrationLink | undefined> => {
     const configObject: IConfigFile = await this.getConfigObject();
 
     const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
       // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      return li.projectName === project.name && li.linkType == linkType;
+      return li.projectName === project.name;
     });
 
     if (foundLinks.length === 0) {

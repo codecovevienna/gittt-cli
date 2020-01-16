@@ -755,7 +755,7 @@ describe("FileHelper", function () {
       const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
         linkType: "mock",
         projectName: "mocked",
-      }, "mock");
+      });
 
       expect(updatedConfigFile.links.length).to.eq(1);
 
@@ -791,7 +791,7 @@ describe("FileHelper", function () {
         linkType: "mock",
         projectName: "mocked",
         username: "mock",
-      }, "mock");
+      });
 
       expect(updatedConfigFile.links.length).to.eq(1);
 
@@ -822,7 +822,7 @@ describe("FileHelper", function () {
         },
         name: "mocked",
         records: [],
-      } as IProject, "mock");
+      } as IProject);
 
       assert.isDefined(foundLink);
 
@@ -852,7 +852,7 @@ describe("FileHelper", function () {
         },
         name: "unknown",
         records: [],
-      } as IProject, "mock");
+      } as IProject);
 
       assert.isUndefined(foundLink);
 
@@ -860,7 +860,7 @@ describe("FileHelper", function () {
     });
 
     // TODO should be re-enabled when multiple links are supported
-    it.skip("should fail to find link by project [more links for same project name]", async function () {
+    it("should fail to find link by project [more links for same project name]", async function () {
       const fileProxy: any = proxyquire("../../helper/file", {});
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
@@ -887,7 +887,7 @@ describe("FileHelper", function () {
         },
         name: "mocked",
         records: [],
-      } as IProject, "mock");
+      } as IProject);
 
       assert.isUndefined(foundLink);
 

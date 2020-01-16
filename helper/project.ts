@@ -320,7 +320,7 @@ export class ProjectHelper {
     }
 
     // TODO handle multiple links
-    const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from, "Jira");
+    const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from);
     if (!link) {
       LogHelper.debug(`No link found for project "${from.name}"`);
     } else {
@@ -329,7 +329,7 @@ export class ProjectHelper {
           const migratedLink: IJiraLink = link as IJiraLink;
           migratedLink.projectName = to.name;
 
-          await this.fileHelper.addOrUpdateLink(migratedLink, "Jira");
+          await this.fileHelper.addOrUpdateLink(migratedLink);
           LogHelper.info(`✓ Updated jira link`);
           break;
 
