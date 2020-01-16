@@ -859,6 +859,7 @@ describe("FileHelper", function () {
       assert.isTrue(getConfigObjectStub.calledOnce);
     });
 
+    // TODO should be re-enabled when multiple links are supported
     it("should fail to find link by project [more links for same project name]", async function () {
       const fileProxy: any = proxyquire("../../helper/file", {});
 

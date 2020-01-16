@@ -320,6 +320,7 @@ export class ProjectHelper {
       LogHelper.info(`✓ Removed old domain directory`);
     }
 
+    // TODO handle multiple links
     const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from);
     if (!link) {
       LogHelper.debug(`No link found for project "${from.name}"`);

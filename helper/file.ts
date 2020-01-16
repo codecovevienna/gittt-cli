@@ -1,7 +1,7 @@
 import plainFs from "fs";
 import fs, { WriteOptions } from "fs-extra";
 import path from "path";
-import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
+import { IConfigFile, IIntegrationLink, IJiraLink, IMultipieLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
 import { LogHelper, parseProjectNameFromGitUrl, ProjectHelper } from "./";
 
 export class FileHelper {
@@ -68,13 +68,14 @@ export class FileHelper {
     return initial;
   }
 
-  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink): Promise<IConfigFile> => {
+  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieLink): Promise<IConfigFile> => {
     const configObject: IConfigFile = await this.getConfigObject();
 
     // TODO check if already exists
     const cleanLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
+      // TODO linkType can be taken from class
       // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      return li.projectName !== link.projectName;
+      return li.projectName !== link.projectName && li.linkType !== link.linkType;
     });
 
     cleanLinks.push(link);

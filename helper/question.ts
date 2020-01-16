@@ -1,7 +1,7 @@
 import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
-import { IJiraLink, IProject, IRecord } from "../interfaces";
+import { IJiraLink, IMultipieLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { ProjectHelper, ValidationHelper } from "./";
 
@@ -192,6 +192,40 @@ export class QuestionHelper {
     return link;
   }
 
+  public static askMultipieLink = async (project: IProject, prevData?: IMultipieLink): Promise<IMultipieLink> => {
+    const multipieAnswers: any = await inquirer.prompt([
+      {
+        default: prevData ? prevData.host : "https://multipie.gittt.org",
+        // also works for generic hosts
+        filter: QuestionHelper.filterJiraEndpoint,
+        message: "Multipie host",
+        name: "host",
+        type: "input",
+        validate: ValidationHelper.validateJiraEndpoint,
+      },
+      {
+        default: prevData ? prevData.username : undefined,
+        message: "Multipie username",
+        name: "username",
+        type: "input",
+        // TODO validate
+      },
+    ]);
+    const { host, username } = multipieAnswers;
+
+    const projectName: string = project.name;
+
+    const link: IMultipieLink = {
+      host,
+      endpoint: `/v1/publish`,
+      linkType: "Multipie",
+      projectName,
+      username,
+    };
+
+    return link;
+  }
+
   public static chooseRecord = async (records: IRecord[]): Promise<IRecord> => {
     const choice: any = await inquirer.prompt([
       {
@@ -244,6 +278,7 @@ export class QuestionHelper {
   public static chooseIntegration = async (): Promise<string> => {
     const choices: string[] = [
       "Jira",
+      "Multipie",
     ];
 
     const question: ListQuestion = {

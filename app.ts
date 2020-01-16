@@ -27,6 +27,7 @@ import {
   IJiraPublishResult,
   IProject,
   IRecord,
+  IMultipieLink,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 
@@ -176,17 +177,38 @@ export class App {
 
         LogHelper.debug(`Trying to find links for "${project.name}"`)
         // Check for previous data
-        const prevIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        const prevJiraIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
         let prevJiraLink: IJiraLink | undefined;
-        if (prevIntegrationLink) {
+        if (prevJiraIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
-          prevJiraLink = prevIntegrationLink as IJiraLink;
+          prevJiraLink = prevJiraIntegrationLink as IJiraLink;
         }
 
         const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project, prevJiraLink, JIRA_ENDPOINT_VERSION);
 
         try {
           await this.fileHelper.addOrUpdateLink(jiraLink);
+        } catch (err) {
+          LogHelper.debug(`Unable to add link to config file`, err);
+          return this.exit(`Unable to add link to config file`, 1);
+        }
+
+        break;
+
+      case "Multipie":
+        LogHelper.debug(`Trying to find links for "${project.name}"`)
+        // Check for previous data
+        const prevMultipieIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        let prevMultipieLink: IMultipieLink | undefined;
+        if (prevMultipieIntegrationLink) {
+          LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
+          prevMultipieLink = prevMultipieIntegrationLink as IMultipieLink;
+        }
+
+        const multiPieLink: IMultipieLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
+
+        try {
+          await this.fileHelper.addOrUpdateLink(multiPieLink);
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -295,6 +317,44 @@ export class App {
             LogHelper.info("Successfully published data to Jira");
           } else {
             this.exit(`Unable to publish to Jira: ${data.message}`, 1);
+          }
+        } catch (err) {
+          delete err.config;
+          delete err.request;
+          delete err.response;
+          LogHelper.debug("Publish request failed", err);
+          this.exit(`Publish request failed, please consider updating the link`, 1);
+        }
+
+        break;
+
+      case "Multipie":
+        // cast generic link to jira link
+        const multipieLink: IMultipieLink = link;
+
+        const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
+
+        LogHelper.debug(`Publishing to ${multipieUrl}`);
+
+        try {
+          const publishResult: AxiosResponse = await axios
+            .post(multipieUrl,
+              populatedProject,
+              {
+                headers: {
+                  "Authorization": `${multipieLink.username}`,
+                  "Cache-Control": "no-cache",
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+
+          const data: any = publishResult.data;
+
+          if (data && (publishResult.status === 200 || publishResult.status === 201)) {
+            LogHelper.info("Successfully published data to Multipie");
+          } else {
+            this.exit(`Unable to publish to Multipie`, 1);
           }
         } catch (err) {
           delete err.config;
@@ -829,6 +889,7 @@ export class App {
         LogHelper.log(`Name:\t${foundProject.name}`);
         LogHelper.log(`Hours:\t${hours}h`);
 
+        // TODO make this multi link capable
         const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
         if (link) {
           switch (link.linkType) {
@@ -1130,45 +1191,6 @@ export class App {
       .option("-d, --days [number]", "Specify for how many days the report should be printed.")
       .option("-p, --project [project]", "Specify the project the report should be printed for")
       .action((cmd: Command): Promise<void> => this.reportAction(cmd));
-
-    // log command
-    // not needed anymore
-    // commander
-    //   .command("log")
-    //   .description("List of local changes")
-    //   .action(async () => {
-    //     const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
-    //     if (logs.length > 0) {
-    //       LogHelper.warn("Local changes:");
-    //       for (const log of logs) {
-    //         console.log(`${log.date}\n  ${log.message.trim()}`);
-    //       }
-    //     } else {
-    //       LogHelper.info("Everything is up to date");
-    //     }
-    //   });
-
-    // status command
-    // not needed anymore
-    // commander
-    //   .command("status")
-    //   .description("Overview of all projects")
-    //   .action(async () => {
-    //     const projects: IProject[] = await this.fileHelper.findAllProjects();
-    //     let totalHours: number = 0;
-
-    //     LogHelper.info("Projects:");
-    //     for (const pL of projects) {
-    //       const hours: number = await this.projectHelper.getTotalHours(pL.name);
-    //       LogHelper.info(`${pL.name}:\t${hours}`);
-    //       totalHours += hours;
-    //     }
-    //     LogHelper.info("");
-
-    //     LogHelper.info("Summery:");
-    //     LogHelper.info(`Total projects:\t${projects.length}`);
-    //     LogHelper.info(`Total hours:\t${totalHours}`);
-    //   });
 
     commander
       .command("setup")
