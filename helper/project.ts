@@ -233,7 +233,8 @@ export class ProjectHelper {
           foundProject.name,
         );
       } catch (err) {
-        LogHelper.debug("Unable to get project from git directory");
+        LogHelper.debug(`Unable to get project from git directory: ${err.message}`);
+        throw err;
       }
     }
 

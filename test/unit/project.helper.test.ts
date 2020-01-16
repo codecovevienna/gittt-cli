@@ -167,6 +167,7 @@ describe("ProjectHelper", function () {
       };
 
       const findAllProjectsStub = sinon.stub(mockedFileHelper, "findAllProjects").resolves([]);
+      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(mockedProject);
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -176,8 +177,10 @@ describe("ProjectHelper", function () {
 
       expect(project).to.eq(mockedProject);
       assert.isTrue(getProjectFromGitStub.calledOnce);
+      assert.isTrue(findProjectByNameStub.calledOnce);
 
       findAllProjectsStub.restore();
+      findProjectByNameStub.restore();
     });
 
     it("should fail to get project by name [tryGit true, but no git folder]", async function () {
@@ -187,9 +190,12 @@ describe("ProjectHelper", function () {
 
       const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("Mocked"));
 
-      const project: IProject | undefined = await instance.getProjectByName("test_mocked", true);
+      try {
+        await instance.getProjectByName("test_mocked", true);
+      } catch (err) {
+        expect(err.message).to.eq("Mocked")
+      }
 
-      expect(project).to.eq(undefined);
       assert.isTrue(getProjectFromGitStub.calledOnce);
 
       findAllProjectsStub.restore();

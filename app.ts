@@ -157,7 +157,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -224,7 +228,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -472,7 +480,11 @@ export class App {
 
     // TODO move to own function, is used multiple times
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -625,7 +637,11 @@ export class App {
     let project: IProject | undefined;
     try {
       if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        try {
+          project = await this.projectHelper.getProjectByName(cmd.project);
+        } catch (err) {
+          return this.exit(err.message, 1);
+        }
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
@@ -704,8 +720,12 @@ export class App {
 
     if (!interactiveMode) {
       amount = parseFloat(cmd.amount);
-      project = await this.projectHelper.getProjectByName(cmd.project, true);
       message = cmd.message;
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       amount = await QuestionHelper.askAmount(1);
       project = await this.projectHelper.getOrAskForProjectFromGit();
@@ -771,8 +791,12 @@ export class App {
       minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
-      project = await this.projectHelper.getProjectByName(cmd.project);
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
       year = await QuestionHelper.askYear();
@@ -818,7 +842,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(options.project);
+      try {
+        project = await this.projectHelper.getProjectByName(options.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -839,7 +867,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -922,7 +954,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -974,7 +1010,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -1044,7 +1084,11 @@ export class App {
       await this.timerHelper.killTimer();
     } else {
       if (cmd.project) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        try {
+          project = await this.projectHelper.getProjectByName(cmd.project);
+        } catch (err) {
+          return this.exit(err.message, 1);
+        }
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
