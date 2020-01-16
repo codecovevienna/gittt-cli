@@ -1148,45 +1148,6 @@ export class App {
       .option("-p, --project [project]", "Specify the project the report should be printed for")
       .action((cmd: Command): Promise<void> => this.reportAction(cmd));
 
-    // log command
-    // not needed anymore
-    // commander
-    //   .command("log")
-    //   .description("List of local changes")
-    //   .action(async () => {
-    //     const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
-    //     if (logs.length > 0) {
-    //       LogHelper.warn("Local changes:");
-    //       for (const log of logs) {
-    //         console.log(`${log.date}\n  ${log.message.trim()}`);
-    //       }
-    //     } else {
-    //       LogHelper.info("Everything is up to date");
-    //     }
-    //   });
-
-    // status command
-    // not needed anymore
-    // commander
-    //   .command("status")
-    //   .description("Overview of all projects")
-    //   .action(async () => {
-    //     const projects: IProject[] = await this.fileHelper.findAllProjects();
-    //     let totalHours: number = 0;
-
-    //     LogHelper.info("Projects:");
-    //     for (const pL of projects) {
-    //       const hours: number = await this.projectHelper.getTotalHours(pL.name);
-    //       LogHelper.info(`${pL.name}:\t${hours}`);
-    //       totalHours += hours;
-    //     }
-    //     LogHelper.info("");
-
-    //     LogHelper.info("Summery:");
-    //     LogHelper.info(`Total projects:\t${projects.length}`);
-    //     LogHelper.info(`Total hours:\t${totalHours}`);
-    //   });
-
     commander
       .command("setup")
       .description("Initializes config directory and setup of gittt git project")
