@@ -221,11 +221,11 @@ export class ProjectHelper {
     }, 0);
   }
 
-  public getProjectByName = async (name: string, tryGit = false): Promise<IProject | undefined> => {
+  public getProjectByName = async (name: string): Promise<IProject | undefined> => {
     const projects: IProject[] = await this.fileHelper.findAllProjects();
     let foundProject: IProject | undefined = projects.find((p: IProject) => p.name === name);
 
-    if (!foundProject && tryGit) {
+    if (!foundProject || !name) {
       try {
         foundProject = this.getProjectFromGit();
         // Loads the records from the filesystem to avoid empty record array
