@@ -171,18 +171,17 @@ export class App {
     }
     const integration: string = await QuestionHelper.chooseIntegration();
 
+    LogHelper.debug(`Trying to find links for "${project.name}"`)
+    // Check for previous data
+    const prevIntegrationLink: IIntegrationLink | undefined = (await this.fileHelper
+      .findLinksByProject(project, integration))[0];
+
     switch (integration) {
       case "Jira":
-        // TODO validate if record exists in projects dir(?)
-
-        LogHelper.debug(`Trying to find links for "${project.name}"`)
-        // Check for previous data
-        const prevJiraIntegrationLink: IIntegrationLink | undefined = (await this.fileHelper
-          .findLinksByProject(project, integration))[0];
         let prevJiraLink: IJiraLink | undefined;
-        if (prevJiraIntegrationLink) {
+        if (prevIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
-          prevJiraLink = prevJiraIntegrationLink as IJiraLink;
+          prevJiraLink = prevIntegrationLink as IJiraLink;
         }
 
         const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project, prevJiraLink, JIRA_ENDPOINT_VERSION);
@@ -197,14 +196,10 @@ export class App {
         break;
 
       case "Multipie":
-        LogHelper.debug(`Trying to find links for "${project.name}"`)
-        // Check for previous data
-        const prevMultipieIntegrationLink: IIntegrationLink | undefined = (await this.fileHelper
-          .findLinksByProject(project, integration))[0];
         let prevMultipieLink: IMultipieLink | undefined;
-        if (prevMultipieIntegrationLink) {
+        if (prevIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
-          prevMultipieLink = prevMultipieIntegrationLink as IMultipieLink;
+          prevMultipieLink = prevIntegrationLink as IMultipieLink;
         }
 
         const multiPieLink: IMultipieLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
@@ -242,12 +237,6 @@ export class App {
     if (!project) {
       return this.exit("No valid git project", 1);
     }
-
-    // const configObject: IConfigFile = await this.fileHelper.getConfigObject();
-
-    // const link: any | undefined = configObject.links.find((li: IIntegrationLink) => {
-    //   return project ? li.projectName === project.name : false;
-    // });
 
     const links: IIntegrationLink[] = (await this.fileHelper.findLinksByProject(project));
 
@@ -330,7 +319,6 @@ export class App {
                 type: link.linkType,
                 reason: `Publishing failed [${publishResult.status}]`
               })
-              // this.exit(`Unable to publish to Jira: ${data.message}`, 1);
             }
           } catch (err) {
             delete err.config;
@@ -342,7 +330,6 @@ export class App {
               type: link.linkType,
               reason: `Publish request failed, please consider updating the link`
             })
-            // this.exit(`Publish request failed, please consider updating the link`, 1);
           }
 
           break;
@@ -380,7 +367,6 @@ export class App {
                 type: link.linkType,
                 reason: `Publishing failed [${publishResult.status}]`
               })
-              // this.exit(`Unable to publish to Multipie`, 1);
             }
           } catch (err) {
             delete err.config;
@@ -392,13 +378,11 @@ export class App {
               type: link.linkType,
               reason: `Publish request failed, please consider updating the link`
             })
-            // this.exit(`Publish request failed, please consider updating the link`, 1);
           }
 
           break;
 
         default:
-          // this.exit(`Link type "${link.linkType}" not implemented`, 1);
           publishSummary.push({
             success: false,
             type: "unknown",

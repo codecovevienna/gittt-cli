@@ -2401,6 +2401,7 @@ describe("App", function () {
           public static getHomeDir = sinon.stub().returns("/home/test");
           public configDirExists = sinon.stub().resolves(true);
           public isConfigFileValid = sinon.stub().resolves(true);
+          public findLinksByProject = sinon.stub().resolves([]);
         }
 
         mockedHelper.ProjectHelper = class {
@@ -4004,7 +4005,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinksByProject = sinon.stub().resolves(
+            public findLinksByProject = sinon.stub().resolves([
               {
                 endpoint: "/v1/publish",
                 host: "http://github.com",
@@ -4012,6 +4013,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "mocked"
               } as IMultipieLink
+            ]
             );
           }
 
