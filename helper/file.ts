@@ -87,23 +87,18 @@ export class FileHelper {
     return configObject;
   }
 
-  public findLinkByProject = async (project: IProject): Promise<IIntegrationLink | undefined> => {
+  public findLinksByProject = async (project: IProject, linkType?: string): Promise<IIntegrationLink[]> => {
     const configObject: IConfigFile = await this.getConfigObject();
 
     const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
       // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
+      if (linkType) {
+        return li.projectName === project.name && li.linkType === linkType;
+      }
       return li.projectName === project.name;
     });
 
-    if (foundLinks.length === 0) {
-      return undefined;
-    }
-
-    if (foundLinks.length > 1) {
-      return undefined;
-    }
-
-    return foundLinks[0];
+    return foundLinks;
   }
 
   public initProject = async (project: IProject): Promise<IProject> => {

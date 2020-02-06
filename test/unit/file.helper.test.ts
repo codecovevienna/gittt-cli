@@ -905,7 +905,7 @@ describe("FileHelper", function () {
         ],
       });
 
-      const foundLink: IIntegrationLink | undefined = await instance.findLinkByProject({
+      const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
         meta: {
           host: "github.com",
           port: 10022,
@@ -914,7 +914,51 @@ describe("FileHelper", function () {
         records: [],
       } as IProject);
 
-      assert.isDefined(foundLink);
+      expect(foundLinks[0]).to.deep.eq({
+        linkType: "mock",
+        projectName: "mocked",
+      })
+
+      assert.isTrue(getConfigObjectStub.calledOnce);
+    });
+
+    it("should find link by project and type", async function () {
+      const fileProxy: any = proxyquire("../../helper/file", {});
+
+      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
+        created: 1234,
+        gitRepo: "ssh://mocked",
+        links: [
+          {
+            linkType: "mock",
+            projectName: "mocked",
+          },
+          {
+            linkType: "mock1",
+            projectName: "mocked",
+          },
+          {
+            linkType: "fake",
+            projectName: "other",
+          },
+        ],
+      });
+
+      const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
+        meta: {
+          host: "github.com",
+          port: 10022,
+        },
+        name: "mocked",
+        records: [],
+      } as IProject, "mock1");
+
+      expect(foundLinks[0]).to.deep.eq({
+        linkType: "mock1",
+        projectName: "mocked",
+      })
 
       assert.isTrue(getConfigObjectStub.calledOnce);
     });
@@ -935,7 +979,7 @@ describe("FileHelper", function () {
         ],
       });
 
-      const foundLink: IIntegrationLink | undefined = await instance.findLinkByProject({
+      const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
         meta: {
           host: "github.com",
           port: 10022,
@@ -944,12 +988,11 @@ describe("FileHelper", function () {
         records: [],
       } as IProject);
 
-      assert.isUndefined(foundLink);
+      expect(foundLinks.length).to.eq(0)
 
       assert.isTrue(getConfigObjectStub.calledOnce);
     });
 
-    // TODO should be re-enabled when multiple links are supported
     it("should fail to find link by project [more links for same project name]", async function () {
       const fileProxy: any = proxyquire("../../helper/file", {});
 
@@ -967,10 +1010,14 @@ describe("FileHelper", function () {
             linkType: "mock1",
             projectName: "mocked",
           },
+          {
+            linkType: "fake",
+            projectName: "other",
+          },
         ],
       });
 
-      const foundLink: IIntegrationLink | undefined = await instance.findLinkByProject({
+      const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
         meta: {
           host: "github.com",
           port: 10022,
@@ -979,7 +1026,7 @@ describe("FileHelper", function () {
         records: [],
       } as IProject);
 
-      assert.isUndefined(foundLink);
+      expect(foundLinks.length).to.eq(2)
 
       assert.isTrue(getConfigObjectStub.calledOnce);
     });

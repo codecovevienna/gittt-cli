@@ -1,6 +1,7 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
 import { GitNoOriginError, GitNoUrlError, GitRemoteError, GitNoRepoError, RECORD_TYPES } from "../types";
+import { IMultipieLink } from '../interfaces/index';
 import {
   FileHelper,
   GitHelper,
@@ -320,23 +321,31 @@ export class ProjectHelper {
       LogHelper.info(`✓ Removed old domain directory`);
     }
 
-    // TODO handle multiple links
-    const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(from);
-    if (!link) {
+    const links: IIntegrationLink[] = await this.fileHelper.findLinksByProject(from);
+    if (links.length === 0) {
       LogHelper.debug(`No link found for project "${from.name}"`);
     } else {
-      switch (link.linkType) {
-        case "Jira":
-          const migratedLink: IJiraLink = link as IJiraLink;
-          migratedLink.projectName = to.name;
+      for (const link of links) {
+        switch (link.linkType) {
+          case "Jira":
+            const migratedJiraLink: IJiraLink = link as IJiraLink;
+            migratedJiraLink.projectName = to.name;
 
-          await this.fileHelper.addOrUpdateLink(migratedLink);
-          LogHelper.info(`✓ Updated jira link`);
-          break;
+            await this.fileHelper.addOrUpdateLink(migratedJiraLink);
+            LogHelper.info(`✓ Updated Jira link`);
+            break;
+          case "Multipie":
+            const migratedMultipieLink: IMultipieLink = link as IMultipieLink;
+            migratedMultipieLink.projectName = to.name;
 
-        default:
-          LogHelper.error("✗ Invalid link type");
-          break;
+            await this.fileHelper.addOrUpdateLink(migratedMultipieLink);
+            LogHelper.info(`✓ Updated Multipie link`);
+            break;
+
+          default:
+            LogHelper.error("✗ Invalid link type");
+            break;
+        }
       }
     }
 

@@ -19,7 +19,6 @@ import {
   ValidationHelper,
 } from "./helper";
 import {
-  IConfigFile,
   IInitAnswers,
   IInitProjectAnswers,
   IIntegrationLink,
@@ -28,6 +27,7 @@ import {
   IProject,
   IRecord,
   IMultipieLink,
+  IPublishSummaryItem,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 
@@ -177,7 +177,8 @@ export class App {
 
         LogHelper.debug(`Trying to find links for "${project.name}"`)
         // Check for previous data
-        const prevJiraIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        const prevJiraIntegrationLink: IIntegrationLink | undefined = (await this.fileHelper
+          .findLinksByProject(project, integration))[0];
         let prevJiraLink: IJiraLink | undefined;
         if (prevJiraIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
@@ -198,7 +199,8 @@ export class App {
       case "Multipie":
         LogHelper.debug(`Trying to find links for "${project.name}"`)
         // Check for previous data
-        const prevMultipieIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
+        const prevMultipieIntegrationLink: IIntegrationLink | undefined = (await this.fileHelper
+          .findLinksByProject(project, integration))[0];
         let prevMultipieLink: IMultipieLink | undefined;
         if (prevMultipieIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
@@ -241,13 +243,15 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    const configObject: IConfigFile = await this.fileHelper.getConfigObject();
+    // const configObject: IConfigFile = await this.fileHelper.getConfigObject();
 
-    const link: any | undefined = configObject.links.find((li: IIntegrationLink) => {
-      return project ? li.projectName === project.name : false;
-    });
+    // const link: any | undefined = configObject.links.find((li: IIntegrationLink) => {
+    //   return project ? li.projectName === project.name : false;
+    // });
 
-    if (!link) {
+    const links: IIntegrationLink[] = (await this.fileHelper.findLinksByProject(project));
+
+    if (links.length === 0) {
       LogHelper.warn(`Unable to find a link for "${project.name}"`);
       if (await QuestionHelper.confirmJiraLinkCreation()) {
         await this.linkAction(new Command());
@@ -273,102 +277,147 @@ export class App {
       }
     }
 
-    switch (link.linkType) {
-      case "Jira":
-        // cast generic link to jira link
-        const jiraLink: IJiraLink = link;
+    const publishSummary: IPublishSummaryItem[] = [];
 
-        // Map local project to jira key
-        if (jiraLink.issue) {
-          LogHelper.info(`Mapping "${populatedProject.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
-        } else {
-          LogHelper.info(`Mapping "${populatedProject.name}" to Jira project "${jiraLink.key}"`);
-        }
+    for (const link of links) {
+      switch (link.linkType) {
+        case "Jira":
+          const jiraLink: IJiraLink = link as IJiraLink;
 
-        if (!jiraLink.host) {
-          // Handle deprecated config
-          return this.exit('The configuration of this jira link is deprecated, please consider updating the link with "gittt link"', 1)
-        }
-
-        const url = `${jiraLink.host}${jiraLink.endpoint}`;
-
-        LogHelper.debug(`Publishing to ${url}`);
-
-        try {
-          const publishResult: AxiosResponse = await axios
-            .post(url,
-              {
-                projectKey: jiraLink.key,
-                issueKey: jiraLink.issue,
-                project: populatedProject,
-              },
-              {
-                headers: {
-                  "Authorization": `Basic ${jiraLink.hash}`,
-                  "Cache-Control": "no-cache",
-                  "Content-Type": "application/json",
-                },
-              },
-            );
-
-          const data: IJiraPublishResult = publishResult.data;
-
-          if (data.success) {
-            LogHelper.info("Successfully published data to Jira");
+          // Map local project to jira key
+          if (jiraLink.issue) {
+            LogHelper.info(`Mapping "${populatedProject.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
           } else {
-            this.exit(`Unable to publish to Jira: ${data.message}`, 1);
+            LogHelper.info(`Mapping "${populatedProject.name}" to Jira project "${jiraLink.key}"`);
           }
-        } catch (err) {
-          delete err.config;
-          delete err.request;
-          delete err.response;
-          LogHelper.debug("Publish request failed", err);
-          this.exit(`Publish request failed, please consider updating the link`, 1);
-        }
 
-        break;
+          if (!jiraLink.host) {
+            // Handle deprecated config
+            return this.exit('The configuration of this jira link is deprecated, please consider updating the link with "gittt link"', 1)
+          }
 
-      case "Multipie":
-        // cast generic link to jira link
-        const multipieLink: IMultipieLink = link;
+          const url = `${jiraLink.host}${jiraLink.endpoint}`;
 
-        const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
+          LogHelper.debug(`Publishing to ${url}`);
 
-        LogHelper.debug(`Publishing to ${multipieUrl}`);
-
-        try {
-          const publishResult: AxiosResponse = await axios
-            .post(multipieUrl,
-              populatedProject,
-              {
-                headers: {
-                  "Authorization": `${multipieLink.username}`,
-                  "Cache-Control": "no-cache",
-                  "Content-Type": "application/json",
+          try {
+            const publishResult: AxiosResponse = await axios
+              .post(url,
+                {
+                  projectKey: jiraLink.key,
+                  issueKey: jiraLink.issue,
+                  project: populatedProject,
                 },
-              },
-            );
+                {
+                  headers: {
+                    "Authorization": `Basic ${jiraLink.hash}`,
+                    "Cache-Control": "no-cache",
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
 
-          const data: any = publishResult.data;
+            const data: IJiraPublishResult = publishResult.data;
 
-          if (data && (publishResult.status === 200 || publishResult.status === 201)) {
-            LogHelper.info("Successfully published data to Multipie");
-          } else {
-            this.exit(`Unable to publish to Multipie`, 1);
+            if (data.success) {
+              publishSummary.push({
+                success: true,
+                type: link.linkType,
+              })
+            } else {
+              publishSummary.push({
+                success: false,
+                type: link.linkType,
+                reason: `Publishing failed [${publishResult.status}]`
+              })
+              // this.exit(`Unable to publish to Jira: ${data.message}`, 1);
+            }
+          } catch (err) {
+            delete err.config;
+            delete err.request;
+            delete err.response;
+            LogHelper.debug("Publish request failed", err);
+            publishSummary.push({
+              success: false,
+              type: link.linkType,
+              reason: `Publish request failed, please consider updating the link`
+            })
+            // this.exit(`Publish request failed, please consider updating the link`, 1);
           }
-        } catch (err) {
-          delete err.config;
-          delete err.request;
-          delete err.response;
-          LogHelper.debug("Publish request failed", err);
-          this.exit(`Publish request failed, please consider updating the link`, 1);
-        }
 
-        break;
+          break;
 
-      default:
-        this.exit(`Link type "${link.linkType}" not implemented`, 1);
-        break;
+        case "Multipie":
+          const multipieLink: IMultipieLink = link as IMultipieLink;
+
+          const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
+
+          LogHelper.debug(`Publishing to ${multipieUrl}`);
+
+          try {
+            const publishResult: AxiosResponse = await axios
+              .post(multipieUrl,
+                populatedProject,
+                {
+                  headers: {
+                    "Authorization": `${multipieLink.username}`,
+                    "Cache-Control": "no-cache",
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+
+            const data: any = publishResult.data;
+
+            if (data && (publishResult.status === 200 || publishResult.status === 201)) {
+              publishSummary.push({
+                success: true,
+                type: link.linkType,
+              })
+            } else {
+              publishSummary.push({
+                success: false,
+                type: link.linkType,
+                reason: `Publishing failed [${publishResult.status}]`
+              })
+              // this.exit(`Unable to publish to Multipie`, 1);
+            }
+          } catch (err) {
+            delete err.config;
+            delete err.request;
+            delete err.response;
+            LogHelper.debug("Publish request failed", err);
+            publishSummary.push({
+              success: false,
+              type: link.linkType,
+              reason: `Publish request failed, please consider updating the link`
+            })
+            // this.exit(`Publish request failed, please consider updating the link`, 1);
+          }
+
+          break;
+
+        default:
+          // this.exit(`Link type "${link.linkType}" not implemented`, 1);
+          publishSummary.push({
+            success: false,
+            type: "unknown",
+            reason: `Link type "${link.linkType}" not implemented`
+          })
+          break;
+      }
+    }
+
+    for (const item of publishSummary) {
+      if (item.success) {
+        LogHelper.info(`✓ Successfully published to ${item.type}`)
+      } else {
+        LogHelper.warn(`✗ Unable to publish to ${item.type}: ${item.reason}`)
+      }
+    }
+
+    if (publishSummary.filter(item => item.success === false).length > 0) {
+      this.exit(`One or more errors occurred while publishing data`, 1);
     }
   }
 
@@ -889,9 +938,8 @@ export class App {
         LogHelper.log(`Name:\t${foundProject.name}`);
         LogHelper.log(`Hours:\t${hours}h`);
 
-        // TODO make this multi link capable
-        const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
-        if (link) {
+        const links: IIntegrationLink[] = await this.fileHelper.findLinksByProject(project);
+        for (const link of links) {
           switch (link.linkType) {
             case "Jira":
               const jiraLink: IJiraLink = link as IJiraLink;
@@ -902,6 +950,13 @@ export class App {
               if (jiraLink.issue) {
                 LogHelper.log(`> Issue:\t${jiraLink.issue}`);
               }
+              break;
+            case "Multipie":
+              const multipieLink: IMultipieLink = link as IMultipieLink;
+              LogHelper.log("");
+              LogHelper.log("Multipie link:");
+              LogHelper.log(`> Host:\t\t${multipieLink.host}`);
+              LogHelper.log(`> Project:\t${multipieLink.projectName}`);
               break;
           }
         }
