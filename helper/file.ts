@@ -75,7 +75,7 @@ export class FileHelper {
     const cleanLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
       // TODO linkType can be taken from class
       // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      return li.projectName !== link.projectName && li.linkType !== link.linkType;
+      return !((li.projectName === link.projectName) && (li.linkType === link.linkType));
     });
 
     cleanLinks.push(link);

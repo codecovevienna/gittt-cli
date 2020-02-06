@@ -763,6 +763,38 @@ describe("FileHelper", function () {
       assert.isTrue(getConfigObjectStub.calledOnce);
     });
 
+    it("should add different type of link link to config file", async function () {
+      const writeJsonSpy = sinon.stub().resolves();
+      const fileProxy: any = proxyquire("../../helper/file", {
+        "fs-extra": {
+          writeJson: writeJsonSpy,
+        },
+      });
+
+      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
+        created: 1234,
+        gitRepo: "ssh://mocked",
+        links: [
+          {
+            linkType: "mock",
+            projectName: "mocked",
+          },
+        ],
+      });
+
+      const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
+        linkType: "other",
+        projectName: "mocked",
+      });
+
+      expect(updatedConfigFile.links.length).to.eq(2);
+
+      assert.isTrue(writeJsonSpy.calledOnce);
+      assert.isTrue(getConfigObjectStub.calledOnce);
+    });
+
     it("should update link in config file", async function () {
       const writeJsonSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
@@ -794,6 +826,64 @@ describe("FileHelper", function () {
       });
 
       expect(updatedConfigFile.links.length).to.eq(1);
+
+      assert.isTrue(writeJsonSpy.calledOnce);
+      assert.isTrue(getConfigObjectStub.calledOnce);
+    });
+
+    it("should update link with multiple types", async function () {
+      const writeJsonSpy = sinon.stub().resolves();
+      const fileProxy: any = proxyquire("../../helper/file", {
+        "fs-extra": {
+          writeJson: writeJsonSpy,
+        },
+      });
+
+      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
+        created: 1234,
+        gitRepo: "ssh://mocked",
+        links: [
+          {
+            linkType: "mock",
+            projectName: "mocked",
+          },
+          {
+            linkType: "fake",
+            projectName: "mocked",
+          },
+        ],
+      });
+
+      const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
+        endpoint: "http://test.com/api",
+        hash: "1234asdf",
+        key: "test",
+        linkType: "mock",
+        projectName: "mocked",
+        username: "updated",
+      });
+
+      expect(updatedConfigFile.links.length).to.eq(2);
+      expect(updatedConfigFile).to.deep.equal({
+        created: 1234,
+        gitRepo: "ssh://mocked",
+        links: [
+          {
+            linkType: "fake",
+            projectName: "mocked",
+          },
+          {
+            endpoint: "http://test.com/api",
+            hash: "1234asdf",
+            key: "test",
+            linkType: "mock",
+            projectName: "mocked",
+            username: "updated",
+          },
+        ],
+      })
 
       assert.isTrue(writeJsonSpy.calledOnce);
       assert.isTrue(getConfigObjectStub.calledOnce);
