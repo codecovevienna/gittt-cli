@@ -62,3 +62,9 @@ export interface ICsvRow {
   END: number;
   AMOUNT: number;
 }
+
+export interface IPublishSummaryItem {
+  success: boolean;
+  type: string;
+  reason?: string;
+}

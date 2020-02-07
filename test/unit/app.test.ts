@@ -6,7 +6,7 @@ import { DefaultLogFields } from "simple-git/typings/response";
 import sinon from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import { IConfigFile, IInitAnswers, IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
+import { IInitAnswers, IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -2401,6 +2401,7 @@ describe("App", function () {
           public static getHomeDir = sinon.stub().returns("/home/test");
           public configDirExists = sinon.stub().resolves(true);
           public isConfigFileValid = sinon.stub().resolves(true);
+          public findLinksByProject = sinon.stub().resolves([]);
         }
 
         mockedHelper.ProjectHelper = class {
@@ -2458,7 +2459,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2527,7 +2528,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2598,7 +2599,8 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves(
+            public findLinksByProject = sinon.stub().resolves(
+              [
               {
                 endpoint: "/rest/gittt/latest/",
                 hash: "bW9ja2VkOm1vY2tlZA==",
@@ -2609,6 +2611,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "mocked"
               } as IJiraLink
+            ]
             );
           }
 
@@ -2669,7 +2672,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2711,58 +2714,6 @@ describe("App", function () {
           await mockedApp.linkAction(mockedCommand);
 
           assert.isTrue(addOrUpdateLinkStub.calledOnce);
-          assert.isTrue(exitStub.calledOnce);
-
-          exitStub.restore();
-        });
-
-        it("should fail to add new JIRA link [unknown integration type]", async function () {
-          const mockedHelper: any = Object.assign({}, emptyHelper);
-
-          const getOrAskForProjectFromGitStub = sinon.stub().returns({
-            meta: {
-              host: "test.git.com",
-              port: 443,
-            },
-            name: "mocked",
-          } as IProject);
-
-          mockedHelper.FileHelper = class {
-            public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-          }
-
-          mockedHelper.ProjectHelper = class {
-            public addLink = sinon.stub().resolves();
-          }
-
-          mockedHelper.ProjectHelper = class {
-            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
-          }
-
-          mockedHelper.QuestionHelper = class {
-            public static chooseIntegration = sinon.stub().resolves("UnknownIntegration");
-          }
-
-          const proxy: any = proxyquire("../../app", {
-            "./helper": mockedHelper,
-          });
-
-          const mockedApp: App = new proxy.App();
-
-          const exitStub = sinon.stub(mockedApp, "exit");
-
-          await mockedApp.setup();
-
-          const mockedCommand: Command = new Command();
-
-          // Mock arguments array to enable interactive mode
-          process.argv = ["1", "2", "3"];
-
-          await mockedApp.linkAction(mockedCommand);
-
-          assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(exitStub.calledOnce);
 
           exitStub.restore();
@@ -2813,10 +2764,8 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns(
+            [
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -2828,7 +2777,7 @@ describe("App", function () {
                 username: "test",
               } as IJiraLink,
             ],
-          } as IConfigFile);
+          );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -2849,7 +2798,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -2879,7 +2828,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -2894,10 +2843,8 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns(
+            [
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -2909,7 +2856,7 @@ describe("App", function () {
                 username: "test",
               } as IJiraLink,
             ],
-          } as IConfigFile);
+          );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -2930,7 +2877,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -2961,7 +2908,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getProjectByNameStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -2976,10 +2923,8 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns(
+            [
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -2991,7 +2936,7 @@ describe("App", function () {
                 username: "test",
               } as IJiraLink,
             ],
-          } as IConfigFile);
+          );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3012,7 +2957,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3042,7 +2987,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -3057,16 +3002,9 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub()
-            .onCall(0).returns({
-              created: 1234,
-              gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-              links: [],
-            } as IConfigFile)
-            .onCall(1).returns({
-              created: 1234,
-              gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-              links: [
+          const findLinksByProjectStub = sinon.stub()
+            .onCall(0).returns([])
+            .onCall(1).returns([
                 {
                   host: "http://jira.mocked.com:2990",
                   endpoint: "/rest/gittt/latest/",
@@ -3077,8 +3015,7 @@ describe("App", function () {
                   projectName: "mocked_project_1",
                   username: "test",
                 } as IJiraLink,
-              ],
-            } as IConfigFile);
+              ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3087,7 +3024,7 @@ describe("App", function () {
             name: "mocked_project_1",
             records: [],
           });
-          const confirmJiraLinkCreationStub = sinon.stub().resolves(true);
+          const confirmLinkCreationStub = sinon.stub().resolves(true);
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3100,7 +3037,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3111,7 +3048,7 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
           mockedHelper.QuestionHelper = class {
-            public static confirmJiraLinkCreation = confirmJiraLinkCreationStub;
+            public static confirmLinkCreation = confirmLinkCreationStub;
           }
 
           const proxy: any = proxyquire("../../app", {
@@ -3135,7 +3072,7 @@ describe("App", function () {
 
           // First: without link, second with link
           assert.isTrue(getOrAskForProjectFromGitStub.calledTwice);
-          assert.isTrue(getConfigObjectStub.calledTwice);
+          assert.isTrue(findLinksByProjectStub.calledTwice);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
@@ -3152,10 +3089,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -3166,8 +3100,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IJiraLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3203,7 +3136,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3238,7 +3171,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
           assert.isTrue(confirmPushLocalChangesStub.calledOnce);
@@ -3256,10 +3189,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -3270,8 +3200,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IJiraLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3300,13 +3229,12 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3328,7 +3256,6 @@ describe("App", function () {
             },
           });
 
-
           const mockedApp: App = new proxy.App();
 
           const exitStub = sinon.stub(mockedApp, "exit").resolves();
@@ -3343,7 +3270,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
           assert.isTrue(confirmPushLocalChangesStub.calledOnce);
@@ -3405,10 +3332,7 @@ describe("App", function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
 
           const getOrAskForProjectFromGitStub = sinon.stub().resolves(undefined);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -3419,8 +3343,8 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IJiraLink,
-            ],
-          } as IConfigFile);
+            ]
+            );
           // const findProjectByNameStub = sinon.stub().resolves(undefined);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3433,7 +3357,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             // public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.ProjectHelper = class {
@@ -3476,10 +3400,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -3490,8 +3411,8 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IJiraLink,
-            ],
-          } as IConfigFile);
+            ]
+            );
           const findProjectByNameStub = sinon.stub().resolves(undefined);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3504,7 +3425,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.ProjectHelper = class {
@@ -3547,10 +3468,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -3561,8 +3479,8 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IJiraLink,
-            ],
-          } as IConfigFile);
+            ]
+            );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3577,7 +3495,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3623,10 +3541,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -3637,8 +3552,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IJiraLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3658,7 +3572,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3705,10 +3619,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -3719,8 +3630,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IJiraLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3740,7 +3650,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3756,7 +3666,6 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-
 
           const mockedApp: App = new proxy.App();
 
@@ -3786,25 +3695,21 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [],
-          } as IConfigFile);
-          const confirmJiraLinkCreationStub = sinon.stub().resolves(false);
+          const findLinksByProjectStub = sinon.stub().returns([]);
+          const confirmLinkCreationStub = sinon.stub().resolves(false);
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.ProjectHelper = class {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
           mockedHelper.QuestionHelper = class {
-            public static confirmJiraLinkCreation = confirmJiraLinkCreationStub;
+            public static confirmLinkCreation = confirmLinkCreationStub;
           }
 
           const proxy: any = proxyquire("../../app", {
@@ -3824,7 +3729,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(exitStub.calledOnce);
 
           exitStub.restore();
@@ -3840,10 +3745,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 endpoint: "http://jira.mocked.com:2990/rest/gittt/latest/",
                 hash: "1234asdf",
@@ -3853,8 +3755,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IJiraLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3875,7 +3776,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3906,7 +3807,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.notCalled);
           assert.isTrue(exitStub.calledOnce);
@@ -3970,7 +3871,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -4036,7 +3937,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -4104,7 +4005,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves(
+            public findLinksByProject = sinon.stub().resolves([
               {
                 endpoint: "/v1/publish",
                 host: "http://github.com",
@@ -4112,6 +4013,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "mocked"
               } as IMultipieLink
+            ]
             );
           }
 
@@ -4169,7 +4071,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -4225,10 +4127,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://multipie.mocked.com:2990",
                 endpoint: "/v1/publish",
@@ -4236,8 +4135,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IMultipieLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4259,7 +4157,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -4289,7 +4187,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -4304,10 +4202,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://multipie.mocked.com:2990",
                 endpoint: "/v1/publish",
@@ -4315,8 +4210,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IMultipieLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4338,7 +4232,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -4369,7 +4263,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getProjectByNameStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -4385,10 +4279,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://multipie.mocked.com:2990",
                 endpoint: "/v1/publish",
@@ -4396,8 +4287,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IMultipieLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4412,7 +4302,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -4458,10 +4348,7 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns([
               {
                 host: "http://multipie.mocked.com:2990",
                 endpoint: "/v1/publish",
@@ -4469,8 +4356,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "test",
               } as IMultipieLink,
-            ],
-          } as IConfigFile);
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4491,7 +4377,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {

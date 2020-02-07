@@ -3,7 +3,7 @@ import path from "path";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from "../../helper/index";
-import { IIntegrationLink, IProject, IRecord } from "../../interfaces";
+import { IIntegrationLink, IProject, IRecord, IJiraLink, IMultipieLink } from "../../interfaces";
 import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoRepoError, GitNoUrlError } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -1721,7 +1721,7 @@ describe("ProjectHelper", function () {
       const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
       const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
       const removeDomainStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-      const findLinkByProjectStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
+      const findLinksByProjectStub = sinon.stub(mockedFileHelper, "findLinksByProject").resolves([]);
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -1749,7 +1749,7 @@ describe("ProjectHelper", function () {
       findProjectByNameStub.restore();
       initProjectStub.restore();
       removeDomainStub.restore();
-      findLinkByProjectStub.restore();
+      findLinksByProjectStub.restore();
     });
 
     it("should migrate project [more projects in domain]", async function () {
@@ -1801,7 +1801,7 @@ describe("ProjectHelper", function () {
       const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
       const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
       const removeProjectFileStub = sinon.stub(mockedFileHelper, "removeProjectFile").resolves();
-      const findLinkByProjectStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves(undefined);
+      const findLinksByProjectStub = sinon.stub(mockedFileHelper, "findLinksByProject").resolves([]);
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
@@ -1824,13 +1824,13 @@ describe("ProjectHelper", function () {
         ],
       }));
       assert.isTrue(removeProjectFileStub.calledOnce);
-      assert.isTrue(findLinkByProjectStub.calledOnce);
+      assert.isTrue(findLinksByProjectStub.calledOnce);
 
       findProjectsForDomainStub.restore();
       findProjectByNameStub.restore();
       initProjectStub.restore();
       removeProjectFileStub.restore();
-      findLinkByProjectStub.restore();
+      findLinksByProjectStub.restore();
     });
 
     it("should fail migrate project [project not found]", async function () {
@@ -1907,14 +1907,22 @@ describe("ProjectHelper", function () {
       const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
       const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
       const removeDomainStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-      const findLinkByProjectStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
-        endpoint: "https://jira.com/rest/gittt/latest/",
-        hash: "caetaep2gaediWea",
-        key: "GITTT",
-        linkType: "Jira",
-        projectName: "test_mocked",
-        username: "gittt",
-      } as IIntegrationLink);
+      const findLinksByProjectStub = sinon.stub(mockedFileHelper, "findLinksByProject").resolves([
+        {
+          endpoint: "https://jira.com/rest/gittt/latest/",
+          hash: "caetaep2gaediWea",
+          key: "GITTT",
+          linkType: "Jira",
+          projectName: "test_mocked",
+          username: "gittt",
+        } as IJiraLink,
+        {
+          endpoint: "https://jira.com/rest/gittt/latest/",
+          linkType: "Multipie",
+          projectName: "test_mocked",
+          username: "gittt",
+        } as IMultipieLink,
+      ]);
       const addOrUpdateLinkStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
@@ -1951,7 +1959,7 @@ describe("ProjectHelper", function () {
       findProjectByNameStub.restore();
       initProjectStub.restore();
       removeDomainStub.restore();
-      findLinkByProjectStub.restore();
+      findLinksByProjectStub.restore();
       addOrUpdateLinkStub.restore();
     });
 
@@ -1987,14 +1995,14 @@ describe("ProjectHelper", function () {
       const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves(fromProject);
       const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves();
       const removeDomainStub = sinon.stub(mockedFileHelper, "removeDomainDirectory").resolves();
-      const findLinkByProjectStub = sinon.stub(mockedFileHelper, "findLinkByProject").resolves({
+      const findLinksByProjectStub = sinon.stub(mockedFileHelper, "findLinksByProject").resolves([{
         endpoint: "https://jira.com/rest/gittt/latest/",
         hash: "caetaep2gaediWea",
         key: "GITTT",
         linkType: "Invalid",
         projectName: "test_mocked",
         username: "gittt",
-      } as IIntegrationLink);
+      } as IIntegrationLink]);
       const addOrUpdateLinkStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
 
       const instance: ProjectHelper = new projectProxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
@@ -2024,7 +2032,7 @@ describe("ProjectHelper", function () {
       findProjectByNameStub.restore();
       initProjectStub.restore();
       removeDomainStub.restore();
-      findLinkByProjectStub.restore();
+      findLinksByProjectStub.restore();
       addOrUpdateLinkStub.restore();
     });
   });

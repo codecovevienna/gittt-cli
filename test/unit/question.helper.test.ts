@@ -474,7 +474,7 @@ describe("QuestionHelper", function () {
         },
       });
 
-      const choice: string = await proxy.QuestionHelper.confirmJiraLinkCreation();
+      const choice: string = await proxy.QuestionHelper.confirmLinkCreation();
       expect(choice).to.eq(true);
     });
 
