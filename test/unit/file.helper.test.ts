@@ -755,7 +755,7 @@ describe("FileHelper", function () {
       const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
         linkType: "mock",
         projectName: "mocked",
-      });
+      } as IIntegrationLink);
 
       expect(updatedConfigFile.links.length).to.eq(1);
 
@@ -780,14 +780,14 @@ describe("FileHelper", function () {
           {
             linkType: "mock",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
         ],
       });
 
       const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
         linkType: "other",
         projectName: "mocked",
-      });
+      } as IIntegrationLink);
 
       expect(updatedConfigFile.links.length).to.eq(2);
 
@@ -812,7 +812,7 @@ describe("FileHelper", function () {
           {
             linkType: "mock",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
         ],
       });
 
@@ -823,7 +823,7 @@ describe("FileHelper", function () {
         linkType: "mock",
         projectName: "mocked",
         username: "mock",
-      });
+      } as IJiraLink);
 
       expect(updatedConfigFile.links.length).to.eq(1);
 
@@ -848,11 +848,11 @@ describe("FileHelper", function () {
           {
             linkType: "mock",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
           {
             linkType: "fake",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
         ],
       });
 
@@ -873,7 +873,7 @@ describe("FileHelper", function () {
           {
             linkType: "fake",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
           {
             endpoint: "http://test.com/api",
             hash: "1234asdf",
@@ -881,7 +881,7 @@ describe("FileHelper", function () {
             linkType: "mock",
             projectName: "mocked",
             username: "updated",
-          },
+          } as IJiraLink,
         ],
       })
 
@@ -901,7 +901,7 @@ describe("FileHelper", function () {
           {
             linkType: "mock",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
         ],
       });
 
@@ -917,7 +917,7 @@ describe("FileHelper", function () {
       expect(foundLinks[0]).to.deep.eq({
         linkType: "mock",
         projectName: "mocked",
-      })
+      } as IIntegrationLink)
 
       assert.isTrue(getConfigObjectStub.calledOnce);
     });
@@ -934,15 +934,15 @@ describe("FileHelper", function () {
           {
             linkType: "mock",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
           {
             linkType: "mock1",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
           {
             linkType: "fake",
             projectName: "other",
-          },
+          } as IIntegrationLink,
         ],
       });
 
@@ -958,7 +958,7 @@ describe("FileHelper", function () {
       expect(foundLinks[0]).to.deep.eq({
         linkType: "mock1",
         projectName: "mocked",
-      })
+      } as IIntegrationLink)
 
       assert.isTrue(getConfigObjectStub.calledOnce);
     });
@@ -975,7 +975,7 @@ describe("FileHelper", function () {
           {
             linkType: "mock",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
         ],
       });
 
@@ -1005,15 +1005,15 @@ describe("FileHelper", function () {
           {
             linkType: "mock",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
           {
             linkType: "mock1",
             projectName: "mocked",
-          },
+          } as IIntegrationLink,
           {
             linkType: "fake",
             projectName: "other",
-          },
+          } as IIntegrationLink,
         ],
       });
 
