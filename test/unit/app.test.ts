@@ -3024,7 +3024,7 @@ describe("App", function () {
             name: "mocked_project_1",
             records: [],
           });
-          const confirmJiraLinkCreationStub = sinon.stub().resolves(true);
+          const confirmLinkCreationStub = sinon.stub().resolves(true);
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3048,7 +3048,7 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
           mockedHelper.QuestionHelper = class {
-            public static confirmJiraLinkCreation = confirmJiraLinkCreationStub;
+            public static confirmLinkCreation = confirmLinkCreationStub;
           }
 
           const proxy: any = proxyquire("../../app", {
@@ -3696,7 +3696,7 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([]);
-          const confirmJiraLinkCreationStub = sinon.stub().resolves(false);
+          const confirmLinkCreationStub = sinon.stub().resolves(false);
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
@@ -3709,7 +3709,7 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
           mockedHelper.QuestionHelper = class {
-            public static confirmJiraLinkCreation = confirmJiraLinkCreationStub;
+            public static confirmLinkCreation = confirmLinkCreationStub;
           }
 
           const proxy: any = proxyquire("../../app", {

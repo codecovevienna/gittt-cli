@@ -354,8 +354,7 @@ export class QuestionHelper {
     return choice.choice;
   }
 
-  // TODO rename to more generic function name
-  public static confirmJiraLinkCreation = async (): Promise<boolean> => {
+  public static confirmLinkCreation = async (): Promise<boolean> => {
     const question: Question = {
       message: `Do you want to setup a new link for this project?`,
       name: "choice",

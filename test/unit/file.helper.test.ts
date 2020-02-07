@@ -3,7 +3,7 @@ import path from "path";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
-import { IConfigFile, IIntegrationLink, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
+import { IConfigFile, IIntegrationLink, IProject, IProjectMeta, ITimerFile, IJiraLink } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 
 const configDir: string = path.join("mocked", ".git-time-tracker");
@@ -763,7 +763,7 @@ describe("FileHelper", function () {
       assert.isTrue(getConfigObjectStub.calledOnce);
     });
 
-    it("should add different type of link link to config file", async function () {
+    it("should add different type of link to config file", async function () {
       const writeJsonSpy = sinon.stub().resolves();
       const fileProxy: any = proxyquire("../../helper/file", {
         "fs-extra": {
@@ -863,7 +863,7 @@ describe("FileHelper", function () {
         linkType: "mock",
         projectName: "mocked",
         username: "updated",
-      });
+      } as IJiraLink);
 
       expect(updatedConfigFile.links.length).to.eq(2);
       expect(updatedConfigFile).to.deep.equal({

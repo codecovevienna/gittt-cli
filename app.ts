@@ -242,7 +242,7 @@ export class App {
 
     if (links.length === 0) {
       LogHelper.warn(`Unable to find a link for "${project.name}"`);
-      if (await QuestionHelper.confirmJiraLinkCreation()) {
+      if (await QuestionHelper.confirmLinkCreation()) {
         await this.linkAction(new Command());
 
         return await this.publishAction(cmd);
@@ -285,13 +285,13 @@ export class App {
             return this.exit('The configuration of this jira link is deprecated, please consider updating the link with "gittt link"', 1)
           }
 
-          const url = `${jiraLink.host}${jiraLink.endpoint}`;
+          const jiraUrl = `${jiraLink.host}${jiraLink.endpoint}`;
 
-          LogHelper.debug(`Publishing to ${url}`);
+          LogHelper.debug(`Publishing to ${jiraUrl}`);
 
           try {
             const publishResult: AxiosResponse = await axios
-              .post(url,
+              .post(jiraUrl,
                 {
                   projectKey: jiraLink.key,
                   issueKey: jiraLink.issue,

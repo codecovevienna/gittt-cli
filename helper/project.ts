@@ -1,7 +1,6 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
-import { IIntegrationLink, IJiraLink, IProject, IProjectMeta, IRecord } from "../interfaces";
+import { IIntegrationLink, IJiraLink, IMultipieLink, IProject, IProjectMeta, IRecord } from "../interfaces";
 import { GitNoOriginError, GitNoUrlError, GitRemoteError, GitNoRepoError, RECORD_TYPES } from "../types";
-import { IMultipieLink } from '../interfaces/index';
 import {
   FileHelper,
   GitHelper,
