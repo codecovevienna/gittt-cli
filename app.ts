@@ -1043,6 +1043,48 @@ export class App {
     LogHelper.info(`SUM:\t${sumOfTime}h`);
   }
 
+  public async todayAction(): Promise<void> {
+    const projects: IProject[] = await this.fileHelper.findAllProjects();
+
+    const todaysRecords: {
+      project: IProject;
+      record: IRecord;
+    }[] = projects.flatMap(project => {
+      return project.records.filter(record => {
+        const momentEnd = moment(record.end);
+        const momentDayStart = moment().startOf('day');
+        const momentDayEnd = moment().endOf('day');
+        return momentEnd.isBetween(momentDayStart, momentDayEnd);
+      }).map(record => {
+        return {
+          record,
+          project
+        }
+      })
+    })
+
+    LogHelper.info(`${moment()}`);
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tPROJECT\t\t\tCOMMENT`);
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+
+    let sumOfTime = 0;
+    for (const todayRecord of todaysRecords) {
+      const { record, project } = todayRecord;
+      let line = "";
+      line += `${record.type}\t`;
+      line += chalk.yellow.bold(`${record.amount.toFixed(2)}h\t`);
+      line += `${moment(record.end).format("HH:mm:ss")}\t`;
+      line += `${project.name}\t`;
+      line += chalk.yellow.bold(`${record.message}`);
+      sumOfTime += record.amount;
+      LogHelper.print(line);
+    }
+
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.info(`SUM:\t${sumOfTime}h`);
+  }
+
   public async reportAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
@@ -1221,6 +1263,11 @@ export class App {
       .description("List of time tracks in project")
       .option("-p, --project [project]", "Specify the project to get the time tracks")
       .action((cmd: Command): Promise<void> => this.listAction(cmd));
+
+    commander
+      .command("today")
+      .description("List of time tracks of current day")
+      .action((): Promise<void> => this.todayAction());
 
     // report command
     // will be changed in GITTT-85
