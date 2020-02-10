@@ -2601,17 +2601,17 @@ describe("App", function () {
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves(
               [
-              {
-                endpoint: "/rest/gittt/latest/",
-                hash: "bW9ja2VkOm1vY2tlZA==",
-                host: "http://github.com",
-                issue: "EPIC-1",
-                key: "MOCKED",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "mocked"
-              } as IJiraLink
-            ]
+                {
+                  endpoint: "/rest/gittt/latest/",
+                  hash: "bW9ja2VkOm1vY2tlZA==",
+                  host: "http://github.com",
+                  issue: "EPIC-1",
+                  key: "MOCKED",
+                  linkType: "Jira",
+                  projectName: "mocked_project_1",
+                  username: "mocked"
+                } as IJiraLink
+              ]
             );
           }
 
@@ -3005,17 +3005,17 @@ describe("App", function () {
           const findLinksByProjectStub = sinon.stub()
             .onCall(0).returns([])
             .onCall(1).returns([
-                {
-                  host: "http://jira.mocked.com:2990",
-                  endpoint: "/rest/gittt/latest/",
-                  hash: "1234asdf",
-                  key: "TEST",
-                  issue: "",
-                  linkType: "Jira",
-                  projectName: "mocked_project_1",
-                  username: "test",
-                } as IJiraLink,
-              ]);
+              {
+                host: "http://jira.mocked.com:2990",
+                endpoint: "/rest/gittt/latest/",
+                hash: "1234asdf",
+                key: "TEST",
+                issue: "",
+                linkType: "Jira",
+                projectName: "mocked_project_1",
+                username: "test",
+              } as IJiraLink,
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3090,17 +3090,17 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ]);
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3190,17 +3190,17 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ]);
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3333,18 +3333,18 @@ describe("App", function () {
 
           const getOrAskForProjectFromGitStub = sinon.stub().resolves(undefined);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ]
-            );
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]
+          );
           // const findProjectByNameStub = sinon.stub().resolves(undefined);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3401,18 +3401,18 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ]
-            );
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]
+          );
           const findProjectByNameStub = sinon.stub().resolves(undefined);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3469,18 +3469,18 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ]
-            );
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]
+          );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3542,17 +3542,17 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ]);
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3620,17 +3620,17 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "UnknownType",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ]);
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "UnknownType",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3746,16 +3746,16 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                endpoint: "http://jira.mocked.com:2990/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ]);
+            {
+              endpoint: "http://jira.mocked.com:2990/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4128,14 +4128,14 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://multipie.mocked.com:2990",
-                endpoint: "/v1/publish",
-                linkType: "Multipie",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IMultipieLink,
-            ]);
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IMultipieLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4203,14 +4203,14 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://multipie.mocked.com:2990",
-                endpoint: "/v1/publish",
-                linkType: "Multipie",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IMultipieLink,
-            ]);
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IMultipieLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4280,14 +4280,14 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://multipie.mocked.com:2990",
-                endpoint: "/v1/publish",
-                linkType: "Multipie",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IMultipieLink,
-            ]);
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IMultipieLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4349,14 +4349,14 @@ describe("App", function () {
             name: "mocked_project_1",
           } as IProject);
           const findLinksByProjectStub = sinon.stub().returns([
-              {
-                host: "http://multipie.mocked.com:2990",
-                endpoint: "/v1/publish",
-                linkType: "Multipie",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IMultipieLink,
-            ]);
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IMultipieLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -4808,6 +4808,90 @@ describe("App", function () {
       assert.isTrue(exitStub.calledOnce);
 
       exitStub.restore();
+    });
+  });
+
+  describe("Today", function () {
+    it("should show list of records for today", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const findAllProjectsStub = sinon.stub().resolves(
+        [
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: Date.now(),
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+                message: "A mocked message",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: 0,
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+                message: "Some other mocked message",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked2_project",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: 0,
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb2",
+                message: "A mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: Date.now(),
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600270",
+                message: "Some other mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+        ]
+      );
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findAllProjects = findAllProjectsStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.todayAction();
     });
   });
 
