@@ -4,7 +4,7 @@ jobs:
     language: node_js
     cache: npm
     node_js:
-      - 12.13.1
+      - 12.15.0
     script:
       - npm install
       - npm run lint
@@ -15,7 +15,7 @@ jobs:
     language: node_js
     cache: npm
     node_js:
-      - 12.13.1
+      - 12.15.0
     script:
       - npm install
       - npm run test:ci
@@ -29,7 +29,7 @@ jobs:
     language: node_js
     cache: npm
     node_js:
-      - 12.13.1
+      - 12.15.0
     script:
       # Install packages
       - npm install --production
