@@ -1,0 +1,7 @@
+require:
+  - ts-node/register 
+  - source-map-support/register
+recursive: true
+exit: true
+slow: 500
+timeout: 5000
