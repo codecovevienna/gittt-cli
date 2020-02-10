@@ -1060,22 +1060,45 @@ export class App {
           record,
           project
         }
-      })
-    })
+      });
+    });
 
-    LogHelper.info(`${moment()}`);
+    const sortedTodaysRecords: {
+      project: IProject;
+      record: IRecord;
+    }[] = todaysRecords.sort((a: {
+      project: IProject;
+      record: IRecord;
+    }, b: {
+      project: IProject;
+      record: IRecord;
+    }) => {
+      return moment(a.record.end).diff(moment(b.record.end));
+    });
+
+    LogHelper.info(`${moment().format("dddd, MMMM D, YYYY")}`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
-    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tPROJECT\t\t\tCOMMENT`);
+    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\tPROJECT\t\t\t\tCOMMENT`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
 
     let sumOfTime = 0;
-    for (const todayRecord of todaysRecords) {
+    for (const todayRecord of sortedTodaysRecords) {
       const { record, project } = todayRecord;
       let line = "";
+      // Type
       line += `${record.type}\t`;
+      // Amount
       line += chalk.yellow.bold(`${record.amount.toFixed(2)}h\t`);
+      // Time
       line += `${moment(record.end).format("HH:mm:ss")}\t`;
+      // Project
       line += `${project.name}\t`;
+      if (project.name.length <= 8) {
+        line += "\t"
+      } else if (project.name.length <= 16) {
+        line += "\t\t"
+      }
+      // Message
       line += chalk.yellow.bold(`${record.message}`);
       sumOfTime += record.amount;
       LogHelper.print(line);
