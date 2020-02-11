@@ -4822,7 +4822,7 @@ describe("App", function () {
               host: "github.com",
               port: 443,
             },
-            name: "mocked_project",
+            name: "mocked",
             records: [
               {
                 amount: 2,
@@ -4850,6 +4850,33 @@ describe("App", function () {
               port: 443,
             },
             name: "mocked2_project",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: 0,
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb2",
+                message: "A mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: Date.now(),
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600270",
+                message: "Some other mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked2_project_long_long_long",
             records: [
               {
                 amount: 2,
