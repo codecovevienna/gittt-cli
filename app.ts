@@ -1092,11 +1092,13 @@ export class App {
       // Time
       line += `${moment(record.end).format("HH:mm:ss")}\t`;
       // Project
-      line += `${project.name}\t`;
-      if (project.name.length <= 8) {
+      if (project.name.length > 24) {
+        line += `${project.name.slice(0, 24)}\t`
+      } else {
+        line += `${project.name}\t`;
+      }
+      for (let i = 0; i < Math.ceil(3 - project.name.length / 8); i++) {
         line += "\t"
-      } else if (project.name.length <= 16) {
-        line += "\t\t"
       }
       // Message
       line += chalk.yellow.bold(`${record.message}`);

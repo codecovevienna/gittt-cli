@@ -4876,7 +4876,7 @@ describe("App", function () {
               host: "github.com",
               port: 443,
             },
-            name: "mocked2_project_long",
+            name: "mocked2_project_long_long_long",
             records: [
               {
                 amount: 2,
