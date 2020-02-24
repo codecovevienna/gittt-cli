@@ -309,11 +309,18 @@ export class QuestionHelper {
   public static chooseProjectFile = async (projects: IProject[]): Promise<string> => {
     const question: ListQuestion = {
       choices: projects.map((project: IProject) => {
-        const { host, port } = project.meta;
-        return {
-          name: `${host}${port ? `:${port}` : ""} ${project.name}`,
-          value: ProjectHelper.getProjectPath(project),
-        };
+        if (project.meta) {
+          const { host, port } = project.meta;
+          return {
+            name: `${host}${port ? `:${port}` : ""} ${project.name}`,
+            value: ProjectHelper.getProjectPath(project),
+          };
+        } else {
+          return {
+            name: `${project.name}`,
+            value: ProjectHelper.getProjectPath(project),
+          };
+        }
       }),
       message: "Choose a project",
       name: "choice",

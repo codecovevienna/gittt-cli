@@ -994,7 +994,7 @@ export class App {
 
     if (!interactiveMode) {
       try {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        project = await this.fileHelper.findProjectByName(cmd.project);
       } catch (err) {
         return this.exit(err.message, 1);
       }
@@ -1006,24 +1006,20 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(project.name);
-    if (!projectWithRecords) {
-      return this.exit(`Unable to find project "${project.name}"`, 1);
-    }
 
-    if (projectWithRecords.records.length === 0) {
+    if (project.records.length === 0) {
       return this.exit(`No records found for "${project.name}"`, 1);
     }
 
     // sorting newest to latest
-    const records: IRecord[] = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
+    const records: IRecord[] = project.records.sort((a: IRecord, b: IRecord) => {
       const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
       const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
 
       return aStartTime.diff(bStartTime);
     });
 
-    LogHelper.info(`${projectWithRecords.name}`);
+    LogHelper.info(`${project.name}`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
     LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
     LogHelper.print(`--------------------------------------------------------------------------------`);

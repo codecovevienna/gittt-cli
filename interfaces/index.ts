@@ -14,7 +14,7 @@ export interface IRecord {
 }
 
 export interface IProject {
-  meta: IProjectMeta;
+  meta?: IProjectMeta;
   name: string;
   records: IRecord[];
 }
@@ -37,6 +37,10 @@ export interface IMultipieLink extends IIntegrationLink {
   username: string;
   host: string;
   endpoint: string;
+}
+
+export interface IGitttFile {
+  name: string;
 }
 
 export interface IConfigFile {

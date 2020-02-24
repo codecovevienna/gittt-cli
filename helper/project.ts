@@ -1,5 +1,5 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
-import { IIntegrationLink, IJiraLink, IMultipieLink, IProject, IProjectMeta, IRecord } from "../interfaces";
+import { IProject, IProjectMeta, IRecord, IGitttFile } from "../interfaces";
 import { GitNoOriginError, GitNoUrlError, GitRemoteError, GitNoRepoError, RECORD_TYPES } from "../types";
 import {
   FileHelper,
@@ -60,7 +60,11 @@ export class ProjectHelper {
    * @returns Path of the project file
    */
   public static getProjectPath = (project: IProject): string => {
-    return `${ProjectHelper.projectMetaToDomain(project.meta)}/${ProjectHelper.projectToProjectFilename(project)}`;
+    if (!project.meta) {
+      return `${ProjectHelper.projectToProjectFilename(project)}`;
+    } else {
+      return `${ProjectHelper.projectMetaToDomain(project.meta)}/${ProjectHelper.projectToProjectFilename(project)}`;
+    }
   }
 
   private fileHelper: FileHelper;
@@ -71,19 +75,58 @@ export class ProjectHelper {
     this.fileHelper = fileHelper;
   }
 
-  public initProject = async (): Promise<IProject> => {
+  public getGitttProject = async (): Promise<IProject | undefined> => {
+    let project: IProject | undefined = undefined;
     try {
-      const project: IProject = this.getProjectFromGit();
+      const gitttFile: IGitttFile = await this.fileHelper.getGitttFile();
 
-      await this.fileHelper.initProject(project);
+      project = {
+        name: gitttFile.name,
+        records: []
+      }
 
-      await this.gitHelper.commitChanges(`Initialized project`);
+      console.log(project)
+      LogHelper.debug("Got project from yaml file");
 
-      return project;
     } catch (err) {
-      LogHelper.debug("Error writing project file", err);
-      throw new Error("Error initializing project");
+      LogHelper.debug("Error getting project from .gittt.yml file, trying git config");
+      try {
+        project = this.getProjectFromGit();
+      } catch (err) {
+        LogHelper.debug("Unable to get project from git config", err);
+      }
     }
+
+    return project;
+  }
+
+  public initProject = async (): Promise<IProject> => {
+    // TODO
+    // try to find .gittt file
+    // parse file
+    // init project from there
+    // if no file/parsing fails try git folder
+    // if this also fails -> error
+
+    const project = await this.getGitttProject();
+
+    console.log(project)
+
+    throw new Error("I did that!")
+    // if (project) {
+    //   try {
+    //     await this.fileHelper.initProject(project);
+    //     await this.gitHelper.commitChanges(`Initialized project`);
+
+    //     return project;
+    //   } catch (err) {
+    //     LogHelper.debug("Unable to commit changes");
+    //     throw new Error("Error initializing project");
+    //   }
+    // } else {
+    //   LogHelper.debug("project is undefined");
+    //   throw new Error("Error initializing project");
+    // }
   }
 
   public findOrInitProjectByName = async (projectName: string): Promise<IProject> => {
@@ -96,31 +139,32 @@ export class ProjectHelper {
       LogHelper.warn(`Project "${projectName}" not found`);
       try {
 
-        const shouldMigrate: boolean = await QuestionHelper.confirmMigration();
-        if (shouldMigrate) {
-          const fromDomainProject: string = await QuestionHelper
-            .chooseProjectFile(await this.fileHelper.findAllProjects());
+        // TODO fix migrate feature and re-enable
+        // const shouldMigrate: boolean = await QuestionHelper.confirmMigration();
+        // if (shouldMigrate) {
+        //   const fromDomainProject: string = await QuestionHelper
+        //     .chooseProjectFile(await this.fileHelper.findAllProjects());
 
-          const [domain, name] = fromDomainProject.split("/");
-          const fromProject: IProject | undefined = await this.fileHelper.findProjectByName(
-            // TODO find a better way?
-            name.replace(".json", ""),
-            ProjectHelper.domainToProjectMeta(domain),
-          );
+        //   const [domain, name] = fromDomainProject.split("/");
+        //   const fromProject: IProject | undefined = await this.fileHelper.findProjectByName(
+        //     // TODO find a better way?
+        //     name.replace(".json", ""),
+        //     ProjectHelper.domainToProjectMeta(domain),
+        //   );
 
-          if (!fromProject) {
-            throw new Error("Unable to find project on disk");
-          }
+        //   if (!fromProject) {
+        //     throw new Error("Unable to find project on disk");
+        //   }
 
-          const toProject: IProject = this.getProjectFromGit();
+        //   const toProject: IProject = this.getProjectFromGit();
 
-          foundProject = await this.migrate(fromProject, toProject);
-        } else {
-          // TODO ask user if he wants to create this project?
-          LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
-          LogHelper.info(`Initializing project "${projectName}"`);
-          foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
-        }
+        //   foundProject = await this.migrate(fromProject, toProject);
+        // } else {
+        // TODO ask user if he wants to create this project?
+        LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
+        LogHelper.info(`Initializing project "${projectName}"`);
+        foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
+        // }
       } catch (err) {
         LogHelper.error("Unable to initialize project, exiting...");
         return process.exit(1);
@@ -227,11 +271,16 @@ export class ProjectHelper {
 
     if (!foundProject || !name) {
       try {
-        foundProject = this.getProjectFromGit();
-        // Loads the records from the filesystem to avoid empty record array
-        foundProject = await this.fileHelper.findProjectByName(
-          foundProject.name,
-        );
+        foundProject = await this.getGitttProject();
+
+        if (foundProject) {
+          // Loads the records from the filesystem to avoid empty record array
+          foundProject = await this.fileHelper.findProjectByName(
+            foundProject.name,
+          );
+        } else {
+          throw new Error("Unable to get gittt project")
+        }
       } catch (err) {
         LogHelper.debug(`Unable to get project from git directory: ${err.message}`);
         throw err;
@@ -283,81 +332,86 @@ export class ProjectHelper {
     return parseProjectNameFromGitUrl(originUrl);
   }
 
-  public migrate = async (from: IProject, to: IProject): Promise<IProject> => {
-    LogHelper.info("Starting migrate procedure");
-    LogHelper.info(`${from.name} -> ${to.name}`);
+  // public migrate = async (from: IProject, to: IProject): Promise<IProject> => {
+  //   LogHelper.info("Starting migrate procedure");
+  //   LogHelper.info(`${from.name} -> ${to.name}`);
 
-    // Ensure all records are present in the "from" project
-    const populatedFrom: IProject | undefined = await this.fileHelper.findProjectByName(from.name, from.meta);
-    if (!populatedFrom) {
-      throw new Error(`Unable to get records from ${from.name}`);
-    }
+  //   // Ensure all records are present in the "from" project
+  //   const populatedFrom: IProject | undefined = await this.fileHelper.findProjectByName(from.name, from.meta);
+  //   if (!populatedFrom) {
+  //     throw new Error(`Unable to get records from ${from.name}`);
+  //   }
 
-    // Create instance of new project with records from old project
-    const migratedProject: IProject = {
-      meta: to.meta,
-      name: to.name,
-      records: populatedFrom.records,
-    };
+  //   // Create instance of new project with records from old project
+  //   const migratedProject: IProject = {
+  //     meta: to.meta,
+  //     name: to.name,
+  //     records: populatedFrom.records,
+  //   };
 
-    // Initialize new project
-    await this.fileHelper.initProject(migratedProject);
-    LogHelper.info(`✓ Migrated Project`);
+  //   // Initialize new project
+  //   await this.fileHelper.initProject(migratedProject);
+  //   LogHelper.info(`✓ Migrated Project`);
 
-    // Removing old project file
-    await this.fileHelper.removeProjectFile(from);
-    LogHelper.info(`✓ Removed old project file`);
+  //   // Removing old project file
+  //   await this.fileHelper.removeProjectFile(from);
+  //   LogHelper.info(`✓ Removed old project file`);
 
-    // Get all projects associated with the old meta information
-    const fromDomainProjects: IProject[] = await this.fileHelper.findProjectsForDomain(from.meta);
+  //   // Get all projects associated with the old meta information
+  //   const fromDomainProjects: IProject[] = await this.fileHelper.findProjectsForDomain(from.meta);
 
-    // Remove the domain directory if old project was the only one with this meta data
-    // TODO check if really the same project object?
-    if (fromDomainProjects.length === 0) {
-      // we know that it is not empty, force delete it
-      LogHelper.debug(`${from.name} is the only project on ${from.meta.host}, domain directory will be removed`);
-      await this.fileHelper.removeDomainDirectory(from.meta, true);
-      LogHelper.info(`✓ Removed old domain directory`);
-    }
+  //   // Remove the domain directory if old project was the only one with this meta data
+  //   // TODO check if really the same project object?
+  //   if (fromDomainProjects.length === 0) {
+  //     // we know that it is not empty, force delete it
+  //     LogHelper.debug(`${from.name} is the only project on ${from.meta.host}, domain directory will be removed`);
+  //     await this.fileHelper.removeDomainDirectory(from.meta, true);
+  //     LogHelper.info(`✓ Removed old domain directory`);
+  //   }
 
-    const links: IIntegrationLink[] = await this.fileHelper.findLinksByProject(from);
-    if (links.length === 0) {
-      LogHelper.debug(`No link found for project "${from.name}"`);
-    } else {
-      for (const link of links) {
-        switch (link.linkType) {
-          case "Jira":
-            const migratedJiraLink: IJiraLink = link as IJiraLink;
-            migratedJiraLink.projectName = to.name;
+  //   const links: IIntegrationLink[] = await this.fileHelper.findLinksByProject(from);
+  //   if (links.length === 0) {
+  //     LogHelper.debug(`No link found for project "${from.name}"`);
+  //   } else {
+  //     for (const link of links) {
+  //       switch (link.linkType) {
+  //         case "Jira":
+  //           const migratedJiraLink: IJiraLink = link as IJiraLink;
+  //           migratedJiraLink.projectName = to.name;
 
-            await this.fileHelper.addOrUpdateLink(migratedJiraLink);
-            LogHelper.info(`✓ Updated Jira link`);
-            break;
-          case "Multipie":
-            const migratedMultipieLink: IMultipieLink = link as IMultipieLink;
-            migratedMultipieLink.projectName = to.name;
+  //           await this.fileHelper.addOrUpdateLink(migratedJiraLink);
+  //           LogHelper.info(`✓ Updated Jira link`);
+  //           break;
+  //         case "Multipie":
+  //           const migratedMultipieLink: IMultipieLink = link as IMultipieLink;
+  //           migratedMultipieLink.projectName = to.name;
 
-            await this.fileHelper.addOrUpdateLink(migratedMultipieLink);
-            LogHelper.info(`✓ Updated Multipie link`);
-            break;
+  //           await this.fileHelper.addOrUpdateLink(migratedMultipieLink);
+  //           LogHelper.info(`✓ Updated Multipie link`);
+  //           break;
 
-          default:
-            LogHelper.error("✗ Invalid link type");
-            break;
-        }
-      }
-    }
+  //         default:
+  //           LogHelper.error("✗ Invalid link type");
+  //           break;
+  //       }
+  //     }
+  //   }
 
-    return migratedProject;
-  }
+  //   return migratedProject;
+  // }
 
   public getOrAskForProjectFromGit = async (): Promise<IProject | undefined> => {
     let projectName: string;
     let projectMeta: IProjectMeta | undefined;
 
     try {
-      const projectFromGit: IProject = this.getProjectFromGit();
-      projectName = projectFromGit.name;
+      // const projectFromGit: IProject = this.getProjectFromGit();
+      const gitttProject: IProject | undefined = await this.getGitttProject();
+      if (gitttProject) {
+        projectName = gitttProject.name;
+      } else {
+        throw new Error("Unable to get gittt project")
+      }
     } catch (e) {
       if (e instanceof GitRemoteError || e instanceof GitNoRepoError) {
         const selectedProjectName: string = await QuestionHelper.
@@ -377,7 +431,7 @@ export class ProjectHelper {
     );
 
     if (!project) {
-      throw new Error("Unable to find project on disk");
+      throw new Error(`Unable to find project "${projectName}" on disk`);
     }
 
     return project;
