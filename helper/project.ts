@@ -85,7 +85,6 @@ export class ProjectHelper {
         records: []
       }
 
-      console.log(project)
       LogHelper.debug("Got project from yaml file");
 
     } catch (err) {
@@ -110,71 +109,69 @@ export class ProjectHelper {
 
     const project = await this.getGitttProject();
 
-    console.log(project)
-
-    throw new Error("I did that!")
-    // if (project) {
-    //   try {
-    //     await this.fileHelper.initProject(project);
-    //     await this.gitHelper.commitChanges(`Initialized project`);
-
-    //     return project;
-    //   } catch (err) {
-    //     LogHelper.debug("Unable to commit changes");
-    //     throw new Error("Error initializing project");
-    //   }
-    // } else {
-    //   LogHelper.debug("project is undefined");
-    //   throw new Error("Error initializing project");
-    // }
-  }
-
-  public findOrInitProjectByName = async (projectName: string): Promise<IProject> => {
-    let foundProject: IProject;
-
-    // Try to find project in projects directory
-    const project: IProject | undefined = await this.fileHelper.findProjectByName(projectName);
-
-    if (!project) {
-      LogHelper.warn(`Project "${projectName}" not found`);
+    if (project) {
       try {
+        await this.fileHelper.initProject(project);
+        await this.gitHelper.commitChanges(`Initialized project`);
 
-        // TODO fix migrate feature and re-enable
-        // const shouldMigrate: boolean = await QuestionHelper.confirmMigration();
-        // if (shouldMigrate) {
-        //   const fromDomainProject: string = await QuestionHelper
-        //     .chooseProjectFile(await this.fileHelper.findAllProjects());
-
-        //   const [domain, name] = fromDomainProject.split("/");
-        //   const fromProject: IProject | undefined = await this.fileHelper.findProjectByName(
-        //     // TODO find a better way?
-        //     name.replace(".json", ""),
-        //     ProjectHelper.domainToProjectMeta(domain),
-        //   );
-
-        //   if (!fromProject) {
-        //     throw new Error("Unable to find project on disk");
-        //   }
-
-        //   const toProject: IProject = this.getProjectFromGit();
-
-        //   foundProject = await this.migrate(fromProject, toProject);
-        // } else {
-        // TODO ask user if he wants to create this project?
-        LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
-        LogHelper.info(`Initializing project "${projectName}"`);
-        foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
-        // }
+        return project;
       } catch (err) {
-        LogHelper.error("Unable to initialize project, exiting...");
-        return process.exit(1);
+        LogHelper.debug("Unable to commit changes");
+        throw new Error("Error initializing project");
       }
     } else {
-      foundProject = project;
+      LogHelper.debug("project is undefined");
+      throw new Error("Error initializing project");
     }
-
-    return foundProject;
   }
+
+  // public findOrInitProjectByName = async (projectName: string): Promise<IProject> => {
+  //   let foundProject: IProject;
+
+  //   // Try to find project in projects directory
+  //   const project: IProject | undefined = await this.fileHelper.findProjectByName(projectName);
+
+  //   if (!project) {
+  //     LogHelper.warn(`Project "${projectName}" not found`);
+  //     try {
+
+  //       // TODO fix migrate feature and re-enable
+  //       // const shouldMigrate: boolean = await QuestionHelper.confirmMigration();
+  //       // if (shouldMigrate) {
+  //       //   const fromDomainProject: string = await QuestionHelper
+  //       //     .chooseProjectFile(await this.fileHelper.findAllProjects());
+
+  //       //   const [domain, name] = fromDomainProject.split("/");
+  //       //   const fromProject: IProject | undefined = await this.fileHelper.findProjectByName(
+  //       //     // TODO find a better way?
+  //       //     name.replace(".json", ""),
+  //       //     ProjectHelper.domainToProjectMeta(domain),
+  //       //   );
+
+  //       //   if (!fromProject) {
+  //       //     throw new Error("Unable to find project on disk");
+  //       //   }
+
+  //       //   const toProject: IProject = this.getProjectFromGit();
+
+  //       //   foundProject = await this.migrate(fromProject, toProject);
+  //       // } else {
+  //       // TODO ask user if he wants to create this project?
+  //       LogHelper.warn("Maybe it would be a great idea to ask the user to do the next step, but never mind ;)");
+  //       LogHelper.info(`Initializing project "${projectName}"`);
+  //       foundProject = await this.fileHelper.initProject(this.getProjectFromGit());
+  //       // }
+  //     } catch (err) {
+  //       LogHelper.error("Unable to initialize project, exiting...");
+  //       // TODO should throw instead of exiting here
+  //       return process.exit(1);
+  //     }
+  //   } else {
+  //     foundProject = project;
+  //   }
+
+  //   return foundProject;
+  // }
 
   public addRecordsToProject = async (
     records: IRecord[],
@@ -182,9 +179,12 @@ export class ProjectHelper {
     uniqueOnly?: boolean,
     nonOverlappingOnly?: boolean,
   ): Promise<void> => {
-    const selectedProject: IProject = project ?
+    const gitttProject: IProject | undefined = await this.getGitttProject();
+
+    const selectedProject: IProject | undefined = project ?
       project :
-      await this.findOrInitProjectByName(this.getProjectFromGit().name);
+      // await this.findOrInitProjectByName(this.getProjectFromGit().name);
+      gitttProject;
 
     if (!selectedProject) {
       return;

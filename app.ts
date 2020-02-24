@@ -1006,7 +1006,6 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-
     if (project.records.length === 0) {
       return this.exit(`No records found for "${project.name}"`, 1);
     }

@@ -2,8 +2,8 @@ import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
-import { FileHelper, GitHelper, LogHelper, ProjectHelper, QuestionHelper } from "../../helper/index";
-import { IIntegrationLink, IProject, IRecord, IJiraLink, IMultipieLink } from "../../interfaces";
+import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "../../helper/index";
+import { IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoRepoError, GitNoUrlError } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -82,7 +82,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getGitttProject").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -113,7 +113,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getProjectFromGitStub = sinon.stub(instance, "getGitttProject").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -171,7 +171,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").resolves(mockedProject);
+      const getProjectFromGitStub = sinon.stub(instance, "getGitttProject").resolves(mockedProject);
 
       const project: IProject | undefined = await instance.getProjectByName("");
 
@@ -188,7 +188,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("Mocked"));
+      const getProjectFromGitStub = sinon.stub(instance, "getGitttProject").throws(new Error("Mocked"));
 
       try {
         await instance.getProjectByName("test_mocked");
@@ -230,7 +230,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const initProjectStub = sinon.stub(instance, "getProjectFromGit").resolves(mockedProject);
+      const initProjectStub = sinon.stub(instance, "getGitttProject").resolves(mockedProject);
 
       const project: IProject | undefined = await instance.getOrAskForProjectFromGit();
 
@@ -302,7 +302,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new proxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("Mocked Error"));
+      const getGitttProjectStub = sinon.stub(instance, "getGitttProject").throws(new Error("Mocked Error"));
 
       let thrownError: Error | undefined;
       try {
@@ -312,7 +312,7 @@ describe("ProjectHelper", function () {
       }
       assert.isDefined(thrownError);
 
-      getProjectFromGitStub.restore();
+      getGitttProjectStub.restore();
       findProjectByNameStub.restore();
       findAllProjectsStub.restore();
     });
@@ -342,7 +342,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new proxy.ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new GitRemoteError("Mocked Error"));
+      const getGitttProjectStub = sinon.stub(instance, "getGitttProject").throws(new GitRemoteError("Mocked Error"));
 
       let thrownError: Error | undefined;
       try {
@@ -352,7 +352,7 @@ describe("ProjectHelper", function () {
       }
       assert.isDefined(thrownError);
 
-      getProjectFromGitStub.restore();
+      getGitttProjectStub.restore();
       findProjectByNameStub.restore();
       findAllProjectsStub.restore();
     });
@@ -360,21 +360,13 @@ describe("ProjectHelper", function () {
 
   describe("Adding records", function () {
     it("should add record to project", async function () {
-      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
-        meta: {
-          host: "github.com",
-          port: 443,
-        },
-        name: "test_mocked",
-        records: [],
-      } as IProject);
       const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
       const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -392,32 +384,22 @@ describe("ProjectHelper", function () {
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked: "test"`));
 
-      assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(saveProjectObjectStub.calledOnce);
-      assert.isTrue(getProjectFromGitStub.calledOnce);
+      assert.isTrue(getGitttProjectStub.calledOnce);
 
-      findProjectByNameStub.restore();
       commitChangesStub.restore();
       saveProjectObjectStub.restore();
-      getProjectFromGitStub.restore();
+      getGitttProjectStub.restore();
     });
 
     it("should add record to project without message", async function () {
-      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
-        meta: {
-          host: "github.com",
-          port: 443,
-        },
-        name: "test_mocked",
-        records: [],
-      } as IProject);
       const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
       const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -434,14 +416,12 @@ describe("ProjectHelper", function () {
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked`));
 
-      assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(saveProjectObjectStub.calledOnce);
-      assert.isTrue(getProjectFromGitStub.calledOnce);
+      assert.isTrue(getGitttProjectStub.calledOnce);
 
-      findProjectByNameStub.restore();
       commitChangesStub.restore();
       saveProjectObjectStub.restore();
-      getProjectFromGitStub.restore();
+      getGitttProjectStub.restore();
     });
 
     // it("should add record of one hour to project without message", async function () {
@@ -481,21 +461,13 @@ describe("ProjectHelper", function () {
     // });
 
     it("should add record to project without created timestamp", async function () {
-      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
-        meta: {
-          host: "github.com",
-          port: 443,
-        },
-        name: "test_mocked",
-        records: [],
-      } as IProject);
       const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
       const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -512,32 +484,22 @@ describe("ProjectHelper", function () {
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1337 hours to test_mocked`));
 
-      assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(saveProjectObjectStub.calledOnce);
-      assert.isTrue(getProjectFromGitStub.calledOnce);
+      assert.isTrue(getGitttProjectStub.calledOnce);
 
-      findProjectByNameStub.restore();
       commitChangesStub.restore();
       saveProjectObjectStub.restore();
-      getProjectFromGitStub.restore();
+      getGitttProjectStub.restore();
     });
 
     it("should add record of one hour to project without message", async function () {
-      const findProjectByNameStub = sinon.stub(mockedFileHelper, "findProjectByName").resolves({
-        meta: {
-          host: "github.com",
-          port: 443,
-        },
-        name: "test_mocked",
-        records: [],
-      } as IProject);
       const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
       const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
+      const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves({
         meta: {
           host: "github.com",
           port: 443,
@@ -554,108 +516,106 @@ describe("ProjectHelper", function () {
 
       assert.isTrue(commitChangesStub.calledWith(`Added 1 hour to test_mocked`));
 
-      assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(saveProjectObjectStub.calledOnce);
-      assert.isTrue(getProjectFromGitStub.calledOnce);
+      assert.isTrue(getGitttProjectStub.calledOnce);
 
-      findProjectByNameStub.restore();
       commitChangesStub.restore();
       saveProjectObjectStub.restore();
-      getProjectFromGitStub.restore();
+      getGitttProjectStub.restore();
     });
 
-    it("should add record to non existing project", async function () {
-      const findProjectByNameStub = sinon
-        .stub(mockedFileHelper, "findProjectByName")
-        .resolves(undefined);
+    // it("should add record to non existing project", async function () {
+    //   const findProjectByNameStub = sinon
+    //     .stub(mockedFileHelper, "findProjectByName")
+    //     .resolves(undefined);
 
-      const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves({
-        meta: {
-          host: "github.com",
-          port: 443,
-        },
-        name: "test_mocked",
-        records: [],
-      } as IProject);
-      const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
+    //   const initProjectStub = sinon.stub(mockedFileHelper, "initProject").resolves({
+    //     meta: {
+    //       host: "github.com",
+    //       port: 443,
+    //     },
+    //     name: "test_mocked",
+    //     records: [],
+    //   } as IProject);
+    //   const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
 
-      const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
-      const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+    //   const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
+    //   const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
-      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+    //   const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-        meta: {
-          host: "github.com",
-          port: 443,
-        },
-        name: "test_mocked",
-        records: [],
-      } as IProject);
+    //   const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves({
+    //     meta: {
+    //       host: "github.com",
+    //       port: 443,
+    //     },
+    //     name: "test_mocked",
+    //     records: [],
+    //   } as IProject);
 
-      await instance.addRecordToProject({
-        amount: 1,
-        end: 12054,
-        type: RECORD_TYPES.Time,
-      });
+    //   await instance.addRecordToProject({
+    //     amount: 1,
+    //     end: 12054,
+    //     type: RECORD_TYPES.Time,
+    //   });
 
-      assert.isTrue(commitChangesStub.calledWith(`Added 1 hour to test_mocked`));
+    //   assert.isTrue(commitChangesStub.calledWith(`Added 1 hour to test_mocked`));
 
-      assert.isTrue(confirmMigrationStub.calledOnce);
-      assert.isTrue(findProjectByNameStub.calledOnce);
-      assert.isTrue(initProjectStub.calledOnce);
-      assert.isTrue(saveProjectObjectStub.calledOnce);
-      assert.isTrue(getProjectFromGitStub.calledTwice);
+    //   assert.isTrue(confirmMigrationStub.calledOnce);
+    //   assert.isTrue(findProjectByNameStub.calledOnce);
+    //   assert.isTrue(initProjectStub.calledOnce);
+    //   assert.isTrue(saveProjectObjectStub.calledOnce);
+    //   assert.isTrue(getGitttProjectStub.calledTwice);
 
-      findProjectByNameStub.restore();
-      initProjectStub.restore();
-      commitChangesStub.restore();
-      saveProjectObjectStub.restore();
-      getProjectFromGitStub.restore();
-      confirmMigrationStub.restore();
-    });
+    //   findProjectByNameStub.restore();
+    //   initProjectStub.restore();
+    //   commitChangesStub.restore();
+    //   saveProjectObjectStub.restore();
+    //   getGitttProjectStub.restore();
+    //   confirmMigrationStub.restore();
+    // });
 
-    it("should fail to add record to non existing project", async function () {
-      const exitStub = sinon.stub(process, "exit");
-      const findProjectByNameStub = sinon
-        .stub(mockedFileHelper, "findProjectByName")
-        .resolves(undefined);
-      const initProjectStub = sinon
-        .stub(mockedFileHelper, "initProject")
-        .rejects(new Error("Mocked error"));
+    // it("should fail to add record to non existing project", async function () {
+    //   const exitStub = sinon.stub(process, "exit");
+    //   const findProjectByNameStub = sinon
+    //     .stub(mockedFileHelper, "findProjectByName")
+    //     .resolves(undefined);
+    //   const initProjectStub = sinon
+    //     .stub(mockedFileHelper, "initProject")
+    //     .rejects(new Error("Mocked error"));
 
-      const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
+    //   const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
-      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+    //   const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-        meta: {
-          host: "github.com",
-          port: 443,
-        },
-        name: "test_mocked",
-        records: [],
-      } as IProject);
+    //   const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
+    //     meta: {
+    //       host: "github.com",
+    //       port: 443,
+    //     },
+    //     name: "test_mocked",
+    //     records: [],
+    //   } as IProject);
 
-      await instance.addRecordToProject({
-        amount: 1337,
-        end: 12054,
-        message: "test",
-        type: RECORD_TYPES.Time,
-      });
+    //   await instance.addRecordToProject({
+    //     amount: 1337,
+    //     end: 12054,
+    //     message: "test",
+    //     type: RECORD_TYPES.Time,
+    //   });
 
-      assert.isTrue(exitStub.called);
+    //   assert.isTrue(exitStub.called);
 
-      assert.isTrue(findProjectByNameStub.calledOnce);
-      assert.isTrue(initProjectStub.calledOnce);
-      assert.isTrue(getProjectFromGitStub.calledTwice);
+    //   assert.isTrue(findProjectByNameStub.calledOnce);
+    //   assert.isTrue(initProjectStub.calledOnce);
+    //   assert.isTrue(getProjectFromGitStub.calledTwice);
 
-      findProjectByNameStub.restore();
-      getProjectFromGitStub.restore();
-      initProjectStub.restore();
-      exitStub.restore();
-      confirmMigrationStub.restore();
-    });
+    //   findProjectByNameStub.restore();
+    //   getProjectFromGitStub.restore();
+    //   initProjectStub.restore();
+    //   exitStub.restore();
+    //   confirmMigrationStub.restore();
+    // });
 
     // TODO re-enable
     // it("should add record to migrated project", async function () {
@@ -792,42 +752,25 @@ describe("ProjectHelper", function () {
 
     describe("Overlapping records", function () {
       it("should fail to add overlapping record [start smaller end inside]", async function () {
-        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 10,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
-
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 10,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject,
+        );
 
         await instance.addRecordsToProject(
           [
@@ -843,56 +786,31 @@ describe("ProjectHelper", function () {
           true,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
-        assert.isTrue(saveProjectObjectStub.notCalled);
+        assert.isTrue(getGitttProjectStub.calledOnce);
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
-        saveProjectObjectStub.restore();
+        getGitttProjectStub.restore();
       });
 
       it("should fail to add overlapping record [start larger end inside]", async function () {
-        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 10,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
-
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 10,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject,
+        );
 
         await instance.addRecordsToProject(
           [
@@ -908,56 +826,31 @@ describe("ProjectHelper", function () {
           true,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
-        assert.isTrue(saveProjectObjectStub.notCalled);
+        assert.isTrue(getGitttProjectStub.calledOnce);
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
-        saveProjectObjectStub.restore();
+        getGitttProjectStub.restore();
       });
 
       it("should fail to add overlapping record [start smaller end outside]", async function () {
-        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 2,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
-
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 2,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject,
+        );
 
         await instance.addRecordsToProject(
           [
@@ -973,56 +866,31 @@ describe("ProjectHelper", function () {
           true,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
-        assert.isTrue(saveProjectObjectStub.notCalled);
+        assert.isTrue(getGitttProjectStub.calledOnce);
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
-        saveProjectObjectStub.restore();
+        getGitttProjectStub.restore();
       });
 
       it("should fail to add overlapping record [start inside end outside]", async function () {
-        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 10,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
-
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 10,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject,
+        );
 
         await instance.addRecordsToProject(
           [
@@ -1038,56 +906,31 @@ describe("ProjectHelper", function () {
           true,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
-        assert.isTrue(saveProjectObjectStub.notCalled);
+        assert.isTrue(getGitttProjectStub.calledOnce);
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
-        saveProjectObjectStub.restore();
+        getGitttProjectStub.restore();
       });
 
       it("should fail to add overlapping record [start same end same]", async function () {
-        const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 2,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
-
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 2,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject,
+        );
 
         await instance.addRecordsToProject(
           [
@@ -1103,57 +946,34 @@ describe("ProjectHelper", function () {
           true,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
-        assert.isTrue(saveProjectObjectStub.notCalled);
+        assert.isTrue(getGitttProjectStub.calledOnce);
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
-        saveProjectObjectStub.restore();
+        getGitttProjectStub.restore();
       });
 
       it("should fail to add overlapping record, but add non overlapping [with message]", async function () {
         const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 2,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 2,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject,
+        );
 
         await instance.addRecordsToProject(
           [
@@ -1175,17 +995,11 @@ describe("ProjectHelper", function () {
           true,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(getGitttProjectStub.calledOnce);
         assert.isTrue(saveProjectObjectStub.calledOnce);
         assert.isTrue(commitChangesStub.calledOnceWith(`Added 2 hours to test_mocked: "test1"`));
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
+        getGitttProjectStub.restore();
         saveProjectObjectStub.restore();
         commitChangesStub.restore();
       });
@@ -1193,41 +1007,26 @@ describe("ProjectHelper", function () {
       it("should fail to add overlapping record, but add non overlapping [without message]", async function () {
         const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 2,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 2,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject,
+        );
 
         await instance.addRecordsToProject(
           [
@@ -1248,17 +1047,11 @@ describe("ProjectHelper", function () {
           true,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(getGitttProjectStub.calledOnce);
         assert.isTrue(saveProjectObjectStub.calledOnce);
         assert.isTrue(commitChangesStub.calledOnceWith(`Added 2 hours to test_mocked`));
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
+        getGitttProjectStub.restore();
         saveProjectObjectStub.restore();
         commitChangesStub.restore();
       });
@@ -1266,41 +1059,26 @@ describe("ProjectHelper", function () {
       it("should fail to add overlapping record, but add multiple non overlapping", async function () {
         const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
         const commitChangesStub = sinon.stub(mockedGitHelper, "commitChanges").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 2,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 2,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject,
+        );
 
         await instance.addRecordsToProject(
           [
@@ -1326,17 +1104,11 @@ describe("ProjectHelper", function () {
           true,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(getGitttProjectStub.calledOnce);
         assert.isTrue(saveProjectObjectStub.calledOnce);
         assert.isTrue(commitChangesStub.calledOnceWith(`Added 2 records to test_mocked`));
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
+        getGitttProjectStub.restore();
         saveProjectObjectStub.restore();
         commitChangesStub.restore();
       });
@@ -1345,41 +1117,26 @@ describe("ProjectHelper", function () {
     describe("Unique records", function () {
       it("should fail to add not unique record", async function () {
         const saveProjectObjectStub = sinon.stub(mockedFileHelper, "saveProjectObject").resolves();
-        const findProjectByNameStub = sinon
-          .stub(mockedFileHelper, "findProjectByName")
-          .resolves(undefined);
-        const initProjectStub = sinon
-          .stub(mockedFileHelper, "initProject")
-          .resolves(
-            {
-              meta: {
-                host: "github.com",
-                port: 443,
-              },
-              name: "test_mocked",
-              records: [
-                {
-                  amount: 2,
-                  end: 1000,
-                  message: "test",
-                  type: RECORD_TYPES.Time,
-                },
-              ],
-            } as IProject,
-          );
-
-        const confirmMigrationStub = sinon.stub(QuestionHelper, "confirmMigration").resolves(false);
 
         const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-        const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").returns({
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "test_mocked",
-          records: [],
-        } as IProject);
+        const getGitttProjectStub = sinon.stub(instance, "getGitttProject").resolves(
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "test_mocked",
+            records: [
+              {
+                amount: 2,
+                end: 1000,
+                message: "test",
+                type: RECORD_TYPES.Time,
+              },
+            ],
+          } as IProject
+        );
 
         await instance.addRecordsToProject(
           [
@@ -1395,16 +1152,10 @@ describe("ProjectHelper", function () {
           false,
         );
 
-        assert.isTrue(confirmMigrationStub.calledOnce);
-        assert.isTrue(findProjectByNameStub.calledOnce);
-        assert.isTrue(initProjectStub.calledOnce);
-        assert.isTrue(getProjectFromGitStub.calledTwice);
+        assert.isTrue(getGitttProjectStub.calledOnce);
         assert.isTrue(saveProjectObjectStub.notCalled);
 
-        confirmMigrationStub.restore();
-        findProjectByNameStub.restore();
-        getProjectFromGitStub.restore();
-        initProjectStub.restore();
+        getGitttProjectStub.restore();
         saveProjectObjectStub.restore();
       });
     });

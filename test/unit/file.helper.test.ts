@@ -1075,6 +1075,9 @@ describe("FileHelper", function () {
         "fs-extra": {
           readJson: readJsonSpy,
           readdirSync: readdirSyncSpy,
+          lstatSync: sinon.stub().returns({
+            isFile: () => false,
+          })
         },
       });
 
@@ -1192,6 +1195,9 @@ describe("FileHelper", function () {
         "fs-extra": {
           readJson: readJsonSpy,
           readdirSync: readdirSyncSpy,
+          lstatSync: sinon.stub().returns({
+            isFile: () => false,
+          })
         },
       });
 
@@ -1264,6 +1270,9 @@ describe("FileHelper", function () {
           pathExists: sinon.stub().resolves(true),
           readJson: readJsonSpy,
           readdirSync: readdirSyncSpy,
+          lstatSync: sinon.stub().returns({
+            isFile: () => false,
+          })
         },
       });
 
@@ -1307,6 +1316,9 @@ describe("FileHelper", function () {
         "fs-extra": {
           readJson: readJsonSpy,
           readdirSync: readdirSyncSpy,
+          lstatSync: sinon.stub().returns({
+            isFile: () => false,
+          })
         },
       });
 

@@ -4622,14 +4622,7 @@ describe("App", function () {
     it("should show list of records", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      const getOrAskForProjectFromGitStub = sinon.stub().resolves({
-        meta: {
-          host: "test.git.com",
-          port: 443,
-        },
-        name: "mocked",
-      } as IProject);
-      const findProjectByNameStub = sinon.stub().resolves(
+      const getOrAskForProjectFromGitStub = sinon.stub().resolves(
         {
           meta: {
             host: "github.com",
@@ -4662,7 +4655,6 @@ describe("App", function () {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
         public isConfigFileValid = sinon.stub().resolves(true);
-        public findProjectByName = findProjectByNameStub;
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4720,20 +4712,12 @@ describe("App", function () {
     it("should not show list of records [no project found]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      const getOrAskForProjectFromGitStub = sinon.stub().resolves({
-        meta: {
-          host: "test.git.com",
-          port: 443,
-        },
-        name: "mocked",
-      } as IProject);
-      const findProjectByNameStub = sinon.stub().resolves();
+      const getOrAskForProjectFromGitStub = sinon.stub().resolves();
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
         public isConfigFileValid = sinon.stub().resolves(true);
-        public findProjectByName = findProjectByNameStub;
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4768,23 +4752,13 @@ describe("App", function () {
           port: 443,
         },
         name: "mocked",
+        records: [],
       } as IProject);
-      const findProjectByNameStub = sinon.stub().resolves(
-        {
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "mocked_project",
-          records: [],
-        },
-      );
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
         public configDirExists = sinon.stub().resolves(true);
         public isConfigFileValid = sinon.stub().resolves(true);
-        public findProjectByName = findProjectByNameStub;
       }
 
       mockedHelper.ProjectHelper = class {
