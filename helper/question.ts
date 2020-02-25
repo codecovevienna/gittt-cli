@@ -384,4 +384,16 @@ export class QuestionHelper {
 
     return choice.choice;
   }
+
+  public static confirmSetup = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `Looks like you never used gittt before, should it be set up?`,
+      name: "choice",
+      type: "confirm",
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
 }

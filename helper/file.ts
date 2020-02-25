@@ -77,38 +77,38 @@ export class FileHelper {
     return initial;
   }
 
-  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieLink): Promise<IConfigFile> => {
-    const configObject: IConfigFile = await this.getConfigObject();
+  // public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieLink): Promise<IConfigFile> => {
+  //   const configObject: IConfigFile = await this.getConfigObject();
 
-    // TODO check if already exists
-    const cleanLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
-      // TODO linkType can be taken from class
-      // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      return !((li.projectName === link.projectName) && (li.linkType === link.linkType));
-    });
+  //   // TODO check if already exists
+  //   const cleanLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
+  //     // TODO linkType can be taken from class
+  //     // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
+  //     return !((li.projectName === link.projectName) && (li.linkType === link.linkType));
+  //   });
 
-    cleanLinks.push(link);
+  //   cleanLinks.push(link);
 
-    configObject.links = cleanLinks;
+  //   configObject.links = cleanLinks;
 
-    await this.saveConfigObject(configObject);
+  //   await this.saveConfigObject(configObject);
 
-    return configObject;
-  }
+  //   return configObject;
+  // }
 
-  public findLinksByProject = async (project: IProject, linkType?: string): Promise<IIntegrationLink[]> => {
-    const configObject: IConfigFile = await this.getConfigObject();
+  // public findLinksByProject = async (project: IProject, linkType?: string): Promise<IIntegrationLink[]> => {
+  //   const configObject: IConfigFile = await this.getConfigObject();
 
-    const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
-      // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      if (linkType) {
-        return li.projectName === project.name && li.linkType === linkType;
-      }
-      return li.projectName === project.name;
-    });
+  //   const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
+  //     // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
+  //     if (linkType) {
+  //       return li.projectName === project.name && li.linkType === linkType;
+  //     }
+  //     return li.projectName === project.name;
+  //   });
 
-    return foundLinks;
-  }
+  //   return foundLinks;
+  // }
 
   public initProject = async (project: IProject): Promise<IProject> => {
     try {
@@ -355,7 +355,7 @@ export class FileHelper {
     return path.join(this.projectDir, ProjectHelper.projectMetaToDomain(projectMeta));
   }
 
-  private saveConfigObject = async (config: IConfigFile): Promise<void> => {
+  public saveConfigObject = async (config: IConfigFile): Promise<void> => {
     try {
       await fs.writeJson(this.configFilePath, config, this.jsonWriteOptions);
       this.setConfigObject(config);

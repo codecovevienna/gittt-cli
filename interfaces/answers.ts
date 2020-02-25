@@ -1,7 +1,3 @@
-export interface IInitAnswers {
-  setup: boolean;
-}
-
 export interface IGitCommitMessageAnswers {
   gitCommitMessage: string;
 }

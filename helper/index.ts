@@ -1,5 +1,6 @@
 import { IProject } from "../interfaces";
 
+export { ConfigHelper } from "./config";
 export { GitHelper } from "./git";
 export { LogHelper } from "./log";
 export { FileHelper } from "./file";

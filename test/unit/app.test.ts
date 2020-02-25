@@ -6,7 +6,7 @@ import { DefaultLogFields } from "simple-git/typings/response";
 import sinon from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import { IInitAnswers, IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
+import { IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -97,7 +97,7 @@ describe("App", function () {
     });
   });
 
-  describe("Setup", function () {
+  describe.only("Setup", function () {
     it("should setup app", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
@@ -121,26 +121,26 @@ describe("App", function () {
       await app.setup();
     });
 
-    it("should setup app without config directory", async function () {
+    it.only("should setup app without config directory", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
-
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = async (): Promise<boolean> => {
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = async (): Promise<boolean> => {
           return false;
         }
       }
 
+      mockedHelper.QuestionHelper = class {
+        public static confirmSetup = sinon.stub().resolves(true)
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: true,
-          } as IInitAnswers),
-        },
       });
-
 
       const app: App = new proxy.App();
 
