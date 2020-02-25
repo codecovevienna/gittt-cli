@@ -2,6 +2,7 @@
   "extends": "./tsconfig.base.json",
   "exclude": [
     "./dist",
-    "./coverage/*"
+    "./coverage/*",
+    "./test"
   ],
 }
