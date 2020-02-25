@@ -93,6 +93,7 @@ export class ProjectHelper {
         project = this.getProjectFromGit();
       } catch (err) {
         LogHelper.debug("Unable to get project from git config", err);
+        throw err;
       }
     }
 
@@ -416,10 +417,17 @@ export class ProjectHelper {
       if (e instanceof GitRemoteError || e instanceof GitNoRepoError) {
         const selectedProjectName: string = await QuestionHelper.
           chooseProjectFile(await this.fileHelper.findAllProjects());
-        const [domain, name] = selectedProjectName.split("/");
+        const split = selectedProjectName.split("/");
         // TODO find a better way?
-        projectName = name.replace(".json", "");
-        projectMeta = ProjectHelper.domainToProjectMeta(domain);
+        if (split.length == 2) {
+          const [domain, name] = split;
+          projectName = name.replace(".json", "");
+          projectMeta = ProjectHelper.domainToProjectMeta(domain);
+        } else {
+          // Handles projects with no domain information
+          projectName = split[0].replace(".json", "");
+          projectMeta = undefined;
+        }
       } else {
         throw e;
       }
