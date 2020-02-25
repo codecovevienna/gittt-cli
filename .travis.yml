@@ -4,7 +4,7 @@ jobs:
     language: node_js
     cache: npm
     node_js:
-      - 12.15.0
+      - 12.16.1
     script:
       - npm install
       - npm run lint
@@ -15,7 +15,7 @@ jobs:
     language: node_js
     cache: npm
     node_js:
-      - 12.15.0
+      - 12.16.1
     script:
       - npm install
       - npm run test:ci
@@ -25,11 +25,12 @@ jobs:
       tags: false
 
   - stage: build
+    name: "Binary package"
     if: NOT type = pull_request AND tag IS present
     language: node_js
     cache: npm
     node_js:
-      - 12.15.0
+      - 12.16.1
     script:
       - npm i -g pkg
       # Install packages
@@ -54,6 +55,24 @@ jobs:
           tags: true
           repo: codecovevienna/gittt-cli
 
+  - stage: build
+    name: "NPM package"
+    if: NOT type = pull_request AND tag IS present
+    language: node_js
+    cache: npm
+    node_js:
+      - 12.16.1
+    script:
+      - npm i -g pkg
+      # Install packages
+      - npm install --production
+      # Compile ts into js
+      - npm run build:prod
+      # File is used by app.ts
+      - cp package.json dist
+      # Remove tests from dist
+      - rm -rf dist/test
+    deploy:
       - provider: npm
         edge: true
         skip_cleanup: true
