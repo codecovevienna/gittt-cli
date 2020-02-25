@@ -33,6 +33,12 @@ export interface IJiraLink extends IIntegrationLink {
   issue: string;
 }
 
+export interface IMultipieLink extends IIntegrationLink {
+  username: string;
+  host: string;
+  endpoint: string;
+}
+
 export interface IConfigFile {
   created: number;
   gitRepo: string;
@@ -55,4 +61,10 @@ export interface ICsvRow {
   MESSAGE: string;
   END: number;
   AMOUNT: number;
+}
+
+export interface IPublishSummaryItem {
+  success: boolean;
+  type: string;
+  reason?: string;
 }

@@ -19,7 +19,6 @@ import {
   ValidationHelper,
 } from "./helper";
 import {
-  IConfigFile,
   IInitAnswers,
   IInitProjectAnswers,
   IIntegrationLink,
@@ -27,6 +26,8 @@ import {
   IJiraPublishResult,
   IProject,
   IRecord,
+  IMultipieLink,
+  IPublishSummaryItem,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 
@@ -156,7 +157,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -166,13 +171,13 @@ export class App {
     }
     const integration: string = await QuestionHelper.chooseIntegration();
 
+    LogHelper.debug(`Trying to find links for "${project.name}"`)
+    // Check for previous data
+    const prevIntegrationLink: IIntegrationLink | undefined = (await this.fileHelper
+      .findLinksByProject(project, integration))[0];
+
     switch (integration) {
       case "Jira":
-        // TODO validate if record exists in projects dir(?)
-
-        LogHelper.debug(`Trying to find links for "${project.name}"`)
-        // Check for previous data
-        const prevIntegrationLink: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
         let prevJiraLink: IJiraLink | undefined;
         if (prevIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
@@ -183,6 +188,24 @@ export class App {
 
         try {
           await this.fileHelper.addOrUpdateLink(jiraLink);
+        } catch (err) {
+          LogHelper.debug(`Unable to add link to config file`, err);
+          return this.exit(`Unable to add link to config file`, 1);
+        }
+
+        break;
+
+      case "Multipie":
+        let prevMultipieLink: IMultipieLink | undefined;
+        if (prevIntegrationLink) {
+          LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
+          prevMultipieLink = prevIntegrationLink as IMultipieLink;
+        }
+
+        const multiPieLink: IMultipieLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
+
+        try {
+          await this.fileHelper.addOrUpdateLink(multiPieLink);
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -202,7 +225,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -211,15 +238,11 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    const configObject: IConfigFile = await this.fileHelper.getConfigObject();
+    const links: IIntegrationLink[] = (await this.fileHelper.findLinksByProject(project));
 
-    const link: any | undefined = configObject.links.find((li: IIntegrationLink) => {
-      return project ? li.projectName === project.name : false;
-    });
-
-    if (!link) {
+    if (links.length === 0) {
       LogHelper.warn(`Unable to find a link for "${project.name}"`);
-      if (await QuestionHelper.confirmJiraLinkCreation()) {
+      if (await QuestionHelper.confirmLinkCreation()) {
         await this.linkAction(new Command());
 
         return await this.publishAction(cmd);
@@ -243,64 +266,142 @@ export class App {
       }
     }
 
-    switch (link.linkType) {
-      case "Jira":
-        // cast generic link to jira link
-        const jiraLink: IJiraLink = link;
+    const publishSummary: IPublishSummaryItem[] = [];
 
-        // Map local project to jira key
-        if (jiraLink.issue) {
-          LogHelper.info(`Mapping "${populatedProject.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
-        } else {
-          LogHelper.info(`Mapping "${populatedProject.name}" to Jira project "${jiraLink.key}"`);
-        }
+    for (const link of links) {
+      switch (link.linkType) {
+        case "Jira":
+          const jiraLink: IJiraLink = link as IJiraLink;
 
-        if (!jiraLink.host) {
-          // Handle deprecated config
-          return this.exit('The configuration of this jira link is deprecated, please consider updating the link with "gittt link"', 1)
-        }
-
-        const url = `${jiraLink.host}${jiraLink.endpoint}`;
-
-        LogHelper.debug(`Publishing to ${url}`);
-
-        try {
-          const publishResult: AxiosResponse = await axios
-            .post(url,
-              {
-                projectKey: jiraLink.key,
-                issueKey: jiraLink.issue,
-                project: populatedProject,
-              },
-              {
-                headers: {
-                  "Authorization": `Basic ${jiraLink.hash}`,
-                  "Cache-Control": "no-cache",
-                  "Content-Type": "application/json",
-                },
-              },
-            );
-
-          const data: IJiraPublishResult = publishResult.data;
-
-          if (data.success) {
-            LogHelper.info("Successfully published data to Jira");
+          // Map local project to jira key
+          if (jiraLink.issue) {
+            LogHelper.info(`Mapping "${populatedProject.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
           } else {
-            this.exit(`Unable to publish to Jira: ${data.message}`, 1);
+            LogHelper.info(`Mapping "${populatedProject.name}" to Jira project "${jiraLink.key}"`);
           }
-        } catch (err) {
-          delete err.config;
-          delete err.request;
-          delete err.response;
-          LogHelper.debug("Publish request failed", err);
-          this.exit(`Publish request failed, please consider updating the link`, 1);
-        }
 
-        break;
+          if (!jiraLink.host) {
+            // Handle deprecated config
+            return this.exit('The configuration of this jira link is deprecated, please consider updating the link with "gittt link"', 1)
+          }
 
-      default:
-        this.exit(`Link type "${link.linkType}" not implemented`, 1);
-        break;
+          const jiraUrl = `${jiraLink.host}${jiraLink.endpoint}`;
+
+          LogHelper.debug(`Publishing to ${jiraUrl}`);
+
+          try {
+            const publishResult: AxiosResponse = await axios
+              .post(jiraUrl,
+                {
+                  projectKey: jiraLink.key,
+                  issueKey: jiraLink.issue,
+                  project: populatedProject,
+                },
+                {
+                  headers: {
+                    "Authorization": `Basic ${jiraLink.hash}`,
+                    "Cache-Control": "no-cache",
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+
+            const data: IJiraPublishResult = publishResult.data;
+
+            if (data.success) {
+              publishSummary.push({
+                success: true,
+                type: link.linkType,
+              })
+            } else {
+              publishSummary.push({
+                success: false,
+                type: link.linkType,
+                reason: `Publishing failed [${publishResult.status}]`
+              })
+            }
+          } catch (err) {
+            delete err.config;
+            delete err.request;
+            delete err.response;
+            LogHelper.debug("Publish request failed", err);
+            publishSummary.push({
+              success: false,
+              type: link.linkType,
+              reason: `Publish request failed, please consider updating the link`
+            })
+          }
+
+          break;
+
+        case "Multipie":
+          const multipieLink: IMultipieLink = link as IMultipieLink;
+
+          const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
+
+          LogHelper.debug(`Publishing to ${multipieUrl}`);
+
+          try {
+            const publishResult: AxiosResponse = await axios
+              .post(multipieUrl,
+                populatedProject,
+                {
+                  headers: {
+                    "Authorization": `${multipieLink.username}`,
+                    "Cache-Control": "no-cache",
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+
+            const data: any = publishResult.data;
+
+            if (data && (publishResult.status === 200 || publishResult.status === 201)) {
+              publishSummary.push({
+                success: true,
+                type: link.linkType,
+              })
+            } else {
+              publishSummary.push({
+                success: false,
+                type: link.linkType,
+                reason: `Publishing failed [${publishResult.status}]`
+              })
+            }
+          } catch (err) {
+            delete err.config;
+            delete err.request;
+            delete err.response;
+            LogHelper.debug("Publish request failed", err);
+            publishSummary.push({
+              success: false,
+              type: link.linkType,
+              reason: `Publish request failed, please consider updating the link`
+            })
+          }
+
+          break;
+
+        default:
+          publishSummary.push({
+            success: false,
+            type: "unknown",
+            reason: `Link type "${link.linkType}" not implemented`
+          })
+          break;
+      }
+    }
+
+    for (const item of publishSummary) {
+      if (item.success) {
+        LogHelper.info(`✓ Successfully published to ${item.type}`)
+      } else {
+        LogHelper.warn(`✗ Unable to publish to ${item.type}: ${item.reason}`)
+      }
+    }
+
+    if (publishSummary.filter(item => item.success === false).length > 0) {
+      this.exit(`One or more errors occurred while publishing data`, 1);
     }
   }
 
@@ -412,7 +513,11 @@ export class App {
 
     // TODO move to own function, is used multiple times
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -565,7 +670,11 @@ export class App {
     let project: IProject | undefined;
     try {
       if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        try {
+          project = await this.projectHelper.getProjectByName(cmd.project);
+        } catch (err) {
+          return this.exit(err.message, 1);
+        }
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
@@ -644,8 +753,12 @@ export class App {
 
     if (!interactiveMode) {
       amount = parseFloat(cmd.amount);
-      project = await this.projectHelper.getProjectByName(cmd.project, true);
       message = cmd.message;
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       amount = await QuestionHelper.askAmount(1);
       project = await this.projectHelper.getOrAskForProjectFromGit();
@@ -711,8 +824,12 @@ export class App {
       minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
-      project = await this.projectHelper.getProjectByName(cmd.project);
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
       year = await QuestionHelper.askYear();
@@ -758,7 +875,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(options.project);
+      try {
+        project = await this.projectHelper.getProjectByName(options.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -779,7 +900,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -797,8 +922,8 @@ export class App {
         LogHelper.log(`Name:\t${foundProject.name}`);
         LogHelper.log(`Hours:\t${hours}h`);
 
-        const link: IIntegrationLink | undefined = await this.fileHelper.findLinkByProject(project);
-        if (link) {
+        const links: IIntegrationLink[] = await this.fileHelper.findLinksByProject(project);
+        for (const link of links) {
           switch (link.linkType) {
             case "Jira":
               const jiraLink: IJiraLink = link as IJiraLink;
@@ -809,6 +934,13 @@ export class App {
               if (jiraLink.issue) {
                 LogHelper.log(`> Issue:\t${jiraLink.issue}`);
               }
+              break;
+            case "Multipie":
+              const multipieLink: IMultipieLink = link as IMultipieLink;
+              LogHelper.log("");
+              LogHelper.log("Multipie link:");
+              LogHelper.log(`> Host:\t\t${multipieLink.host}`);
+              LogHelper.log(`> Project:\t${multipieLink.projectName}`);
               break;
           }
         }
@@ -861,7 +993,11 @@ export class App {
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -907,13 +1043,84 @@ export class App {
     LogHelper.info(`SUM:\t${sumOfTime}h`);
   }
 
+  public async todayAction(): Promise<void> {
+    const projects: IProject[] = await this.fileHelper.findAllProjects();
+
+    const todaysRecords: {
+      project: IProject;
+      record: IRecord;
+    }[] = projects.flatMap(project => {
+      return project.records.filter(record => {
+        const momentEnd = moment(record.end);
+        const momentDayStart = moment().startOf('day');
+        const momentDayEnd = moment().endOf('day');
+        return momentEnd.isBetween(momentDayStart, momentDayEnd);
+      }).map(record => {
+        return {
+          record,
+          project
+        }
+      });
+    });
+
+    const sortedTodaysRecords: {
+      project: IProject;
+      record: IRecord;
+    }[] = todaysRecords.sort((a: {
+      project: IProject;
+      record: IRecord;
+    }, b: {
+      project: IProject;
+      record: IRecord;
+    }) => {
+      return moment(a.record.end).diff(moment(b.record.end));
+    });
+
+    LogHelper.info(`${moment().format("dddd, MMMM D, YYYY")}`);
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\tPROJECT\t\t\t\tCOMMENT`);
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+
+    let sumOfTime = 0;
+    for (const todayRecord of sortedTodaysRecords) {
+      const { record, project } = todayRecord;
+      let line = "";
+      // Type
+      line += `${record.type}\t`;
+      // Amount
+      line += chalk.yellow.bold(`${record.amount.toFixed(2)}h\t`);
+      // Time
+      line += `${moment(record.end).format("HH:mm:ss")}\t`;
+      // Project
+      if (project.name.length > 24) {
+        line += `${project.name.slice(0, 24)}\t`
+      } else {
+        line += `${project.name}\t`;
+      }
+      for (let i = 0; i < Math.ceil(3 - project.name.length / 8); i++) {
+        line += "\t"
+      }
+      // Message
+      line += chalk.yellow.bold(`${record.message}`);
+      sumOfTime += record.amount;
+      LogHelper.print(line);
+    }
+
+    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.info(`SUM:\t${sumOfTime}h`);
+  }
+
   public async reportAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let project: IProject | undefined;
 
     if (!interactiveMode) {
-      project = await this.projectHelper.getProjectByName(cmd.project);
+      try {
+        project = await this.projectHelper.getProjectByName(cmd.project);
+      } catch (err) {
+        return this.exit(err.message, 1);
+      }
     } else {
       project = await this.projectHelper.getOrAskForProjectFromGit();
     }
@@ -983,7 +1190,11 @@ export class App {
       await this.timerHelper.killTimer();
     } else {
       if (cmd.project) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        try {
+          project = await this.projectHelper.getProjectByName(cmd.project);
+        } catch (err) {
+          return this.exit(err.message, 1);
+        }
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
@@ -1078,6 +1289,11 @@ export class App {
       .option("-p, --project [project]", "Specify the project to get the time tracks")
       .action((cmd: Command): Promise<void> => this.listAction(cmd));
 
+    commander
+      .command("today")
+      .description("List of time tracks of current day")
+      .action((): Promise<void> => this.todayAction());
+
     // report command
     // will be changed in GITTT-85
     commander
@@ -1086,45 +1302,6 @@ export class App {
       .option("-d, --days [number]", "Specify for how many days the report should be printed.")
       .option("-p, --project [project]", "Specify the project the report should be printed for")
       .action((cmd: Command): Promise<void> => this.reportAction(cmd));
-
-    // log command
-    // not needed anymore
-    // commander
-    //   .command("log")
-    //   .description("List of local changes")
-    //   .action(async () => {
-    //     const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
-    //     if (logs.length > 0) {
-    //       LogHelper.warn("Local changes:");
-    //       for (const log of logs) {
-    //         console.log(`${log.date}\n  ${log.message.trim()}`);
-    //       }
-    //     } else {
-    //       LogHelper.info("Everything is up to date");
-    //     }
-    //   });
-
-    // status command
-    // not needed anymore
-    // commander
-    //   .command("status")
-    //   .description("Overview of all projects")
-    //   .action(async () => {
-    //     const projects: IProject[] = await this.fileHelper.findAllProjects();
-    //     let totalHours: number = 0;
-
-    //     LogHelper.info("Projects:");
-    //     for (const pL of projects) {
-    //       const hours: number = await this.projectHelper.getTotalHours(pL.name);
-    //       LogHelper.info(`${pL.name}:\t${hours}`);
-    //       totalHours += hours;
-    //     }
-    //     LogHelper.info("");
-
-    //     LogHelper.info("Summery:");
-    //     LogHelper.info(`Total projects:\t${projects.length}`);
-    //     LogHelper.info(`Total hours:\t${totalHours}`);
-    //   });
 
     commander
       .command("setup")

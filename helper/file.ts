@@ -1,7 +1,7 @@
 import plainFs from "fs";
 import fs, { WriteOptions } from "fs-extra";
 import path from "path";
-import { IConfigFile, IIntegrationLink, IJiraLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
+import { IConfigFile, IIntegrationLink, IJiraLink, IMultipieLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
 import { LogHelper, parseProjectNameFromGitUrl, ProjectHelper } from "./";
 
 export class FileHelper {
@@ -68,13 +68,14 @@ export class FileHelper {
     return initial;
   }
 
-  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink): Promise<IConfigFile> => {
+  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieLink): Promise<IConfigFile> => {
     const configObject: IConfigFile = await this.getConfigObject();
 
     // TODO check if already exists
     const cleanLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
+      // TODO linkType can be taken from class
       // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      return li.projectName !== link.projectName;
+      return !((li.projectName === link.projectName) && (li.linkType === link.linkType));
     });
 
     cleanLinks.push(link);
@@ -86,23 +87,18 @@ export class FileHelper {
     return configObject;
   }
 
-  public findLinkByProject = async (project: IProject): Promise<IIntegrationLink | undefined> => {
+  public findLinksByProject = async (project: IProject, linkType?: string): Promise<IIntegrationLink[]> => {
     const configObject: IConfigFile = await this.getConfigObject();
 
     const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
       // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
+      if (linkType) {
+        return li.projectName === project.name && li.linkType === linkType;
+      }
       return li.projectName === project.name;
     });
 
-    if (foundLinks.length === 0) {
-      return undefined;
-    }
-
-    if (foundLinks.length > 1) {
-      return undefined;
-    }
-
-    return foundLinks[0];
+    return foundLinks;
   }
 
   public initProject = async (project: IProject): Promise<IProject> => {

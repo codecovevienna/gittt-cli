@@ -1,13 +1,35 @@
 jobs:
   include:
-  - stage: debug_build
-    branches:
-      only:
-        - 90-Cleanup-production-binary
+  - stage: lint
     language: node_js
     cache: npm
     node_js:
-      - 12.13.1
+      - 12.15.0
+    script:
+      - npm install
+      - npm run lint
+    on:
+      tags: false
+
+  - stage: test
+    language: node_js
+    cache: npm
+    node_js:
+      - 12.15.0
+    script:
+      - npm install
+      - npm run test:ci
+    after_success:
+      - npm run codecov
+    on:
+      tags: false
+
+  - stage: build
+    if: NOT type = pull_request AND tag IS present
+    language: node_js
+    cache: npm
+    node_js:
+      - 12.15.0
     script:
       - npm i -g pkg
       # Install packages
@@ -19,5 +41,25 @@ jobs:
       # Remove tests from dist
       - rm -rf dist/test
       # Compile package for various systems
-      - pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/index.js --output gittt-debug
-      - ls -ahl 
+      - ./node_modules/.bin/pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/index.js --output gittt-${TRAVIS_TAG}
+    deploy:
+      - provider: releases
+        edge: true
+        api_key:
+          secure: cjalC6QtCqhfW0paD4/oB2YhEyPhuMRDjPBh4PPXOnpj341mxFOG8ieX6Qx4s5+2mDqqcnMeIRVshMb0XkHQpMmsVqxEL9XgBLw0ng5WS+33MQPg60okqZL1M+8TLP+v4+JGHiuC/wkJjXwhabC707MD4gRnNY+1aMHnXYRluybGwvxtSz6WSng98kgwzgLCZXXMHfSqazT2OTTZR4npVmL58YZ4pJjSfLBuhS5zbCDLyiCKJ7J9F420N6cbJv3rkEBwcwlKfUrRw2jpUnZ7Bnv7turAp2zKwlenIvOxnHWBncG+zQrxYc19nhxVqD5Vrcr7G8MWQbXaoe1GCimqeq72+36OveHf7dQrJolNmThp3+40t7UbSi62IFa+Zg7cj/dAifUbd0OiwNJ/MvPRWwrnKAnHf+fhGlhU8CNtcp9ksCh8S6ZcZ00711S53pri3HjDdV/xELxxwMaceohlwKws1GblDRCQNexvRMT/XYVOsLpy8Lp8fP6AQxaBnbkk37uwHBuyARgo53ZYg3co3OzvscvI1d8ejiYjnR0iAKqVV3dJ76rEhB41ynoaIwb3aIZWADMx8NgShk4y/rvheJE6iWkdQsMKtJd5MW06/jvlZBcFh2iHPqQY6oSO8BzB8y3W1/knAhohWRgIpW8LFMfZQR3B8SZvE2dKMOgdTV4=
+        file: gittt-*
+        skip_cleanup: true
+        file_glob: true
+        on:
+          tags: true
+          repo: codecovevienna/gittt-cli
+
+      - provider: npm
+        edge: true
+        skip_cleanup: true
+        email: developer@eiabea.com
+        api_key:
+          secure: vLG2W5wILT+06XtEr5VrEFLFplEJ+8u7me1Dpzoavx+Us3icE68l0aEp5VOBaVfAdtQqRtjdcdQEchwLjGJtKwNs8F90OC2escAMg+6BYFxYqkyo9WYaBRwIr3O1VmgQONebj8bvWpWjpv8by/d7zlJOPrDN7u6y1XzqOKmVRrCYUnJITA1KEq7nAepyx7632gBRsLX+Hem3PEWHBa/tkkzsrzZu/AuDpgJPR2cosXx8Gphj2Gm8aFxiOqbiqWihSBmySUIGajnFgWYvv+LzqK+roDEQ3+8VZE1MOzkf/1LCslLOANdhzPpgjFKUbFPChGHB7CMnIAG09M1aLkk7GG44ub3E4eVrTYOlJ+cAGluFVPImqAAgVKUNZFHfd77SDnWPYQswYyyKBVpA+mbizJQ97FYbeSfsE4swmFk+vUr1XlwWsadCPL+zVRqfTge4WH3A2AroZ9XwLiRHTRfsL17CGk7do0ifJ0gsCD4w3ed0v2iR3eZbNvjqeCRdTtZVmhmkOfyGJMQMVOwQM9Z3PKoYtUjlVsgmN4wlELXQXWD6V5kXReppaM+BtH3Dz7OiGSqb+WQiIk+amiTX1Hq/L+Uni/0oWm+sC/uRqTwOzre/tJMYZ1P8GYB1ZH4ZCHVWi9U+zfxaghSruv1PgAqKw3QznndF5gbJjULsQ+TyQ1w=
+        on:
+          tags: true
+          repo: codecovevienna/gittt-cli

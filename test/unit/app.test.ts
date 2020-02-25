@@ -6,7 +6,7 @@ import { DefaultLogFields } from "simple-git/typings/response";
 import sinon from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import { IConfigFile, IInitAnswers, IJiraLink, IJiraPublishResult, IProject, IRecord } from "../../interfaces";
+import { IInitAnswers, IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -1272,6 +1272,40 @@ describe("App", function () {
       assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(helpStub.calledOnce);
     });
+
+    it("should fail to edit specific record with arguments [throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.editAction(mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+    });
   });
 
   describe("Remove records", function () {
@@ -1690,6 +1724,40 @@ describe("App", function () {
 
       exitStub.restore();
     });
+
+    it("should fail to remove specific record with arguments [throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.removeAction(mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+    });
   });
 
   describe("Commit", function () {
@@ -1932,6 +2000,40 @@ describe("App", function () {
 
       exitStub.restore();
     });
+
+    it("should fail to commit hours [throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.commitAction(mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+    });
   })
 
   describe("Add records", function () {
@@ -2141,6 +2243,7 @@ describe("App", function () {
 
       assert.isTrue(addRecordToProjectStub.calledOnce);
     });
+
   });
 
   describe("Import records from csv", function () {
@@ -2243,6 +2346,99 @@ describe("App", function () {
   });
 
   describe("Links", function () {
+    describe("General", function () {
+      it("should fail to add new link [no git directory]", async function () {
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+        const mockedCommander: CommanderStatic = proxyquire("commander", {});
+
+        const getOrAskForProjectFromGitStub = sinon.stub().returns(undefined);
+
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+        }
+
+        const proxy: any = proxyquire("../../app", {
+          "./helper": mockedHelper,
+          "commander": mockedCommander,
+        });
+
+        const mockedApp: App = new proxy.App();
+
+        const exitStub = sinon.stub(mockedApp, "exit");
+
+        await mockedApp.setup();
+
+        const mockedCommand: Command = new Command();
+
+        // Mock arguments array to enable interactive mode
+        process.argv = ["1", "2", "3"];
+
+        await mockedApp.linkAction(mockedCommand);
+
+        assert.isTrue(exitStub.calledOnce);
+
+        exitStub.restore();
+      });
+
+      it("should fail to add new link [unknown integration type]", async function () {
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        const getOrAskForProjectFromGitStub = sinon.stub().returns({
+          meta: {
+            host: "test.git.com",
+            port: 443,
+          },
+          name: "mocked",
+        } as IProject);
+
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+          public configDirExists = sinon.stub().resolves(true);
+          public isConfigFileValid = sinon.stub().resolves(true);
+          public findLinksByProject = sinon.stub().resolves([]);
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public addLink = sinon.stub().resolves();
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+        }
+
+        mockedHelper.QuestionHelper = class {
+          public static chooseIntegration = sinon.stub().resolves("UnknownIntegration");
+        }
+
+        const proxy: any = proxyquire("../../app", {
+          "./helper": mockedHelper,
+        });
+
+        const mockedApp: App = new proxy.App();
+
+        const exitStub = sinon.stub(mockedApp, "exit");
+
+        await mockedApp.setup();
+
+        const mockedCommand: Command = new Command();
+
+        // Mock arguments array to enable interactive mode
+        process.argv = ["1", "2", "3"];
+
+        await mockedApp.linkAction(mockedCommand);
+
+        assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
+        assert.isTrue(exitStub.calledOnce);
+
+        exitStub.restore();
+      });
+    })
     describe("Jira", function () {
       describe("Add/Edit", function () {
         it("should add new JIRA link", async function () {
@@ -2263,7 +2459,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2332,7 +2528,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2403,17 +2599,19 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves(
-              {
-                endpoint: "/rest/gittt/latest/",
-                hash: "bW9ja2VkOm1vY2tlZA==",
-                host: "http://github.com",
-                issue: "EPIC-1",
-                key: "MOCKED",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "mocked"
-              } as IJiraLink
+            public findLinksByProject = sinon.stub().resolves(
+              [
+                {
+                  endpoint: "/rest/gittt/latest/",
+                  hash: "bW9ja2VkOm1vY2tlZA==",
+                  host: "http://github.com",
+                  issue: "EPIC-1",
+                  key: "MOCKED",
+                  linkType: "Jira",
+                  projectName: "mocked_project_1",
+                  username: "mocked"
+                } as IJiraLink
+              ]
             );
           }
 
@@ -2456,63 +2654,6 @@ describe("App", function () {
           assert.isTrue(addOrUpdateLinkStub.calledOnce);
         });
 
-        it("should fail to add new JIRA link [no git directory]", async function () {
-          const mockedHelper: any = Object.assign({}, emptyHelper);
-          const mockedCommander: CommanderStatic = proxyquire("commander", {});
-
-          const getOrAskForProjectFromGitStub = sinon.stub().returns(undefined);
-          const addOrUpdateLinkStub = sinon.stub().resolves();
-
-          mockedHelper.FileHelper = class {
-            public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public addOrUpdateLink = addOrUpdateLinkStub;
-          }
-
-          mockedHelper.ProjectHelper = class {
-            public addLink = sinon.stub().resolves();
-            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
-          }
-
-          mockedHelper.QuestionHelper = class {
-            public static askJiraLink = sinon.stub().resolves(
-              {
-                endpoint: "http://mocked.com/rest/gittt/latest/",
-                hash: "shaHash",
-                key: "MOCKED",
-                linkType: "Jira",
-                projectName: "mocked_,project_1",
-                username: "mocked",
-              } as IJiraLink
-            );
-            public static chooseIntegration = sinon.stub().resolves("Jira");
-          }
-
-          const proxy: any = proxyquire("../../app", {
-            "./helper": mockedHelper,
-            "commander": mockedCommander,
-          });
-
-          const mockedApp: App = new proxy.App();
-
-          const exitStub = sinon.stub(mockedApp, "exit");
-
-          await mockedApp.setup();
-
-          const mockedCommand: Command = new Command();
-
-          // Mock arguments array to enable interactive mode
-          process.argv = ["1", "2", "3"];
-
-          await mockedApp.linkAction(mockedCommand);
-
-          assert.isTrue(exitStub.calledOnce);
-
-          exitStub.restore();
-
-        });
-
         it("should fail to add new JIRA link [error while adding]", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
           const mockedCommander: CommanderStatic = proxyquire("commander", {});
@@ -2531,7 +2672,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
-            public findLinkByProject = sinon.stub().resolves();
+            public findLinksByProject = sinon.stub().resolves([]);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2578,17 +2719,10 @@ describe("App", function () {
           exitStub.restore();
         });
 
-        it("should fail to add new JIRA link [unknown integration type]", async function () {
+        it("should fail to add new JIRA link [throws]", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
 
-          const getOrAskForProjectFromGitStub = sinon.stub().returns({
-            meta: {
-              host: "test.git.com",
-              port: 443,
-            },
-            name: "mocked",
-          } as IProject);
-
+          const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
@@ -2596,15 +2730,7 @@ describe("App", function () {
           }
 
           mockedHelper.ProjectHelper = class {
-            public addLink = sinon.stub().resolves();
-          }
-
-          mockedHelper.ProjectHelper = class {
-            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
-          }
-
-          mockedHelper.QuestionHelper = class {
-            public static chooseIntegration = sinon.stub().resolves("UnknownIntegration");
+            public getProjectByName = getProjectByNameStub;
           }
 
           const proxy: any = proxyquire("../../app", {
@@ -2613,21 +2739,18 @@ describe("App", function () {
 
           const mockedApp: App = new proxy.App();
 
-          const exitStub = sinon.stub(mockedApp, "exit");
+          const exitStub = sinon.stub(mockedApp, "exit").resolves();
 
           await mockedApp.setup();
 
           const mockedCommand: Command = new Command();
 
-          // Mock arguments array to enable interactive mode
-          process.argv = ["1", "2", "3"];
+          // Mock arguments array to disable interactive mode
+          process.argv = ["1", "2", "3", "4"];
 
           await mockedApp.linkAction(mockedCommand);
 
-          assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(exitStub.calledOnce);
-
-          exitStub.restore();
         });
       });
       describe("Publish", function () {
@@ -2641,10 +2764,8 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns(
+            [
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -2656,7 +2777,7 @@ describe("App", function () {
                 username: "test",
               } as IJiraLink,
             ],
-          } as IConfigFile);
+          );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -2677,7 +2798,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -2707,7 +2828,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -2722,10 +2843,8 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns(
+            [
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -2737,7 +2856,7 @@ describe("App", function () {
                 username: "test",
               } as IJiraLink,
             ],
-          } as IConfigFile);
+          );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -2758,7 +2877,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -2789,7 +2908,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getProjectByNameStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -2804,10 +2923,8 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
+          const findLinksByProjectStub = sinon.stub().returns(
+            [
               {
                 host: "http://jira.mocked.com:2990",
                 endpoint: "/rest/gittt/latest/",
@@ -2819,7 +2936,7 @@ describe("App", function () {
                 username: "test",
               } as IJiraLink,
             ],
-          } as IConfigFile);
+          );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -2840,7 +2957,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -2870,7 +2987,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -2885,28 +3002,20 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub()
-            .onCall(0).returns({
-              created: 1234,
-              gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-              links: [],
-            } as IConfigFile)
-            .onCall(1).returns({
-              created: 1234,
-              gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-              links: [
-                {
-                  host: "http://jira.mocked.com:2990",
-                  endpoint: "/rest/gittt/latest/",
-                  hash: "1234asdf",
-                  key: "TEST",
-                  issue: "",
-                  linkType: "Jira",
-                  projectName: "mocked_project_1",
-                  username: "test",
-                } as IJiraLink,
-              ],
-            } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub()
+            .onCall(0).returns([])
+            .onCall(1).returns([
+              {
+                host: "http://jira.mocked.com:2990",
+                endpoint: "/rest/gittt/latest/",
+                hash: "1234asdf",
+                key: "TEST",
+                issue: "",
+                linkType: "Jira",
+                projectName: "mocked_project_1",
+                username: "test",
+              } as IJiraLink,
+            ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -2915,7 +3024,7 @@ describe("App", function () {
             name: "mocked_project_1",
             records: [],
           });
-          const confirmJiraLinkCreationStub = sinon.stub().resolves(true);
+          const confirmLinkCreationStub = sinon.stub().resolves(true);
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -2928,7 +3037,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -2939,7 +3048,7 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
           mockedHelper.QuestionHelper = class {
-            public static confirmJiraLinkCreation = confirmJiraLinkCreationStub;
+            public static confirmLinkCreation = confirmLinkCreationStub;
           }
 
           const proxy: any = proxyquire("../../app", {
@@ -2963,7 +3072,7 @@ describe("App", function () {
 
           // First: without link, second with link
           assert.isTrue(getOrAskForProjectFromGitStub.calledTwice);
-          assert.isTrue(getConfigObjectStub.calledTwice);
+          assert.isTrue(findLinksByProjectStub.calledTwice);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
@@ -2980,22 +3089,18 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ],
-          } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3031,7 +3136,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3066,7 +3171,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
           assert.isTrue(confirmPushLocalChangesStub.calledOnce);
@@ -3084,22 +3189,18 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ],
-          } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3128,13 +3229,12 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3156,7 +3256,6 @@ describe("App", function () {
             },
           });
 
-
           const mockedApp: App = new proxy.App();
 
           const exitStub = sinon.stub(mockedApp, "exit").resolves();
@@ -3171,7 +3270,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
           assert.isTrue(confirmPushLocalChangesStub.calledOnce);
@@ -3233,22 +3332,19 @@ describe("App", function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
 
           const getOrAskForProjectFromGitStub = sinon.stub().resolves(undefined);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ],
-          } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]
+          );
           // const findProjectByNameStub = sinon.stub().resolves(undefined);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3261,7 +3357,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             // public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.ProjectHelper = class {
@@ -3304,22 +3400,19 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ],
-          } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]
+          );
           const findProjectByNameStub = sinon.stub().resolves(undefined);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3332,7 +3425,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.ProjectHelper = class {
@@ -3375,22 +3468,19 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ],
-          } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]
+          );
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3405,7 +3495,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3451,22 +3541,18 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ],
-          } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3486,7 +3572,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3533,22 +3619,18 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
-              {
-                host: "http://jira.mocked.com:2990",
-                endpoint: "/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "UnknownType",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ],
-          } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://jira.mocked.com:2990",
+              endpoint: "/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "UnknownType",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3568,7 +3650,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3584,7 +3666,6 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-
 
           const mockedApp: App = new proxy.App();
 
@@ -3614,25 +3695,21 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [],
-          } as IConfigFile);
-          const confirmJiraLinkCreationStub = sinon.stub().resolves(false);
+          const findLinksByProjectStub = sinon.stub().returns([]);
+          const confirmLinkCreationStub = sinon.stub().resolves(false);
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.ProjectHelper = class {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
           mockedHelper.QuestionHelper = class {
-            public static confirmJiraLinkCreation = confirmJiraLinkCreationStub;
+            public static confirmLinkCreation = confirmLinkCreationStub;
           }
 
           const proxy: any = proxyquire("../../app", {
@@ -3652,7 +3729,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(exitStub.calledOnce);
 
           exitStub.restore();
@@ -3668,21 +3745,17 @@ describe("App", function () {
             },
             name: "mocked_project_1",
           } as IProject);
-          const getConfigObjectStub = sinon.stub().returns({
-            created: 1234,
-            gitRepo: "ssh://git@mocked.com:1337/mocked/test.git",
-            links: [
-              {
-                endpoint: "http://jira.mocked.com:2990/rest/gittt/latest/",
-                hash: "1234asdf",
-                key: "TEST",
-                issue: "",
-                linkType: "Jira",
-                projectName: "mocked_project_1",
-                username: "test",
-              } as IJiraLink,
-            ],
-          } as IConfigFile);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              endpoint: "http://jira.mocked.com:2990/rest/gittt/latest/",
+              hash: "1234asdf",
+              key: "TEST",
+              issue: "",
+              linkType: "Jira",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IJiraLink,
+          ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
               host: "github.com",
@@ -3703,7 +3776,7 @@ describe("App", function () {
             public configDirExists = sinon.stub().resolves(true);
             public isConfigFileValid = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
-            public getConfigObject = getConfigObjectStub;
+            public findLinksByProject = findLinksByProjectStub;
           }
 
           mockedHelper.GitHelper = class {
@@ -3734,13 +3807,612 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(findProjectByNameStub.calledOnce);
-          assert.isTrue(getConfigObjectStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.notCalled);
           assert.isTrue(exitStub.calledOnce);
 
           exitStub.restore();
         });
+
+        it("should fail to publish records to Jira endpoint [throws]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getProjectByName = getProjectByNameStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to disable interactive mode
+          process.argv = ["1", "2", "3", "4"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(exitStub.calledOnce);
+        });
+      });
+    });
+
+    describe("Multipie", function () {
+      describe("Add/Edit", function () {
+        it("should add new Multipie link", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+          const addOrUpdateLinkStub = sinon.stub().resolves();
+
+          const getOrAskForProjectFromGitStub = sinon.stub().returns({
+            meta: {
+              host: "test.git.com",
+              port: 443,
+            },
+            name: "mocked",
+          } as IProject);
+          const addRecordsToProjectStub = sinon.stub().resolves();
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+            public addOrUpdateLink = addOrUpdateLinkStub;
+            public findLinksByProject = sinon.stub().resolves([]);
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public addLink = sinon.stub().resolves();
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public addRecordsToProject = addRecordsToProjectStub;
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          mockedHelper.ValidationHelper = class {
+            public static validateFile = sinon.stub().returns(true);
+          }
+
+          mockedHelper.QuestionHelper = class {
+            public static askMultipieLink = sinon.stub().resolves(
+              {
+                host: "http://mocked.com",
+                endpoint: "/v1/publish",
+                linkType: "Multipie",
+                projectName: "mocked_project_1",
+                username: "mocked",
+              } as IJiraLink
+            );
+            public static chooseIntegration = sinon.stub().resolves("Multipie");
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.linkAction(mockedCommand);
+
+          assert.isTrue(addOrUpdateLinkStub.calledOnce);
+        });
+
+        it("should add new Multipie link [non interactive]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const addOrUpdateLinkStub = sinon.stub().resolves();
+
+          const getProjectByNameStub = sinon.stub().returns({
+            meta: {
+              host: "test.git.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const addRecordsToProjectStub = sinon.stub().resolves();
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+            public addOrUpdateLink = addOrUpdateLinkStub;
+            public findLinksByProject = sinon.stub().resolves([]);
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public addLink = sinon.stub().resolves();
+            // public getProjectFromGit = getProjectFromGitStub;
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public addRecordsToProject = addRecordsToProjectStub;
+            public getProjectByName = getProjectByNameStub;
+          }
+
+          mockedHelper.ValidationHelper = class {
+            public static validateFile = sinon.stub().returns(true);
+          }
+
+          mockedHelper.QuestionHelper = class {
+            public static askMultipieLink = sinon.stub().resolves(
+              {
+                host: "http://mocked.com",
+                endpoint: "/v1/publish",
+                linkType: "Multipie",
+                projectName: "mocked_project_1",
+                username: "mocked",
+              } as IMultipieLink
+            );
+            public static chooseIntegration = sinon.stub().resolves("Multipie");
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+          mockedCommand.project = "mocked_project_1";
+
+          // Mock arguments array to disable interactive mode
+          process.argv = ["1", "2", "3", "4"];
+
+          await mockedApp.linkAction(mockedCommand);
+
+          assert.isTrue(addOrUpdateLinkStub.calledOnce);
+        });
+
+        it("should edit previous Multipie link", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+          const mockedCommander: CommanderStatic = proxyquire("commander", {});
+
+          const getOrAskForProjectFromGitStub = sinon.stub().returns({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const addOrUpdateLinkStub = sinon.stub().resolves();
+
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+            public addOrUpdateLink = addOrUpdateLinkStub;
+            public findLinksByProject = sinon.stub().resolves([
+              {
+                endpoint: "/v1/publish",
+                host: "http://github.com",
+                linkType: "Multipie",
+                projectName: "mocked_project_1",
+                username: "mocked"
+              } as IMultipieLink
+            ]
+            );
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          mockedHelper.QuestionHelper = class {
+            public static askMultipieLink = sinon.stub().resolves(
+              {
+                host: "http://mocked.com",
+                endpoint: "/v1/publish",
+                linkType: "Multipie",
+                projectName: "mocked_,project_1",
+                username: "mocked",
+              } as IMultipieLink
+            );
+            public static chooseIntegration = sinon.stub().resolves("Multipie");
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "commander": mockedCommander,
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.linkAction(mockedCommand);
+
+          assert.isTrue(addOrUpdateLinkStub.calledOnce);
+        });
+
+        it("should fail to add new Multipie link [error while adding]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+          const mockedCommander: CommanderStatic = proxyquire("commander", {});
+
+          const getOrAskForProjectFromGitStub = sinon.stub().returns({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const addOrUpdateLinkStub = sinon.stub().throws(new Error("Mocked Error"));
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+            public addOrUpdateLink = addOrUpdateLinkStub;
+            public findLinksByProject = sinon.stub().resolves([]);
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          mockedHelper.QuestionHelper = class {
+            public static askMultipieLink = sinon.stub().resolves(
+              {
+                host: "http://mocked.com",
+                endpoint: "/v1/publish",
+                linkType: "Multipie",
+                projectName: "mocked_,project_1",
+                username: "mocked",
+              } as IMultipieLink
+            );
+            public static chooseIntegration = sinon.stub().resolves("Multipie");
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "commander": mockedCommander,
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit");
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.linkAction(mockedCommand);
+
+          assert.isTrue(addOrUpdateLinkStub.calledOnce);
+          assert.isTrue(exitStub.calledOnce);
+
+          exitStub.restore();
+        });
+      });
+
+      describe("Publish", function () {
+        it("should publish records to Multipie endpoint", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getOrAskForProjectFromGitStub = sinon.stub().returns({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IMultipieLink,
+          ]);
+          const findProjectByNameStub = sinon.stub().resolves({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+            records: [],
+          });
+          const logChangesStub = sinon.stub().resolves([]);
+          const axiosPostStub = sinon.stub().resolves({
+            status: 200,
+            data: {
+              success: true,
+            } as IMultipiePublishResult,
+          });
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+            public findProjectByName = findProjectByNameStub;
+            public findLinksByProject = findLinksByProjectStub;
+          }
+
+          mockedHelper.GitHelper = class {
+            public logChanges = logChangesStub;
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "axios": {
+              post: axiosPostStub,
+            },
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(findProjectByNameStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
+          assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
+          assert.isTrue(axiosPostStub.calledOnce);
+        });
+
+        it("should publish records to Multipie endpoint [non interactive]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getProjectByNameStub = sinon.stub().returns({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IMultipieLink,
+          ]);
+          const findProjectByNameStub = sinon.stub().resolves({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+            records: [],
+          });
+          const logChangesStub = sinon.stub().resolves([]);
+          const axiosPostStub = sinon.stub().resolves({
+            status: 201,
+            data: {
+              success: true,
+            } as IMultipiePublishResult,
+          });
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+            public findProjectByName = findProjectByNameStub;
+            public findLinksByProject = findLinksByProjectStub;
+          }
+
+          mockedHelper.GitHelper = class {
+            public logChanges = logChangesStub;
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getProjectByName = getProjectByNameStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "axios": {
+              post: axiosPostStub,
+            },
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+          mockedCommand.project = "mocked_project_1";
+
+          // Mock arguments array to disable interactive mode
+          process.argv = ["1", "2", "3", "4"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(findProjectByNameStub.calledOnce);
+          assert.isTrue(findLinksByProjectStub.calledOnce);
+          assert.isTrue(getProjectByNameStub.calledOnce);
+          assert.isTrue(axiosPostStub.calledOnce);
+        });
+
+
+        it("should fail to publish records to Multipie endpoint [request fails]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getOrAskForProjectFromGitStub = sinon.stub().resolves({
+            meta: {
+              host: "test.git.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IMultipieLink,
+          ]);
+          const findProjectByNameStub = sinon.stub().resolves({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+            records: [],
+          });
+          const axiosPostStub = sinon.stub().throws(new Error("Mocked Error"));
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+            public findProjectByName = findProjectByNameStub;
+            public findLinksByProject = findLinksByProjectStub;
+          }
+
+          mockedHelper.GitHelper = class {
+            public logChanges = sinon.stub().resolves([]);
+          }
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "axios": {
+              post: axiosPostStub,
+            },
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit");
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(axiosPostStub.calledOnce);
+          assert.isTrue(exitStub.called);
+
+          exitStub.restore();
+        });
+
+        it("should fail to publish records to Multipie endpoint [unsuccessful response]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getOrAskForProjectFromGitStub = sinon.stub().resolves({
+            meta: {
+              host: "test.git.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "test",
+            } as IMultipieLink,
+          ]);
+          const findProjectByNameStub = sinon.stub().resolves({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+            records: [],
+          });
+          const axiosPostStub = sinon.stub().resolves({
+            status: 500,
+            data: {
+              success: false,
+            } as IMultipiePublishResult,
+          });
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+            public configDirExists = sinon.stub().resolves(true);
+            public isConfigFileValid = sinon.stub().resolves(true);
+            public findProjectByName = findProjectByNameStub;
+            public findLinksByProject = findLinksByProjectStub;
+          }
+
+          mockedHelper.GitHelper = class {
+            public logChanges = sinon.stub().resolves([]);
+          }
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "axios": {
+              post: axiosPostStub,
+            },
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit");
+
+          await mockedApp.setup();
+
+          const mockedCommand: Command = new Command();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(axiosPostStub.calledOnce);
+          assert.isTrue(exitStub.called);
+
+          exitStub.restore();
+        });
+
       });
     });
   });
@@ -3909,6 +4581,40 @@ describe("App", function () {
       expect(exitStub.calledOnce);
 
       exitStub.restore();
+    });
+
+    it("should not show report [throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit").resolves();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.reportAction(mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
     });
   });
 
@@ -4102,6 +4808,117 @@ describe("App", function () {
       assert.isTrue(exitStub.calledOnce);
 
       exitStub.restore();
+    });
+  });
+
+  describe("Today", function () {
+    it("should show list of records for today", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const findAllProjectsStub = sinon.stub().resolves(
+        [
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: Date.now(),
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+                message: "A mocked message",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: 0,
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+                message: "Some other mocked message",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked2_project",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: 0,
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb2",
+                message: "A mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: Date.now(),
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600270",
+                message: "Some other mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked2_project_long_long_long",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: 0,
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb2",
+                message: "A mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: Date.now(),
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600270",
+                message: "Some other mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+        ]
+      );
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public configDirExists = sinon.stub().resolves(true);
+        public isConfigFileValid = sinon.stub().resolves(true);
+        public findAllProjects = findAllProjectsStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.todayAction();
     });
   });
 

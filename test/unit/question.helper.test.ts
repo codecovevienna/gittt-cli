@@ -4,6 +4,7 @@ import sinon from "sinon";
 import { QuestionHelper } from "../../helper";
 import { IJiraLink, IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
+import { IMultipieLink } from '../../interfaces/index';
 
 describe("QuestionHelper", function () {
   describe("Static", function () {
@@ -131,133 +132,194 @@ describe("QuestionHelper", function () {
       expect(choice).to.eq("ssh://git@github.com/company/project.git");
     });
 
-    it("should ask for jira link", async function () {
-      const proxy: any = proxyquire("../../helper/question", {
-        inquirer: {
-          prompt: sinon.stub().resolves({
-            host: "http://mocked.com",
-            key: "MOCKED",
-            password: "mocked",
-            username: "mocked",
-          }),
-        },
+    describe("Jira", function () {
+      it("should ask for jira link", async function () {
+        const proxy: any = proxyquire("../../helper/question", {
+          inquirer: {
+            prompt: sinon.stub().resolves({
+              host: "http://mocked.com",
+              key: "MOCKED",
+              password: "mocked",
+              username: "mocked",
+            }),
+          },
+        });
+
+        const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
+          meta: {
+            host: "mocked.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+        } as IProject);
+
+        expect(choice.host).to.eq("http://mocked.com");
+        expect(choice.endpoint).to.eq("/rest/gittt/latest/");
+        expect(choice.key).to.eq("MOCKED");
+        expect(choice.username).to.eq("mocked");
+        expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
+        expect(choice.linkType).to.eq("Jira");
+        expect(choice.projectName).to.eq("mocked_project_1");
       });
 
-      const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
-        meta: {
-          host: "mocked.com",
-          port: 443,
-        },
-        name: "mocked_project_1",
-      } as IProject);
+      it("should ask for jira link with issue", async function () {
+        const proxy: any = proxyquire("../../helper/question", {
+          inquirer: {
+            prompt: sinon.stub().resolves({
+              host: "http://mocked.com",
+              key: "MOCKED",
+              issue: "EPIC-1",
+              password: "mocked",
+              username: "mocked",
+            }),
+          },
+        });
 
-      expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
-      expect(choice.key).to.eq("MOCKED");
-      expect(choice.username).to.eq("mocked");
-      expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
-      expect(choice.linkType).to.eq("Jira");
-      expect(choice.projectName).to.eq("mocked_project_1");
-    });
+        const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
+          meta: {
+            host: "mocked.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+        } as IProject);
 
-    it("should ask for jira link with issue", async function () {
-      const proxy: any = proxyquire("../../helper/question", {
-        inquirer: {
-          prompt: sinon.stub().resolves({
+        expect(choice.host).to.eq("http://mocked.com");
+        expect(choice.endpoint).to.eq("/rest/gittt/latest/");
+        expect(choice.key).to.eq("MOCKED");
+        expect(choice.issue).to.eq("EPIC-1");
+        expect(choice.username).to.eq("mocked");
+        expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
+        expect(choice.linkType).to.eq("Jira");
+        expect(choice.projectName).to.eq("mocked_project_1");
+      });
+
+      it("should ask for jira link with previous data", async function () {
+        const proxy: any = proxyquire("../../helper/question", {
+          inquirer: {
+            prompt: sinon.stub().resolves({
+              host: "http://mocked.com",
+              key: "MOCKED",
+              issue: "EPIC-1",
+              username: "mocked",
+            }),
+          },
+        });
+
+        const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
+          meta: {
+            host: "mocked.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+        } as IProject
+          , {
+            endpoint: "/rest/gittt/latest/",
+            hash: "bW9ja2VkOm1vY2tlZA==",
             host: "http://mocked.com",
-            key: "MOCKED",
             issue: "EPIC-1",
-            password: "mocked",
-            username: "mocked",
-          }),
-        },
+            key: "MOCKED",
+            linkType: "Jira",
+            projectName: "mocked_project_1",
+            username: "mocked"
+          } as IJiraLink);
+
+        expect(choice.host).to.eq("http://mocked.com");
+        expect(choice.endpoint).to.eq("/rest/gittt/latest/");
+        expect(choice.key).to.eq("MOCKED");
+        expect(choice.issue).to.eq("EPIC-1");
+        expect(choice.username).to.eq("mocked");
+        expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
+        expect(choice.linkType).to.eq("Jira");
+        expect(choice.projectName).to.eq("mocked_project_1");
       });
 
-      const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
-        meta: {
-          host: "mocked.com",
-          port: 443,
-        },
-        name: "mocked_project_1",
-      } as IProject);
+      it("should ask for jira link [with endpoint version]", async function () {
+        const proxy: any = proxyquire("../../helper/question", {
+          inquirer: {
+            prompt: sinon.stub().resolves({
+              host: "http://mocked.com",
+              key: "MOCKED",
+              password: "mocked",
+              username: "mocked",
+            }),
+          },
+        });
 
-      expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
-      expect(choice.key).to.eq("MOCKED");
-      expect(choice.issue).to.eq("EPIC-1");
-      expect(choice.username).to.eq("mocked");
-      expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
-      expect(choice.linkType).to.eq("Jira");
-      expect(choice.projectName).to.eq("mocked_project_1");
+        const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
+          meta: {
+            host: "mocked.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+        } as IProject, undefined, "2.0.0");
+
+        expect(choice.host).to.eq("http://mocked.com");
+        expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
+        expect(choice.key).to.eq("MOCKED");
+        expect(choice.username).to.eq("mocked");
+        expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
+        expect(choice.linkType).to.eq("Jira");
+        expect(choice.projectName).to.eq("mocked_project_1");
+      });
     });
 
-    it("should ask for jira link with previous data", async function () {
-      const proxy: any = proxyquire("../../helper/question", {
-        inquirer: {
-          prompt: sinon.stub().resolves({
-            host: "http://mocked.com",
-            key: "MOCKED",
-            issue: "EPIC-1",
-            username: "mocked",
-          }),
-        },
+    describe("Multipie", function () {
+      it("should ask for multipie link", async function () {
+        const proxy: any = proxyquire("../../helper/question", {
+          inquirer: {
+            prompt: sinon.stub().resolves({
+              host: "http://mocked.com",
+              username: "mocked",
+            }),
+          },
+        });
+
+        const choice: IMultipieLink = await proxy.QuestionHelper.askMultipieLink({
+          meta: {
+            host: "mocked.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+        } as IProject);
+
+        expect(choice.host).to.eq("http://mocked.com");
+        expect(choice.endpoint).to.eq("/v1/publish");
+        expect(choice.username).to.eq("mocked");
+        expect(choice.linkType).to.eq("Multipie");
+        expect(choice.projectName).to.eq("mocked_project_1");
       });
 
-      const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
-        meta: {
-          host: "mocked.com",
-          port: 443,
-        },
-        name: "mocked_project_1",
-      } as IProject
-        , {
-          endpoint: "/rest/gittt/latest/",
-          hash: "bW9ja2VkOm1vY2tlZA==",
-          host: "http://mocked.com",
-          issue: "EPIC-1",
-          key: "MOCKED",
-          linkType: "Jira",
-          projectName: "mocked_project_1",
-          username: "mocked"
-        } as IJiraLink);
+      it("should ask for multipie link with previous data", async function () {
+        const proxy: any = proxyquire("../../helper/question", {
+          inquirer: {
+            prompt: sinon.stub().resolves({
+              host: "http://mocked.com",
+              username: "mocked",
+            }),
+          },
+        });
 
-      expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/latest/");
-      expect(choice.key).to.eq("MOCKED");
-      expect(choice.issue).to.eq("EPIC-1");
-      expect(choice.username).to.eq("mocked");
-      expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
-      expect(choice.linkType).to.eq("Jira");
-      expect(choice.projectName).to.eq("mocked_project_1");
-    });
-
-    it("should ask for jira link [with endpoint version]", async function () {
-      const proxy: any = proxyquire("../../helper/question", {
-        inquirer: {
-          prompt: sinon.stub().resolves({
+        const choice: IMultipieLink = await proxy.QuestionHelper.askMultipieLink({
+          meta: {
+            host: "mocked.com",
+            port: 443,
+          },
+          name: "mocked_project_1",
+        } as IProject
+          , {
+            endpoint: "/v1/publish",
             host: "http://mocked.com",
-            key: "MOCKED",
-            password: "mocked",
-            username: "mocked",
-          }),
-        },
+            linkType: "Multipie",
+            projectName: "mocked_project_1",
+            username: "mocked"
+          } as IMultipieLink);
+
+        expect(choice.host).to.eq("http://mocked.com");
+        expect(choice.endpoint).to.eq("/v1/publish");
+        expect(choice.username).to.eq("mocked");
+        expect(choice.linkType).to.eq("Multipie");
+        expect(choice.projectName).to.eq("mocked_project_1");
       });
-
-      const choice: IJiraLink = await proxy.QuestionHelper.askJiraLink({
-        meta: {
-          host: "mocked.com",
-          port: 443,
-        },
-        name: "mocked_project_1",
-      } as IProject, undefined, "2.0.0");
-
-      expect(choice.host).to.eq("http://mocked.com");
-      expect(choice.endpoint).to.eq("/rest/gittt/2.0.0/");
-      expect(choice.key).to.eq("MOCKED");
-      expect(choice.username).to.eq("mocked");
-      expect(choice.hash).to.eq("bW9ja2VkOm1vY2tlZA==");
-      expect(choice.linkType).to.eq("Jira");
-      expect(choice.projectName).to.eq("mocked_project_1");
     });
   });
 
@@ -412,7 +474,7 @@ describe("QuestionHelper", function () {
         },
       });
 
-      const choice: string = await proxy.QuestionHelper.confirmJiraLinkCreation();
+      const choice: string = await proxy.QuestionHelper.confirmLinkCreation();
       expect(choice).to.eq(true);
     });
 
