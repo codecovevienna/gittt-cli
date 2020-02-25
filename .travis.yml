@@ -42,7 +42,7 @@ jobs:
       # Remove tests from dist
       - rm -rf dist/test
       # Compile package for various systems
-      - ./node_modules/.bin/pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/index.js --output gittt-${TRAVIS_TAG}
+      - pkg -t node12-linux-x64,node12-macos-x64,node12-win-x64 dist/index.js --output gittt-${TRAVIS_TAG}
     deploy:
       - provider: releases
         edge: true
@@ -63,7 +63,6 @@ jobs:
     node_js:
       - 12.16.1
     script:
-      - npm i -g pkg
       # Install packages
       - npm install --production
       # Compile ts into js
