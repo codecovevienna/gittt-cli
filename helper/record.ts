@@ -68,7 +68,7 @@ export class RecordHelper {
 
     // Check if records spanning over more than one year
     if (allYears.length > 1) {
-      const choiceYear: any = await inquirer.prompt([
+      const choiceYear = await inquirer.prompt([
         {
           choices: allYears,
           message: "List of years",
@@ -102,7 +102,7 @@ export class RecordHelper {
 
     // Check if records spanning over more than one month
     if (allMonths.length > 1) {
-      const choiceMonth: any = await inquirer.prompt([
+      const choiceMonth = await inquirer.prompt([
         {
           choices: allMonths,
           message: "List of Month",
@@ -136,7 +136,7 @@ export class RecordHelper {
 
     // Check if records spanning over more than one day
     if (allDays.length > 1) {
-      const choiceDay: any = await inquirer.prompt([
+      const choiceDay = await inquirer.prompt([
         {
           choices: allDays,
           message: "List of Days",

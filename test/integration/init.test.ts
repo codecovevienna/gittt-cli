@@ -2,9 +2,7 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { App } from "../../app";
-import { IInitProjectAnswers } from "../../interfaces";
 import { emptyHelper } from "../helper";
-import { QuestionHelper } from '../../helper/question';
 
 describe("Init test", function () {
   before(function () {

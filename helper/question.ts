@@ -193,7 +193,7 @@ export class QuestionHelper {
   }
 
   public static askMultipieLink = async (project: IProject, prevData?: IMultipieLink): Promise<IMultipieLink> => {
-    const multipieAnswers: any = await inquirer.prompt([
+    const multipieAnswers = await inquirer.prompt([
       {
         default: prevData ? prevData.host : "https://multipie.gittt.org",
         // also works for generic hosts
@@ -210,7 +210,11 @@ export class QuestionHelper {
         type: "input",
         // TODO validate
       },
-    ]);
+    ]) as {
+      host: string;
+      username: string;
+    };
+
     const { host, username } = multipieAnswers;
 
     const projectName: string = project.name;

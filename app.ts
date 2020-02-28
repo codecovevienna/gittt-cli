@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import commander, { Command, CommanderStatic } from "commander";
-import inquirer from "inquirer";
 import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
@@ -21,7 +20,6 @@ import {
   ConfigHelper,
 } from "./helper";
 import {
-  IInitProjectAnswers,
   IIntegrationLink,
   IJiraLink,
   IJiraPublishResult,

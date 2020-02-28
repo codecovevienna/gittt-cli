@@ -1,6 +1,5 @@
 import { RECORD_TYPES } from "../types";
 
-export * from "./answers";
 export * from "./integrations";
 
 export interface IRecord {

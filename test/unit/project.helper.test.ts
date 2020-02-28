@@ -3,7 +3,7 @@ import path from "path";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { FileHelper, GitHelper, LogHelper, ProjectHelper } from "../../helper/index";
-import { IProject, IRecord } from "../../interfaces";
+import { IProject, IRecord, IGitttFile } from "../../interfaces";
 import { RECORD_TYPES, GitRemoteError, GitNoOriginError, GitNoRepoError, GitNoUrlError } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -74,6 +74,71 @@ describe("ProjectHelper", function () {
         name: "mocked",
         records: [],
       })).to.eq("github_com_443/mocked.json");
+    });
+
+    it("should return project file path [no meta data]", async function () {
+      expect(ProjectHelper.getProjectPath({
+        name: "mocked",
+        records: [],
+      })).to.eq("mocked.json");
+    });
+
+    it("should get gittt project from .gittt.yml", async function () {
+      const getGitttFileStub = sinon.stub(mockedFileHelper, "getGitttFile").resolves({
+        name: "mocked_project_1"
+      } as IGitttFile);
+
+      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const project: IProject | undefined = await instance.getGitttProject();
+
+      expect(project).to.deep.eq({
+        name: "mocked_project_1",
+        records: []
+      } as IProject);
+
+      getGitttFileStub.restore();
+    });
+
+    it("should get gittt project from .git/config", async function () {
+      const getGitttFileStub = sinon.stub(mockedFileHelper, "getGitttFile").throws(new Error("mocked"))
+
+      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").resolves({
+        meta: {
+          host: "github.com",
+          port: 443,
+        },
+        name: "test_mocked",
+        records: [],
+      } as IProject);
+
+      const project: IProject | undefined = await instance.getGitttProject();
+
+      expect(project?.meta?.host).to.eq("github.com");
+      expect(project?.meta?.port).to.eq(443);
+      expect(project?.name).to.eq("test_mocked");
+
+      getProjectFromGitStub.restore();
+      getGitttFileStub.restore();
+    });
+
+    it("should fail to get gittt project", async function () {
+      const getGitttFileStub = sinon.stub(mockedFileHelper, "getGitttFile").throws(new Error("mocked"))
+
+      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const getProjectFromGitStub = sinon.stub(instance, "getProjectFromGit").throws(new Error("mocked2"))
+
+      try {
+        await instance.getGitttProject()
+      } catch (err) {
+        expect(err).to.not.be.undefined
+      }
+
+      getProjectFromGitStub.restore();
+      getGitttFileStub.restore();
     });
 
     it("should initialize project", async function () {
