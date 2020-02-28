@@ -97,16 +97,16 @@ describe("App", function () {
     });
   });
 
-  describe.only("Setup", function () {
+  describe("Setup", function () {
     it("should setup app", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = async (): Promise<boolean> => {
-          return true;
-        }
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       const proxy: any = proxyquire("../../app", {
@@ -121,7 +121,7 @@ describe("App", function () {
       await app.setup();
     });
 
-    it.only("should setup app without config directory", async function () {
+    it("should setup app without config directory", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
       mockedHelper.FileHelper = class {
@@ -129,9 +129,7 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
-        public isInitialized = async (): Promise<boolean> => {
-          return false;
-        }
+        public isInitialized = sinon.stub().resolves(false);
       }
 
       mockedHelper.QuestionHelper = class {
@@ -157,21 +155,20 @@ describe("App", function () {
 
       const exitStub = sinon.stub(process, "exit");
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = async (): Promise<boolean> => {
-          return false;
-        }
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(false);
+      }
+
+      mockedHelper.QuestionHelper = class {
+        public static confirmSetup = sinon.stub().resolves(false)
       }
 
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
 
       const app: App = new proxy.App();
@@ -190,13 +187,18 @@ describe("App", function () {
 
       const pullStub = sinon.stub().resolves();
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = async (): Promise<boolean> => {
-          return true;
-        }
+        public configDirExists = sinon.stub().resolves(true);
         public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.QuestionHelper = class {
+        public static confirmSetup = sinon.stub().resolves(false)
       }
 
       mockedHelper.GitHelper = class {
@@ -205,11 +207,6 @@ describe("App", function () {
 
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
 
 
@@ -227,28 +224,20 @@ describe("App", function () {
 
       const exitStub = sinon.stub(process, "exit");
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub()
-          .onCall(0).resolves(true)
-          .onCall(1).resolves(true)
+        public configDirExists = sinon.stub().resolves(true)
 
-        public isConfigFileValid = sinon.stub()
-          // Hack to overcome setup call
-          .onCall(0).resolves(true)
-          .onCall(1).resolves(false);
+        public isConfigFileValid = sinon.stub().resolves(false)
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
-
 
       const app: App = new proxy.App();
 
@@ -274,13 +263,8 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub()
-          .onCall(0).resolves(true)
-          .onCall(1).resolves(false)
-        public isConfigFileValid = sinon.stub()
-          // Hack to overcome setup call
-          .onCall(0).resolves(true)
-          .onCall(1).resolves(false);
+        public configDirExists = sinon.stub().resolves(false)
+        public isConfigFileValid = sinon.stub().resolves(false)
         public createConfigDir = createDirStub
         public initConfigFile = initConfigFileStub
       }
@@ -295,15 +279,13 @@ describe("App", function () {
         public static askGitUrl = sinon.stub().resolves("ssh://git@mocked.git.com/mock/test.git")
       }
 
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
-
 
       const app: App = new proxy.App();
 
@@ -325,12 +307,9 @@ describe("App", function () {
       const pullStub = sinon.stub().resolves();
       const createDirStub = sinon.stub().resolves();
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().onCall(0)
-          .resolves(true)
-          .resolves(false)
+        public configDirExists = sinon.stub().resolves(false)
         public isConfigFileValid = sinon.stub().resolves(true);
         public createConfigDir = createDirStub
       }
@@ -339,15 +318,13 @@ describe("App", function () {
         public pullRepo = pullStub
       }
 
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
-
 
       const app: App = new proxy.App();
 
@@ -367,21 +344,22 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
         public initProject = initProjectStub;
       }
 
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.QuestionHelper = class {
+        public static confirmInit = sinon.stub().resolves(true)
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            confirm: true,
-          }),
-        },
       });
 
       const mockedApp: App = new proxy.App();
@@ -399,21 +377,22 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
         public initProject = initProjectStub;
       }
 
+      mockedHelper.QuestionHelper = class {
+        public static confirmInit = sinon.stub().resolves(false)
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            confirm: false,
-          }),
-        },
       });
 
       const mockedApp: App = new proxy.App();
@@ -433,21 +412,22 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
         public initProject = initProjectStub;
       }
 
+      mockedHelper.QuestionHelper = class {
+        public static confirmInit = sinon.stub().resolves(true)
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            confirm: true,
-          }),
-        },
       });
 
       const mockedApp: App = new proxy.App();
@@ -462,254 +442,254 @@ describe("App", function () {
     })
   })
 
-  describe("Filter records", function () {
-    it("should filter records by year", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2012).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
+  // describe("Filter records", function () {
+  //   it("should filter records by year", async function () {
+  //     const mockedHelper: any = Object.assign({}, emptyHelper);
+  //     const mockedRecords: IRecord[] = [
+  //       {
+  //         amount: 69,
+  //         end: moment().year(2012).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //       {
+  //         amount: 1337,
+  //         end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //     ];
 
 
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
+  //     mockedHelper.FileHelper = class {
+  //       public static getHomeDir = sinon.stub().returns("/home/test");
+  //       public configDirExists = sinon.stub().resolves(true);
+  //       public isConfigFileValid = sinon.stub().resolves(true);
+  //     }
 
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            year: "2012",
-          }),
-        },
-      });
-
-
-      const mockedApp: App = new proxy.App();
-
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByYear(mockedRecords);
-
-      expect(filtered.length).to.eq(1);
-      expect(filtered[0]).to.deep.eq(mockedRecords[0]);
-    });
-
-    it("should filter records by year [same year]", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
+  //     const proxy: any = proxyquire("../../app", {
+  //       "./helper": mockedHelper,
+  //       "inquirer": {
+  //         prompt: sinon.stub().resolves({
+  //           year: "2012",
+  //         }),
+  //       },
+  //     });
 
 
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
+  //     const mockedApp: App = new proxy.App();
 
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-      });
+  //     await mockedApp.setup();
 
+  //     const filtered: IRecord[] = await mockedApp.filterRecordsByYear(mockedRecords);
 
-      const mockedApp: App = new proxy.App();
+  //     expect(filtered.length).to.eq(1);
+  //     expect(filtered[0]).to.deep.eq(mockedRecords[0]);
+  //   });
 
-      await mockedApp.setup();
+  //   it("should filter records by year [same year]", async function () {
+  //     const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      const filtered: IRecord[] = await mockedApp.filterRecordsByYear(mockedRecords);
-
-      expect(filtered).to.deep.eq(mockedRecords);
-    });
-
-    it("should filter records by month", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).month(1).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
+  //     const mockedRecords: IRecord[] = [
+  //       {
+  //         amount: 69,
+  //         end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //       {
+  //         amount: 1337,
+  //         end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //     ];
 
 
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
+  //     mockedHelper.FileHelper = class {
+  //       public static getHomeDir = sinon.stub().returns("/home/test");
+  //       public configDirExists = sinon.stub().resolves(true);
+  //       public isConfigFileValid = sinon.stub().resolves(true);
+  //     }
 
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            month: "January",
-          }),
-        },
-      });
+  //     const proxy: any = proxyquire("../../app", {
+  //       "./helper": mockedHelper,
+  //     });
 
 
-      const mockedApp: App = new proxy.App();
+  //     const mockedApp: App = new proxy.App();
 
-      await mockedApp.setup();
+  //     await mockedApp.setup();
 
-      const filtered: IRecord[] = await mockedApp.filterRecordsByMonth(mockedRecords);
+  //     const filtered: IRecord[] = await mockedApp.filterRecordsByYear(mockedRecords);
 
-      expect(filtered.length).to.eq(1);
-      expect(filtered[0]).to.deep.eq(mockedRecords[0]);
-    });
+  //     expect(filtered).to.deep.eq(mockedRecords);
+  //   });
 
-    it("should filter records by month [same month]", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
-
-
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
-
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-      });
+  //   it("should filter records by month", async function () {
+  //     const mockedHelper: any = Object.assign({}, emptyHelper);
+  //     const mockedRecords: IRecord[] = [
+  //       {
+  //         amount: 69,
+  //         end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //       {
+  //         amount: 1337,
+  //         end: moment().year(2019).month(1).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //     ];
 
 
-      const mockedApp: App = new proxy.App();
+  //     mockedHelper.FileHelper = class {
+  //       public static getHomeDir = sinon.stub().returns("/home/test");
+  //       public configDirExists = sinon.stub().resolves(true);
+  //       public isConfigFileValid = sinon.stub().resolves(true);
+  //     }
 
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByMonth(mockedRecords);
-
-      expect(filtered).to.deep.eq(mockedRecords);
-    });
-
-    it("should filter records by day", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).month(0).date(2).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
+  //     const proxy: any = proxyquire("../../app", {
+  //       "./helper": mockedHelper,
+  //       "inquirer": {
+  //         prompt: sinon.stub().resolves({
+  //           month: "January",
+  //         }),
+  //       },
+  //     });
 
 
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
+  //     const mockedApp: App = new proxy.App();
 
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            day: "01",
-          }),
-        },
-      });
+  //     await mockedApp.setup();
 
+  //     const filtered: IRecord[] = await mockedApp.filterRecordsByMonth(mockedRecords);
 
-      const mockedApp: App = new proxy.App();
+  //     expect(filtered.length).to.eq(1);
+  //     expect(filtered[0]).to.deep.eq(mockedRecords[0]);
+  //   });
 
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByDay(mockedRecords);
-
-      expect(filtered.length).to.eq(1);
-      expect(filtered[0]).to.deep.eq(mockedRecords[0]);
-    });
-
-    it("should filter records by day [same day]", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
+  //   it("should filter records by month [same month]", async function () {
+  //     const mockedHelper: any = Object.assign({}, emptyHelper);
+  //     const mockedRecords: IRecord[] = [
+  //       {
+  //         amount: 69,
+  //         end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //       {
+  //         amount: 1337,
+  //         end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //     ];
 
 
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
+  //     mockedHelper.FileHelper = class {
+  //       public static getHomeDir = sinon.stub().returns("/home/test");
+  //       public configDirExists = sinon.stub().resolves(true);
+  //       public isConfigFileValid = sinon.stub().resolves(true);
+  //     }
 
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-      });
+  //     const proxy: any = proxyquire("../../app", {
+  //       "./helper": mockedHelper,
+  //     });
 
 
-      const mockedApp: App = new proxy.App();
+  //     const mockedApp: App = new proxy.App();
 
-      await mockedApp.setup();
+  //     await mockedApp.setup();
 
-      const filtered: IRecord[] = await mockedApp.filterRecordsByDay(mockedRecords);
+  //     const filtered: IRecord[] = await mockedApp.filterRecordsByMonth(mockedRecords);
 
-      expect(filtered).to.deep.eq(mockedRecords);
-    });
-  });
+  //     expect(filtered).to.deep.eq(mockedRecords);
+  //   });
+
+  //   it("should filter records by day", async function () {
+  //     const mockedHelper: any = Object.assign({}, emptyHelper);
+  //     const mockedRecords: IRecord[] = [
+  //       {
+  //         amount: 69,
+  //         end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //       {
+  //         amount: 1337,
+  //         end: moment().year(2019).month(0).date(2).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //     ];
+
+
+  //     mockedHelper.FileHelper = class {
+  //       public static getHomeDir = sinon.stub().returns("/home/test");
+  //       public configDirExists = sinon.stub().resolves(true);
+  //       public isConfigFileValid = sinon.stub().resolves(true);
+  //     }
+
+  //     const proxy: any = proxyquire("../../app", {
+  //       "./helper": mockedHelper,
+  //       "inquirer": {
+  //         prompt: sinon.stub().resolves({
+  //           day: "01",
+  //         }),
+  //       },
+  //     });
+
+
+  //     const mockedApp: App = new proxy.App();
+
+  //     await mockedApp.setup();
+
+  //     const filtered: IRecord[] = await mockedApp.filterRecordsByDay(mockedRecords);
+
+  //     expect(filtered.length).to.eq(1);
+  //     expect(filtered[0]).to.deep.eq(mockedRecords[0]);
+  //   });
+
+  //   it("should filter records by day [same day]", async function () {
+  //     const mockedHelper: any = Object.assign({}, emptyHelper);
+  //     const mockedRecords: IRecord[] = [
+  //       {
+  //         amount: 69,
+  //         end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //       {
+  //         amount: 1337,
+  //         end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
+  //         guid: "mocked-guid",
+  //         type: RECORD_TYPES.Time,
+  //       } as IRecord,
+  //     ];
+
+
+  //     mockedHelper.FileHelper = class {
+  //       public static getHomeDir = sinon.stub().returns("/home/test");
+  //       public configDirExists = sinon.stub().resolves(true);
+  //       public isConfigFileValid = sinon.stub().resolves(true);
+  //     }
+
+  //     const proxy: any = proxyquire("../../app", {
+  //       "./helper": mockedHelper,
+  //     });
+
+
+  //     const mockedApp: App = new proxy.App();
+
+  //     await mockedApp.setup();
+
+  //     const filtered: IRecord[] = await mockedApp.filterRecordsByDay(mockedRecords);
+
+  //     expect(filtered).to.deep.eq(mockedRecords);
+  //   });
+  // });
 
   describe("Edit records", function () {
     it("should edit specific record", async function () {

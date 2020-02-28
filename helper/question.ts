@@ -396,4 +396,16 @@ export class QuestionHelper {
 
     return choice.choice;
   }
+
+  public static confirmInit = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `This will reset the project if it is already initialized, are you sure?`,
+      name: "choice",
+      type: "confirm",
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
 }

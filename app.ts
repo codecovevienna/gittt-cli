@@ -1092,15 +1092,7 @@ export class App {
   }
 
   public async initAction(): Promise<void> {
-    const initProjectAnswers: IInitProjectAnswers = await inquirer.prompt([
-      {
-        message: "This will reset the project if it is already initialized, are you sure?",
-        name: "confirm",
-        type: "confirm",
-      },
-    ]);
-
-    if (initProjectAnswers.confirm) {
+    if (await QuestionHelper.confirmInit()) {
       try {
         await this.projectHelper.initProject();
       } catch (err) {
