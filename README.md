@@ -14,6 +14,61 @@ This project aims to track the time spent on a specific [git](https://git-scm.co
 - Timer
 - Publish recorded amount of spent time to third party applications (e.g. [Jira](https://www.atlassian.com/software/jira))
 
+<<<<<<< Updated upstream
+=======
+## Using the `.gittt.yml`
+
+1. Create a directory in your workspace which represents the project
+```bash
+mkdir new_project
+```
+2. Navigate into the project directory
+```bash
+cd new_project
+```
+3. Create a `.gittt.yml` file in a new directory or an existing project directory with the following content
+```yaml
+name: new_project
+```
+4. Initialize the new gittt project
+```
+gittt init
+```
+
+## Migrate projects from `.git/config` to `.gittt.yml`
+
+1. Create a `.gittt.yml` file in a new directory or an existing project directory with the following content
+```yaml
+name: name_of_the_project_to_book_resources_to
+```
+2. Navigate to the projects directory in your gittt config directory in your home directory
+```bash
+cd ~/.gittt-cli/projects
+```
+3. Move the projects file from the project to migrate into the root projects directory
+```bash
+mv github_com/project_to_migrate.json .
+```
+
+4. Open up the json file and remove the meta data object
+```diff
+2,6d1
+<     "meta": {
+<         "host": "github.com",
+<         "port": null,
+<         "raw": "git@github.com:eiabea/tempea-api.git"
+<     },
+```
+5. Save the file and you are good to go
+
+## Bash completion
+
+```
+cp bash/gittt-completion.bash /etc/bash_completion.d/gittt-completion.bash
+source /etc/bash_completion.d/gittt-completion.bash
+```
+
+>>>>>>> Stashed changes
 ## How to
 
 1. Install binary on your system (tba.)
