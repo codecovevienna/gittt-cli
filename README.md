@@ -75,7 +75,7 @@ $ cd my-awesome-project
 
 5. Commit the spent hours with the following command
 ```
-$ gittt commit 3 -m "Spent a great time with this code"
+$ gittt commit -m "Spent a great time with this code" -a 3
 ```
 
 6. After committing more hours or editing already committed hours the data can be pushed to your time tracking repository by executing
