@@ -14,6 +14,7 @@ This project aims to track the time spent on a specific [git](https://git-scm.co
 - Timer
 - Publish recorded amount of spent time to third party applications (e.g. [Jira](https://www.atlassian.com/software/jira))
 
+
 ## Using the `.gittt.yml`
 
 1. Create a directory in your workspace which represents the project
@@ -58,6 +59,14 @@ mv github_com/project_to_migrate.json .
 <     },
 ```
 5. Save the file and you are good to go
+
+
+## Bash completion
+
+```
+cp bash/gittt-completion.bash /etc/bash_completion.d/gittt-completion.bash
+source /etc/bash_completion.d/gittt-completion.bash
+```
 
 ## How to
 
