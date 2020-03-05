@@ -32,13 +32,9 @@ export function parseProjectNameFromGitUrl(input: string): IProject {
 
   let parsedName: string;
 
-  if (nameSplit.length === 2) {
+  if (nameSplit.length > 1) {
     // Assuming namespace/project-name
-    const [
-      namespace,
-      projectName,
-    ] = nameSplit;
-    parsedName = `${namespace}_${projectName}`;
+    parsedName = name.replace(/\//g, "_");
   } else {
     // No slash found, using raw name
     parsedName = name;

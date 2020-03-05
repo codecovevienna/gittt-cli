@@ -30,6 +30,15 @@ describe("Helper", function () {
     expect(project.meta?.raw).to.eq("ssh://git@mock.github.com:443/test/mocked.git");
   });
 
+  it("should parse git url [with sub groups]", function () {
+    const project: IProject = parseProjectNameFromGitUrl("ssh://git@mock.github.com:443/group/subgroup/mocked.git");
+    assert.isArray(project.records);
+    expect(project.name).to.eq("group_subgroup_mocked");
+    expect(project.meta.host).to.eq("mock.github.com");
+    expect(project.meta.port).to.eq(443);
+    expect(project.meta.raw).to.eq("ssh://git@mock.github.com:443/group/subgroup/mocked.git");
+  });
+
   it("should fail to parse git url [no port]", function () {
     try {
       parseProjectNameFromGitUrl("ssh://git@mock.github.com/test/mocked.git");
