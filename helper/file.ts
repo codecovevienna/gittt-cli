@@ -4,6 +4,7 @@ import path from "path";
 import YAML from 'yaml'
 import { IConfigFile, IProject, IProjectMeta, ITimerFile, IGitttFile } from "../interfaces";
 import { LogHelper, parseProjectNameFromGitUrl, ProjectHelper } from "./";
+import { GitttFileError } from '../types/errors/gitttFileError';
 
 export class FileHelper {
   public static isFile = (input: string): boolean => {
@@ -122,7 +123,7 @@ export class FileHelper {
         .toString()) as IGitttFile;
     } catch (err) {
       LogHelper.debug("Unable to parse .gittt.yml file", err);
-      throw new Error("Unable to parse .gittt.yml file")
+      throw new GitttFileError("Unable to parse .gittt.yml file")
     }
   }
 
@@ -169,7 +170,6 @@ export class FileHelper {
     }
   }
 
-  // TODO should maybe be private
   public saveProjectObject = async (project: IProject): Promise<void> => {
     try {
       const projectPath: string = await this.getProjectPath(project);

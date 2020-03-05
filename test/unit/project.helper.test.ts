@@ -90,7 +90,7 @@ describe("ProjectHelper", function () {
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
 
-      const project: IProject | undefined = await instance.getGitttProject();
+      const project: IProject = await instance.getGitttProject();
 
       expect(project).to.deep.eq({
         name: "mocked_project_1",
@@ -114,7 +114,7 @@ describe("ProjectHelper", function () {
         records: [],
       } as IProject);
 
-      const project: IProject | undefined = await instance.getGitttProject();
+      const project: IProject = await instance.getGitttProject();
 
       expect(project?.meta?.host).to.eq("github.com");
       expect(project?.meta?.port).to.eq(443);

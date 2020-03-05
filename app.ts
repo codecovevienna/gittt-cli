@@ -68,7 +68,6 @@ export class App {
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
     this.configHelper = new ConfigHelper(this.fileHelper);
 
-    // TODO correct place to ask this?
     if (!(await this.configHelper.isInitialized())) {
       if (await QuestionHelper.confirmSetup()) {
         await this.initConfigDir();
@@ -666,12 +665,17 @@ export class App {
       commitMessage = `Committed ${amount} hour${amount > 1 ? "s" : ""} to ${project.name}`
     }
 
-    await this.projectHelper.addRecordToProject({
-      amount,
-      end: Date.now(),
-      message: commitMessage,
-      type: RECORD_TYPES.Time,
-    }, project);
+    try {
+      await this.projectHelper.addRecordToProject({
+        amount,
+        end: Date.now(),
+        message: commitMessage,
+        type: RECORD_TYPES.Time,
+      }, project);
+    } catch (err) {
+      LogHelper.debug("Unable to add record to project", err);
+      this.exit("Unable to add record to project", 1);
+    }
   }
 
   public async addAction(cmd: Command): Promise<void> {
@@ -748,7 +752,12 @@ export class App {
       type,
     };
 
-    await this.projectHelper.addRecordToProject(newRecord, project);
+    try {
+      await this.projectHelper.addRecordToProject(newRecord, project);
+    } catch (err) {
+      LogHelper.debug("Unable to add record to project", err);
+      this.exit("Unable to add record to project", 1);
+    }
   }
 
   public async importCsv(cmd: string, options: any): Promise<void> {
@@ -1094,6 +1103,7 @@ export class App {
       try {
         await this.projectHelper.initProject();
       } catch (err) {
+        LogHelper.debug("Error initializing project", err);
         this.exit("Error initializing project", 1);
       }
     } else {

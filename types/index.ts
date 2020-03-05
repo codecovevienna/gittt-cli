@@ -2,6 +2,7 @@ export * from "./errors/gitNoOriginError";
 export * from "./errors/gitNoUrlError";
 export * from "./errors/gitNoRepoError";
 export * from "./errors/gitRemoteError";
+export * from "./errors/gitttFileError";
 
 export enum RECORD_TYPES {
   Time = "Time",

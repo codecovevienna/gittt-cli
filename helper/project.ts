@@ -1,6 +1,6 @@
 import shelljs, { ExecOutputReturnValue } from "shelljs";
 import { IProject, IProjectMeta, IRecord, IGitttFile } from "../interfaces";
-import { GitNoOriginError, GitNoUrlError, GitRemoteError, GitNoRepoError, RECORD_TYPES } from "../types";
+import { GitNoOriginError, GitNoUrlError, GitRemoteError, GitNoRepoError, GitttFileError, RECORD_TYPES } from "../types";
 import {
   FileHelper,
   GitHelper,
@@ -75,7 +75,7 @@ export class ProjectHelper {
     this.fileHelper = fileHelper;
   }
 
-  public getGitttProject = async (): Promise<IProject | undefined> => {
+  public getGitttProject = async (): Promise<IProject> => {
     let project: IProject | undefined = undefined;
     try {
       const gitttFile: IGitttFile = await this.fileHelper.getGitttFile();
@@ -101,27 +101,14 @@ export class ProjectHelper {
   }
 
   public initProject = async (): Promise<IProject> => {
-    // TODO
-    // try to find .gittt file
-    // parse file
-    // init project from there
-    // if no file/parsing fails try git folder
-    // if this also fails -> error
+    try {
+      const project = await this.getGitttProject();
+      await this.fileHelper.initProject(project);
+      await this.gitHelper.commitChanges(`Initialized project`);
 
-    const project = await this.getGitttProject();
-
-    if (project) {
-      try {
-        await this.fileHelper.initProject(project);
-        await this.gitHelper.commitChanges(`Initialized project`);
-
-        return project;
-      } catch (err) {
-        LogHelper.debug("Unable to commit changes");
-        throw new Error("Error initializing project");
-      }
-    } else {
-      LogHelper.debug("project is undefined");
+      return project;
+    } catch (err) {
+      LogHelper.debug("Error initializing project", err);
       throw new Error("Error initializing project");
     }
   }
@@ -180,7 +167,7 @@ export class ProjectHelper {
     uniqueOnly?: boolean,
     nonOverlappingOnly?: boolean,
   ): Promise<void> => {
-    const gitttProject: IProject | undefined = await this.getGitttProject();
+    const gitttProject: IProject = await this.getGitttProject();
 
     const selectedProject: IProject | undefined = project ?
       project :
@@ -407,14 +394,12 @@ export class ProjectHelper {
 
     try {
       // const projectFromGit: IProject = this.getProjectFromGit();
-      const gitttProject: IProject | undefined = await this.getGitttProject();
-      if (gitttProject) {
-        projectName = gitttProject.name;
-      } else {
-        throw new Error("Unable to get gittt project")
-      }
+      const gitttProject: IProject = await this.getGitttProject();
+      projectName = gitttProject.name;
     } catch (e) {
-      if (e instanceof GitRemoteError || e instanceof GitNoRepoError) {
+      if (e instanceof GitRemoteError ||
+        e instanceof GitNoRepoError ||
+        e instanceof GitttFileError) {
         const selectedProjectName: string = await QuestionHelper.
           chooseProjectFile(await this.fileHelper.findAllProjects());
         const split = selectedProjectName.split("/");
