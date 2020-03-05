@@ -393,7 +393,6 @@ export class ProjectHelper {
     let projectMeta: IProjectMeta | undefined;
 
     try {
-      // const projectFromGit: IProject = this.getProjectFromGit();
       const gitttProject: IProject = await this.getGitttProject();
       projectName = gitttProject.name;
     } catch (e) {
