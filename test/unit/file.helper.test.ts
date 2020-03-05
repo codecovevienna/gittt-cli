@@ -3,7 +3,7 @@ import path from "path";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { FileHelper, LogHelper } from "../../helper/index";
-import { IConfigFile, IIntegrationLink, IProject, IProjectMeta, ITimerFile, IJiraLink } from "../../interfaces";
+import { IConfigFile, IProject, IProjectMeta, ITimerFile } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 
 const configDir: string = path.join("mocked", ".git-time-tracker");
@@ -735,303 +735,6 @@ describe("FileHelper", function () {
     });
   });
 
-  describe("Links", function () {
-    it("should add link to config file", async function () {
-      const writeJsonSpy = sinon.stub().resolves();
-      const fileProxy: any = proxyquire("../../helper/file", {
-        "fs-extra": {
-          writeJson: writeJsonSpy,
-        },
-      });
-
-      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-
-      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [],
-      });
-
-      const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
-        linkType: "mock",
-        projectName: "mocked",
-      } as IIntegrationLink);
-
-      expect(updatedConfigFile.links.length).to.eq(1);
-
-      assert.isTrue(writeJsonSpy.calledOnce);
-      assert.isTrue(getConfigObjectStub.calledOnce);
-    });
-
-    it("should add different type of link to config file", async function () {
-      const writeJsonSpy = sinon.stub().resolves();
-      const fileProxy: any = proxyquire("../../helper/file", {
-        "fs-extra": {
-          writeJson: writeJsonSpy,
-        },
-      });
-
-      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-
-      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [
-          {
-            linkType: "mock",
-            projectName: "mocked",
-          } as IIntegrationLink,
-        ],
-      });
-
-      const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
-        linkType: "other",
-        projectName: "mocked",
-      } as IIntegrationLink);
-
-      expect(updatedConfigFile.links.length).to.eq(2);
-
-      assert.isTrue(writeJsonSpy.calledOnce);
-      assert.isTrue(getConfigObjectStub.calledOnce);
-    });
-
-    it("should update link in config file", async function () {
-      const writeJsonSpy = sinon.stub().resolves();
-      const fileProxy: any = proxyquire("../../helper/file", {
-        "fs-extra": {
-          writeJson: writeJsonSpy,
-        },
-      });
-
-      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-
-      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [
-          {
-            linkType: "mock",
-            projectName: "mocked",
-          } as IIntegrationLink,
-        ],
-      });
-
-      const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
-        endpoint: "http://test.com/api",
-        hash: "1234asdf",
-        key: "test",
-        linkType: "mock",
-        projectName: "mocked",
-        username: "mock",
-      } as IJiraLink);
-
-      expect(updatedConfigFile.links.length).to.eq(1);
-
-      assert.isTrue(writeJsonSpy.calledOnce);
-      assert.isTrue(getConfigObjectStub.calledOnce);
-    });
-
-    it("should update link with multiple types", async function () {
-      const writeJsonSpy = sinon.stub().resolves();
-      const fileProxy: any = proxyquire("../../helper/file", {
-        "fs-extra": {
-          writeJson: writeJsonSpy,
-        },
-      });
-
-      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-
-      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [
-          {
-            linkType: "mock",
-            projectName: "mocked",
-          } as IIntegrationLink,
-          {
-            linkType: "fake",
-            projectName: "mocked",
-          } as IIntegrationLink,
-        ],
-      });
-
-      const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
-        endpoint: "http://test.com/api",
-        hash: "1234asdf",
-        key: "test",
-        linkType: "mock",
-        projectName: "mocked",
-        username: "updated",
-      } as IJiraLink);
-
-      expect(updatedConfigFile.links.length).to.eq(2);
-      expect(updatedConfigFile).to.deep.equal({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [
-          {
-            linkType: "fake",
-            projectName: "mocked",
-          } as IIntegrationLink,
-          {
-            endpoint: "http://test.com/api",
-            hash: "1234asdf",
-            key: "test",
-            linkType: "mock",
-            projectName: "mocked",
-            username: "updated",
-          } as IJiraLink,
-        ],
-      })
-
-      assert.isTrue(writeJsonSpy.calledOnce);
-      assert.isTrue(getConfigObjectStub.calledOnce);
-    });
-
-    it("should find link by project", async function () {
-      const fileProxy: any = proxyquire("../../helper/file", {});
-
-      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-
-      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [
-          {
-            linkType: "mock",
-            projectName: "mocked",
-          } as IIntegrationLink,
-        ],
-      });
-
-      const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
-        meta: {
-          host: "github.com",
-          port: 10022,
-        },
-        name: "mocked",
-        records: [],
-      } as IProject);
-
-      expect(foundLinks[0]).to.deep.eq({
-        linkType: "mock",
-        projectName: "mocked",
-      } as IIntegrationLink)
-
-      assert.isTrue(getConfigObjectStub.calledOnce);
-    });
-
-    it("should find link by project and type", async function () {
-      const fileProxy: any = proxyquire("../../helper/file", {});
-
-      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-
-      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [
-          {
-            linkType: "mock",
-            projectName: "mocked",
-          } as IIntegrationLink,
-          {
-            linkType: "mock1",
-            projectName: "mocked",
-          } as IIntegrationLink,
-          {
-            linkType: "fake",
-            projectName: "other",
-          } as IIntegrationLink,
-        ],
-      });
-
-      const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
-        meta: {
-          host: "github.com",
-          port: 10022,
-        },
-        name: "mocked",
-        records: [],
-      } as IProject, "mock1");
-
-      expect(foundLinks[0]).to.deep.eq({
-        linkType: "mock1",
-        projectName: "mocked",
-      } as IIntegrationLink)
-
-      assert.isTrue(getConfigObjectStub.calledOnce);
-    });
-
-    it("should fail to find link by project [unknown project name]", async function () {
-      const fileProxy: any = proxyquire("../../helper/file", {});
-
-      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-
-      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [
-          {
-            linkType: "mock",
-            projectName: "mocked",
-          } as IIntegrationLink,
-        ],
-      });
-
-      const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
-        meta: {
-          host: "github.com",
-          port: 10022,
-        },
-        name: "unknown",
-        records: [],
-      } as IProject);
-
-      expect(foundLinks.length).to.eq(0)
-
-      assert.isTrue(getConfigObjectStub.calledOnce);
-    });
-
-    it("should fail to find link by project [more links for same project name]", async function () {
-      const fileProxy: any = proxyquire("../../helper/file", {});
-
-      const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
-
-      const getConfigObjectStub = sinon.stub(instance, "getConfigObject").resolves({
-        created: 1234,
-        gitRepo: "ssh://mocked",
-        links: [
-          {
-            linkType: "mock",
-            projectName: "mocked",
-          } as IIntegrationLink,
-          {
-            linkType: "mock1",
-            projectName: "mocked",
-          } as IIntegrationLink,
-          {
-            linkType: "fake",
-            projectName: "other",
-          } as IIntegrationLink,
-        ],
-      });
-
-      const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
-        meta: {
-          host: "github.com",
-          port: 10022,
-        },
-        name: "mocked",
-        records: [],
-      } as IProject);
-
-      expect(foundLinks.length).to.eq(2)
-
-      assert.isTrue(getConfigObjectStub.calledOnce);
-    });
-  });
-
   describe("Get projects", function () {
     it("should get all projects", async function () {
       const readdirSyncSpy = sinon.stub()
@@ -1075,6 +778,9 @@ describe("FileHelper", function () {
         "fs-extra": {
           readJson: readJsonSpy,
           readdirSync: readdirSyncSpy,
+          lstatSync: sinon.stub().returns({
+            isFile: () => false,
+          })
         },
       });
 
@@ -1192,6 +898,9 @@ describe("FileHelper", function () {
         "fs-extra": {
           readJson: readJsonSpy,
           readdirSync: readdirSyncSpy,
+          lstatSync: sinon.stub().returns({
+            isFile: () => false,
+          })
         },
       });
 
@@ -1264,6 +973,9 @@ describe("FileHelper", function () {
           pathExists: sinon.stub().resolves(true),
           readJson: readJsonSpy,
           readdirSync: readdirSyncSpy,
+          lstatSync: sinon.stub().returns({
+            isFile: () => false,
+          })
         },
       });
 
@@ -1307,6 +1019,9 @@ describe("FileHelper", function () {
         "fs-extra": {
           readJson: readJsonSpy,
           readdirSync: readdirSyncSpy,
+          lstatSync: sinon.stub().returns({
+            isFile: () => false,
+          })
         },
       });
 

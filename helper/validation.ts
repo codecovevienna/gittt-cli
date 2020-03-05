@@ -5,6 +5,7 @@ import { isString } from "util";
 import { parseProjectNameFromGitUrl } from "./";
 
 export class ValidationHelper {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateNumber = (input: any, from?: number, to?: number): boolean => {
     if (!isNaN(input)) {
       const inputNumber: number = parseInt(input, 10);
@@ -22,6 +23,7 @@ export class ValidationHelper {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateYear = (input: any): boolean | string | Promise<boolean | string> => {
     if (ValidationHelper.validateNumber(input)) {
       return true;
@@ -29,6 +31,8 @@ export class ValidationHelper {
       return "The year has to be a number";
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateMonth = (input: any): boolean | string | Promise<boolean | string> => {
     if (ValidationHelper.validateNumber(input, 1, 12)) {
       return true;
@@ -36,6 +40,8 @@ export class ValidationHelper {
       return "The month has to be a number between 1 and 12";
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateDay = (input: any): boolean | string | Promise<boolean | string> => {
     if (ValidationHelper.validateNumber(input, 1, 31)) {
       return true;
@@ -43,6 +49,8 @@ export class ValidationHelper {
       return "The day has to be a number between 1 and 31";
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateHour = (input: any): boolean | string | Promise<boolean | string> => {
     if (ValidationHelper.validateNumber(input, 0, 23)) {
       return true;
@@ -50,6 +58,8 @@ export class ValidationHelper {
       return "The hour has to be a number between 0 and 23";
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateMinute = (input: any): boolean | string | Promise<boolean | string> => {
     if (ValidationHelper.validateNumber(input, 0, 59)) {
       return true;
@@ -58,6 +68,7 @@ export class ValidationHelper {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateAmount = (input: any): boolean | string | Promise<boolean | string> => {
     if (ValidationHelper.validateNumber(input)) {
       return true;
@@ -66,6 +77,7 @@ export class ValidationHelper {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateGitUrl = (input: any): boolean | string | Promise<boolean | string> => {
     try {
       // Will throw if parsing fails
@@ -76,6 +88,7 @@ export class ValidationHelper {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateJiraUsername = (input: any): boolean | string | Promise<boolean | string> => {
     // TODO improve
     if (!input) {
@@ -89,6 +102,7 @@ export class ValidationHelper {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
     // TODO improve
     const inputString: string = input;
@@ -99,6 +113,7 @@ export class ValidationHelper {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateJiraKey = (input: any): boolean | string | Promise<boolean | string> => {
     const inputString: string = input;
     if (inputString.length > 1) {
@@ -108,6 +123,7 @@ export class ValidationHelper {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateJiraIssueKey = (input: any): boolean | string | Promise<boolean | string> => {
     const inputString: string = input;
     if (inputString.length > 0) {
@@ -121,6 +137,7 @@ export class ValidationHelper {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateFile = (input: any): boolean => {
     if (isString(input)) {
       try {

@@ -1,7 +1,7 @@
 import inquirer from "inquirer";
 import _ from "lodash";
 import moment, { Moment } from "moment";
-import { IGitCommitMessageAnswers, IProject, ITimerFile } from "../interfaces";
+import { IProject, ITimerFile } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { FileHelper, LogHelper, ProjectHelper } from "./";
 
@@ -52,7 +52,9 @@ export class TimerHelper {
 
       if (!finalCommitMessage) {
         // ask for message
-        const gitCommitMessageAnswer: IGitCommitMessageAnswers = await inquirer.prompt([
+        const gitCommitMessageAnswer: {
+          gitCommitMessage: string;
+        } = await inquirer.prompt([
           {
             message: "Git Commit Message:",
             name: "gitCommitMessage",
