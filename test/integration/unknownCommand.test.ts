@@ -16,18 +16,18 @@ describe("Unknown command test", function () {
 
     const helpStub = sinon.stub(mockedCommander, "help");
 
-
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
-      public configDirExists = sinon.stub().resolves(true);
-      public isConfigFileValid = sinon.stub().resolves(true);
+    }
+
+    mockedHelper.ConfigHelper = class {
+      public isInitialized = sinon.stub().resolves(true);
     }
 
     const proxy: any = proxyquire("../../app", {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-
 
     const mockedApp: App = new proxy.App();
 

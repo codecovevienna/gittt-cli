@@ -1,12 +1,11 @@
 import { assert, expect } from "chai";
 import { Command, CommanderStatic } from "commander";
-import moment from "moment";
 import proxyquire from "proxyquire";
 import { DefaultLogFields } from "simple-git/typings/response";
 import sinon from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import { IInitAnswers, IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
+import { IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 
@@ -103,10 +102,10 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = async (): Promise<boolean> => {
-          return true;
-        }
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       const proxy: any = proxyquire("../../app", {
@@ -124,23 +123,21 @@ describe("App", function () {
     it("should setup app without config directory", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = async (): Promise<boolean> => {
-          return false;
-        }
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(false);
+      }
+
+      mockedHelper.QuestionHelper = class {
+        public static confirmSetup = sinon.stub().resolves(true)
       }
 
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: true,
-          } as IInitAnswers),
-        },
       });
-
 
       const app: App = new proxy.App();
 
@@ -157,21 +154,20 @@ describe("App", function () {
 
       const exitStub = sinon.stub(process, "exit");
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = async (): Promise<boolean> => {
-          return false;
-        }
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(false);
+      }
+
+      mockedHelper.QuestionHelper = class {
+        public static confirmSetup = sinon.stub().resolves(false)
       }
 
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
 
       const app: App = new proxy.App();
@@ -190,13 +186,18 @@ describe("App", function () {
 
       const pullStub = sinon.stub().resolves();
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = async (): Promise<boolean> => {
-          return true;
-        }
+        public configDirExists = sinon.stub().resolves(true);
         public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.QuestionHelper = class {
+        public static confirmSetup = sinon.stub().resolves(false)
       }
 
       mockedHelper.GitHelper = class {
@@ -205,11 +206,6 @@ describe("App", function () {
 
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
 
 
@@ -227,28 +223,20 @@ describe("App", function () {
 
       const exitStub = sinon.stub(process, "exit");
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub()
-          .onCall(0).resolves(true)
-          .onCall(1).resolves(true)
+        public configDirExists = sinon.stub().resolves(true)
 
-        public isConfigFileValid = sinon.stub()
-          // Hack to overcome setup call
-          .onCall(0).resolves(true)
-          .onCall(1).resolves(false);
+        public isConfigFileValid = sinon.stub().resolves(false)
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
-
 
       const app: App = new proxy.App();
 
@@ -274,13 +262,8 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub()
-          .onCall(0).resolves(true)
-          .onCall(1).resolves(false)
-        public isConfigFileValid = sinon.stub()
-          // Hack to overcome setup call
-          .onCall(0).resolves(true)
-          .onCall(1).resolves(false);
+        public configDirExists = sinon.stub().resolves(false)
+        public isConfigFileValid = sinon.stub().resolves(false)
         public createConfigDir = createDirStub
         public initConfigFile = initConfigFileStub
       }
@@ -295,15 +278,13 @@ describe("App", function () {
         public static askGitUrl = sinon.stub().resolves("ssh://git@mocked.git.com/mock/test.git")
       }
 
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
-
 
       const app: App = new proxy.App();
 
@@ -325,12 +306,9 @@ describe("App", function () {
       const pullStub = sinon.stub().resolves();
       const createDirStub = sinon.stub().resolves();
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().onCall(0)
-          .resolves(true)
-          .resolves(false)
+        public configDirExists = sinon.stub().resolves(false)
         public isConfigFileValid = sinon.stub().resolves(true);
         public createConfigDir = createDirStub
       }
@@ -339,15 +317,13 @@ describe("App", function () {
         public pullRepo = pullStub
       }
 
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            setup: false,
-          } as IInitAnswers),
-        },
       });
-
 
       const app: App = new proxy.App();
 
@@ -367,21 +343,22 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
         public initProject = initProjectStub;
       }
 
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.QuestionHelper = class {
+        public static confirmInit = sinon.stub().resolves(true)
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            confirm: true,
-          }),
-        },
       });
 
       const mockedApp: App = new proxy.App();
@@ -399,21 +376,22 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
         public initProject = initProjectStub;
       }
 
+      mockedHelper.QuestionHelper = class {
+        public static confirmInit = sinon.stub().resolves(false)
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            confirm: false,
-          }),
-        },
       });
 
       const mockedApp: App = new proxy.App();
@@ -433,21 +411,22 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
         public initProject = initProjectStub;
       }
 
+      mockedHelper.QuestionHelper = class {
+        public static confirmInit = sinon.stub().resolves(true)
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            confirm: true,
-          }),
-        },
       });
 
       const mockedApp: App = new proxy.App();
@@ -461,255 +440,6 @@ describe("App", function () {
       exitStub.restore();
     })
   })
-
-  describe("Filter records", function () {
-    it("should filter records by year", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2012).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
-
-
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
-
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            year: "2012",
-          }),
-        },
-      });
-
-
-      const mockedApp: App = new proxy.App();
-
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByYear(mockedRecords);
-
-      expect(filtered.length).to.eq(1);
-      expect(filtered[0]).to.deep.eq(mockedRecords[0]);
-    });
-
-    it("should filter records by year [same year]", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
-
-
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
-
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-      });
-
-
-      const mockedApp: App = new proxy.App();
-
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByYear(mockedRecords);
-
-      expect(filtered).to.deep.eq(mockedRecords);
-    });
-
-    it("should filter records by month", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).month(1).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
-
-
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
-
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            month: "January",
-          }),
-        },
-      });
-
-
-      const mockedApp: App = new proxy.App();
-
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByMonth(mockedRecords);
-
-      expect(filtered.length).to.eq(1);
-      expect(filtered[0]).to.deep.eq(mockedRecords[0]);
-    });
-
-    it("should filter records by month [same month]", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).month(0).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
-
-
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
-
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-      });
-
-
-      const mockedApp: App = new proxy.App();
-
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByMonth(mockedRecords);
-
-      expect(filtered).to.deep.eq(mockedRecords);
-    });
-
-    it("should filter records by day", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).month(0).date(2).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
-
-
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
-
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-        "inquirer": {
-          prompt: sinon.stub().resolves({
-            day: "01",
-          }),
-        },
-      });
-
-
-      const mockedApp: App = new proxy.App();
-
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByDay(mockedRecords);
-
-      expect(filtered.length).to.eq(1);
-      expect(filtered[0]).to.deep.eq(mockedRecords[0]);
-    });
-
-    it("should filter records by day [same day]", async function () {
-      const mockedHelper: any = Object.assign({}, emptyHelper);
-      const mockedRecords: IRecord[] = [
-        {
-          amount: 69,
-          end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-        {
-          amount: 1337,
-          end: moment().year(2019).month(0).date(1).hours(0).minutes(0).seconds(0).unix() * 1000,
-          guid: "mocked-guid",
-          type: RECORD_TYPES.Time,
-        } as IRecord,
-      ];
-
-
-      mockedHelper.FileHelper = class {
-        public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-      }
-
-      const proxy: any = proxyquire("../../app", {
-        "./helper": mockedHelper,
-      });
-
-
-      const mockedApp: App = new proxy.App();
-
-      await mockedApp.setup();
-
-      const filtered: IRecord[] = await mockedApp.filterRecordsByDay(mockedRecords);
-
-      expect(filtered).to.deep.eq(mockedRecords);
-    });
-  });
 
   describe("Edit records", function () {
     it("should edit specific record", async function () {
@@ -744,15 +474,24 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
         public saveProjectObject = saveProjectObjectStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.RecordHelper = class {
+        public static filterRecordsByYear = sinon.stub().resolves(mockedRecords)
+        public static filterRecordsByMonth = sinon.stub().resolves(mockedRecords)
+        public static filterRecordsByDay = sinon.stub().resolves(mockedRecords)
       }
 
       mockedHelper.GitHelper = class {
         public commitChanges = commitChangesStub;
       }
+
       mockedHelper.ProjectHelper = class {
         public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
       }
@@ -773,12 +512,7 @@ describe("App", function () {
         "./helper": mockedHelper,
       });
 
-
       const mockedApp: App = new proxy.App();
-
-      sinon.stub(mockedApp, "filterRecordsByYear").resolves(mockedRecords);
-      sinon.stub(mockedApp, "filterRecordsByMonth").resolves(mockedRecords);
-      sinon.stub(mockedApp, "filterRecordsByDay").resolves(mockedRecords);
 
       await mockedApp.setup();
 
@@ -808,8 +542,10 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -852,9 +588,11 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -864,7 +602,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -905,10 +642,12 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
         public getProjectFromGit = getProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -918,7 +657,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -969,10 +707,12 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
         public saveProjectObject = saveProjectObjectStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.GitHelper = class {
@@ -988,7 +728,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1038,12 +777,13 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1053,7 +793,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1105,12 +844,13 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1120,7 +860,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1169,12 +908,13 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1187,7 +927,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1236,12 +975,13 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1251,7 +991,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1279,8 +1018,10 @@ describe("App", function () {
       const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1341,10 +1082,18 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
         public saveProjectObject = saveProjectObjectStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.RecordHelper = class {
+        public static filterRecordsByYear = sinon.stub().resolves(mockedRecords)
+        public static filterRecordsByMonth = sinon.stub().resolves(mockedRecords)
+        public static filterRecordsByDay = sinon.stub().resolves(mockedRecords)
       }
 
       mockedHelper.GitHelper = class {
@@ -1362,12 +1111,7 @@ describe("App", function () {
         "./helper": mockedHelper,
       });
 
-
       const mockedApp: App = new proxy.App();
-
-      sinon.stub(mockedApp, "filterRecordsByYear").resolves(mockedRecords);
-      sinon.stub(mockedApp, "filterRecordsByMonth").resolves(mockedRecords);
-      sinon.stub(mockedApp, "filterRecordsByDay").resolves(mockedRecords);
 
       await mockedApp.setup();
 
@@ -1390,11 +1134,12 @@ describe("App", function () {
 
       const getOrAskForProjectFromGitStub = sinon.stub().throws(new Error("Mocked Error"));
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1440,9 +1185,11 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1452,7 +1199,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1493,12 +1239,13 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1508,7 +1255,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1558,13 +1304,14 @@ describe("App", function () {
       const commitChangesStub = sinon.stub().resolves();
       const saveProjectObjectStub = sinon.stub().resolves();
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
         public saveProjectObject = saveProjectObjectStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.GitHelper = class {
@@ -1577,7 +1324,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1625,12 +1371,13 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1640,7 +1387,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1687,12 +1433,13 @@ describe("App", function () {
         records: mockedRecords,
       });
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1702,7 +1449,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -1731,8 +1477,10 @@ describe("App", function () {
       const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1776,9 +1524,12 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
       }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
       mockedHelper.ProjectHelper = class {
         public addRecordToProject = addRecordStub;
         public getProjectByName = getProjectByNameStub;
@@ -1827,9 +1578,12 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
       }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
       mockedHelper.ProjectHelper = class {
         public addRecordToProject = addRecordStub;
         public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
@@ -1882,9 +1636,12 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
       }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
       mockedHelper.ProjectHelper = class {
         public addRecordToProject = addRecordStub;
         public getProjectByName = getProjectByNameStub;
@@ -1903,7 +1660,6 @@ describe("App", function () {
       const mockedCommand: Command = new Command();
       mockedCommand.amount = 1337;
       mockedCommand.message = "custom";
-
 
       process.argv = ["namespace", "mocked", "commit", "-a", "1337", "-m", "custom"];
 
@@ -1932,8 +1688,10 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -1969,8 +1727,10 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -2007,8 +1767,10 @@ describe("App", function () {
       const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -2040,11 +1802,12 @@ describe("App", function () {
     it("should not add record [no cmd amount]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ValidationHelper = class {
@@ -2054,7 +1817,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -2072,11 +1834,12 @@ describe("App", function () {
     it("should not add record [invalid number]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ValidationHelper = class {
@@ -2086,7 +1849,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -2105,11 +1867,12 @@ describe("App", function () {
     it("should not add record [no cmd type]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ValidationHelper = class {
@@ -2119,7 +1882,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -2147,11 +1909,12 @@ describe("App", function () {
       } as IProject);
       const addRecordToProjectStub = sinon.stub().resolves();
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -2202,11 +1965,12 @@ describe("App", function () {
         } as IProject,
       );
 
-
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -2228,7 +1992,6 @@ describe("App", function () {
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
-
 
       const mockedApp: App = new proxy.App();
 
@@ -2255,8 +2018,10 @@ describe("App", function () {
       mockedHelper.FileHelper = class {
         public static isFile = sinon.stub().returns(true);
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ImportHelper = class {
@@ -2313,8 +2078,10 @@ describe("App", function () {
       mockedHelper.FileHelper = class {
         public static isFile = sinon.stub().returns(true);
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ValidationHelper = class {
@@ -2355,8 +2122,10 @@ describe("App", function () {
 
         mockedHelper.FileHelper = class {
           public static getHomeDir = sinon.stub().returns("/home/test");
-          public configDirExists = sinon.stub().resolves(true);
-          public isConfigFileValid = sinon.stub().resolves(true);
+        }
+
+        mockedHelper.ConfigHelper = class {
+          public isInitialized = sinon.stub().resolves(true);
         }
 
         mockedHelper.ProjectHelper = class {
@@ -2399,8 +2168,10 @@ describe("App", function () {
 
         mockedHelper.FileHelper = class {
           public static getHomeDir = sinon.stub().returns("/home/test");
-          public configDirExists = sinon.stub().resolves(true);
-          public isConfigFileValid = sinon.stub().resolves(true);
+        }
+
+        mockedHelper.ConfigHelper = class {
+          public isInitialized = sinon.stub().resolves(true);
           public findLinksByProject = sinon.stub().resolves([]);
         }
 
@@ -2456,10 +2227,12 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public addOrUpdateLink = addOrUpdateLinkStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = sinon.stub().resolves([]);
+            public addOrUpdateLink = addOrUpdateLinkStub;
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2494,7 +2267,6 @@ describe("App", function () {
             "./helper": mockedHelper,
           });
 
-
           const mockedApp: App = new proxy.App();
 
           await mockedApp.setup();
@@ -2525,15 +2297,16 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public addOrUpdateLink = addOrUpdateLinkStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = sinon.stub().resolves([]);
+            public addOrUpdateLink = addOrUpdateLinkStub;
           }
 
           mockedHelper.ProjectHelper = class {
             public addLink = sinon.stub().resolves();
-            // public getProjectFromGit = getProjectFromGitStub;
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2563,7 +2336,6 @@ describe("App", function () {
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
           });
-
 
           const mockedApp: App = new proxy.App();
 
@@ -2596,8 +2368,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves(
               [
@@ -2669,10 +2443,12 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public addOrUpdateLink = addOrUpdateLinkStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = sinon.stub().resolves([]);
+            public addOrUpdateLink = addOrUpdateLinkStub;
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2699,7 +2475,6 @@ describe("App", function () {
             "commander": mockedCommander,
           });
 
-
           const mockedApp: App = new proxy.App();
 
           const exitStub = sinon.stub(mockedApp, "exit");
@@ -2725,8 +2500,10 @@ describe("App", function () {
           const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -2778,14 +2555,6 @@ describe("App", function () {
               } as IJiraLink,
             ],
           );
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -2795,9 +2564,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -2827,7 +2597,6 @@ describe("App", function () {
 
           await mockedApp.publishAction(mockedCommand);
 
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
@@ -2857,14 +2626,6 @@ describe("App", function () {
               } as IJiraLink,
             ],
           );
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -2874,9 +2635,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -2907,7 +2669,6 @@ describe("App", function () {
 
           await mockedApp.publishAction(mockedCommand);
 
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getProjectByNameStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
@@ -2937,14 +2698,6 @@ describe("App", function () {
               } as IJiraLink,
             ],
           );
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -2954,9 +2707,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -2986,7 +2740,6 @@ describe("App", function () {
 
           await mockedApp.publishAction(mockedCommand);
 
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
@@ -3016,14 +2769,6 @@ describe("App", function () {
                 username: "test",
               } as IJiraLink,
             ]);
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const confirmLinkCreationStub = sinon.stub().resolves(true);
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
@@ -3034,9 +2779,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3074,7 +2820,6 @@ describe("App", function () {
           assert.isTrue(getOrAskForProjectFromGitStub.calledTwice);
           assert.isTrue(findLinksByProjectStub.calledTwice);
 
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
         });
@@ -3101,14 +2846,6 @@ describe("App", function () {
               username: "test",
             } as IJiraLink,
           ]);
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const logChangesStub = sinon.stub().resolves([
             {
               // eslint-disable-next-line @typescript-eslint/camelcase
@@ -3133,9 +2870,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3172,7 +2910,6 @@ describe("App", function () {
 
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(findLinksByProjectStub.calledOnce);
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
           assert.isTrue(confirmPushLocalChangesStub.calledOnce);
           assert.isTrue(pushChangesStub.calledOnce);
@@ -3201,14 +2938,6 @@ describe("App", function () {
               username: "test",
             } as IJiraLink,
           ]);
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const logChangesStub = sinon.stub().resolves([
             {
               // eslint-disable-next-line @typescript-eslint/camelcase
@@ -3231,9 +2960,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3271,7 +3001,6 @@ describe("App", function () {
 
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(findLinksByProjectStub.calledOnce);
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(logChangesStub.calledOnce);
           assert.isTrue(confirmPushLocalChangesStub.calledOnce);
           assert.isTrue(axiosPostStub.notCalled);
@@ -3290,11 +3019,12 @@ describe("App", function () {
             } as IJiraPublishResult,
           });
 
-
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -3345,7 +3075,6 @@ describe("App", function () {
             } as IJiraLink,
           ]
           );
-          // const findProjectByNameStub = sinon.stub().resolves(undefined);
           const axiosPostStub = sinon.stub().resolves({
             data: {
               success: true,
@@ -3354,9 +3083,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            // public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3393,13 +3123,7 @@ describe("App", function () {
         it("should fail to publish records to Jira endpoint [no project found on disk]", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
 
-          const getOrAskForProjectFromGitStub = sinon.stub().resolves({
-            meta: {
-              host: "test.git.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-          } as IProject);
+          const getOrAskForProjectFromGitStub = sinon.stub().resolves(undefined);
           const findLinksByProjectStub = sinon.stub().returns([
             {
               host: "http://jira.mocked.com:2990",
@@ -3413,7 +3137,6 @@ describe("App", function () {
             } as IJiraLink,
           ]
           );
-          const findProjectByNameStub = sinon.stub().resolves(undefined);
           const axiosPostStub = sinon.stub().resolves({
             data: {
               success: true,
@@ -3422,9 +3145,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3481,20 +3205,13 @@ describe("App", function () {
             } as IJiraLink,
           ]
           );
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const axiosPostStub = sinon.stub().throws(new Error("Mocked Error"));
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3553,14 +3270,6 @@ describe("App", function () {
               username: "test",
             } as IJiraLink,
           ]);
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const axiosPostStub = sinon.stub().resolves({
             data: {
               success: false,
@@ -3569,9 +3278,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3588,7 +3298,6 @@ describe("App", function () {
               post: axiosPostStub,
             },
           });
-
 
           const mockedApp: App = new proxy.App();
 
@@ -3631,14 +3340,6 @@ describe("App", function () {
               username: "test",
             } as IJiraLink,
           ]);
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const axiosPostStub = sinon.stub().resolves({
             data: {
               success: true,
@@ -3647,9 +3348,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3700,8 +3402,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3756,14 +3460,6 @@ describe("App", function () {
               username: "test",
             } as IJiraLink,
           ]);
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             data: {
@@ -3773,9 +3469,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -3806,7 +3503,6 @@ describe("App", function () {
 
           await mockedApp.publishAction(mockedCommand);
 
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.notCalled);
@@ -3821,8 +3517,10 @@ describe("App", function () {
           const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
           }
 
           mockedHelper.ProjectHelper = class {
@@ -3868,10 +3566,12 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public addOrUpdateLink = addOrUpdateLinkStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = sinon.stub().resolves([]);
+            public addOrUpdateLink = addOrUpdateLinkStub;
           }
 
           mockedHelper.ProjectHelper = class {
@@ -3934,8 +3634,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves([]);
           }
@@ -4002,8 +3704,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves([
               {
@@ -4068,8 +3772,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves([]);
           }
@@ -4136,14 +3842,6 @@ describe("App", function () {
               username: "test",
             } as IMultipieLink,
           ]);
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             status: 200,
@@ -4154,9 +3852,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -4186,7 +3885,6 @@ describe("App", function () {
 
           await mockedApp.publishAction(mockedCommand);
 
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
@@ -4211,14 +3909,6 @@ describe("App", function () {
               username: "test",
             } as IMultipieLink,
           ]);
-          const findProjectByNameStub = sinon.stub().resolves({
-            meta: {
-              host: "github.com",
-              port: 443,
-            },
-            name: "mocked_project_1",
-            records: [],
-          });
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
             status: 201,
@@ -4229,9 +3919,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
-            public findProjectByName = findProjectByNameStub;
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
 
@@ -4262,7 +3953,6 @@ describe("App", function () {
 
           await mockedApp.publishAction(mockedCommand);
 
-          assert.isTrue(findProjectByNameStub.calledOnce);
           assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getProjectByNameStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
@@ -4299,8 +3989,10 @@ describe("App", function () {
           const axiosPostStub = sinon.stub().throws(new Error("Mocked Error"));
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -4374,8 +4066,10 @@ describe("App", function () {
 
           mockedHelper.FileHelper = class {
             public static getHomeDir = sinon.stub().returns("/home/test");
-            public configDirExists = sinon.stub().resolves(true);
-            public isConfigFileValid = sinon.stub().resolves(true);
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -4472,9 +4166,11 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findAllProjects = findAllProjectsStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4554,9 +4250,11 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findAllProjects = findAllProjectsStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4589,8 +4287,10 @@ describe("App", function () {
       const getProjectByNameStub = sinon.stub().throws(new Error("Mocked"));
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4622,14 +4322,7 @@ describe("App", function () {
     it("should show list of records", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      const getOrAskForProjectFromGitStub = sinon.stub().resolves({
-        meta: {
-          host: "test.git.com",
-          port: 443,
-        },
-        name: "mocked",
-      } as IProject);
-      const findProjectByNameStub = sinon.stub().resolves(
+      const getOrAskForProjectFromGitStub = sinon.stub().resolves(
         {
           meta: {
             host: "github.com",
@@ -4660,9 +4353,10 @@ describe("App", function () {
       );
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4690,8 +4384,10 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4720,20 +4416,14 @@ describe("App", function () {
     it("should not show list of records [no project found]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
-      const getOrAskForProjectFromGitStub = sinon.stub().resolves({
-        meta: {
-          host: "test.git.com",
-          port: 443,
-        },
-        name: "mocked",
-      } as IProject);
-      const findProjectByNameStub = sinon.stub().resolves();
+      const getOrAskForProjectFromGitStub = sinon.stub().resolves();
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4768,23 +4458,15 @@ describe("App", function () {
           port: 443,
         },
         name: "mocked",
+        records: [],
       } as IProject);
-      const findProjectByNameStub = sinon.stub().resolves(
-        {
-          meta: {
-            host: "github.com",
-            port: 443,
-          },
-          name: "mocked_project",
-          records: [],
-        },
-      );
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
-        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {
@@ -4902,9 +4584,11 @@ describe("App", function () {
       );
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findAllProjects = findAllProjectsStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       const proxy: any = proxyquire("../../app", {
@@ -4919,6 +4603,176 @@ describe("App", function () {
       process.argv = ["1", "2", "3"];
 
       await mockedApp.todayAction();
+    });
+  });
+
+  describe("Info", function () {
+    it("should show list of records for today", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getOrAskForProjectFromGitStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "github.com",
+            port: 443,
+          },
+          name: "mocked",
+          records: [
+            {
+              amount: 2,
+              created: 1572346125890,
+              end: Date.now(),
+              guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+              message: "A mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1572346125890,
+            },
+            {
+              amount: 2.5,
+              created: 1571323193712,
+              end: 0,
+              guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+              message: "Some other mocked message",
+              type: RECORD_TYPES.Time,
+              updated: 1571323193712,
+            },
+          ],
+        },
+      )
+
+      const findAllProjectsStub = sinon.stub().resolves(
+        [
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: Date.now(),
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb8",
+                message: "A mocked message",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: 0,
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600290",
+                message: "Some other mocked message",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked2_project",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: 0,
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb2",
+                message: "A mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: Date.now(),
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600270",
+                message: "Some other mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked2_project_long_long_long",
+            records: [
+              {
+                amount: 2,
+                created: 1572346125890,
+                end: 0,
+                guid: "ae7b3220-fa39-11e9-88db-43b894e4ffb2",
+                message: "A mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1572346125890,
+              },
+              {
+                amount: 2.5,
+                created: 1571323193712,
+                end: Date.now(),
+                guid: "fb63e700-f0eb-11e9-8ff9-cb2bf1600270",
+                message: "Some other mocked message2",
+                type: RECORD_TYPES.Time,
+                updated: 1571323193712,
+              },
+            ],
+          },
+        ]
+      );
+
+      const findLinksByProjectStub = sinon.stub().resolves([
+        {
+          endpoint: "/endpoint",
+          hash: "hash",
+          host: "https://jira.com",
+          issue: "MOCK",
+          key: "mock",
+          linkType: "Jira",
+          projectName: "Name",
+          username: "mock",
+        } as IJiraLink,
+        {
+          endpoint: "/endpoint",
+          host: "https://jira.com",
+          username: "mock",
+          linkType: "Multipie",
+          projectName: "Name1",
+        } as IMultipieLink,
+      ]);
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public findAllProjects = findAllProjectsStub;
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub
+        public getTotalHours = sinon.stub().resolves(69);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+        public findLinksByProject = findLinksByProjectStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.infoAction(new Command());
     });
   });
 
@@ -4961,9 +4815,11 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findAllProjects = findAllProjectsStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ExportHelper = class {
@@ -5022,9 +4878,11 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ExportHelper = class {
@@ -5061,9 +4919,11 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
         public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ExportHelper = class {
@@ -5109,8 +4969,10 @@ describe("App", function () {
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
-        public configDirExists = sinon.stub().resolves(true);
-        public isConfigFileValid = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
       }
 
       mockedHelper.ProjectHelper = class {

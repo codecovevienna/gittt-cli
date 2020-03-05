@@ -193,7 +193,7 @@ export class QuestionHelper {
   }
 
   public static askMultipieLink = async (project: IProject, prevData?: IMultipieLink): Promise<IMultipieLink> => {
-    const multipieAnswers: any = await inquirer.prompt([
+    const multipieAnswers = await inquirer.prompt([
       {
         default: prevData ? prevData.host : "https://multipie.gittt.org",
         // also works for generic hosts
@@ -210,7 +210,11 @@ export class QuestionHelper {
         type: "input",
         // TODO validate
       },
-    ]);
+    ]) as {
+      host: string;
+      username: string;
+    };
+
     const { host, username } = multipieAnswers;
 
     const projectName: string = project.name;
@@ -309,11 +313,18 @@ export class QuestionHelper {
   public static chooseProjectFile = async (projects: IProject[]): Promise<string> => {
     const question: ListQuestion = {
       choices: projects.map((project: IProject) => {
-        const { host, port } = project.meta;
-        return {
-          name: `${host}${port ? `:${port}` : ""} ${project.name}`,
-          value: ProjectHelper.getProjectPath(project),
-        };
+        if (project.meta) {
+          const { host, port } = project.meta;
+          return {
+            name: `${host}${port ? `:${port}` : ""} ${project.name}`,
+            value: ProjectHelper.getProjectPath(project),
+          };
+        } else {
+          return {
+            name: `${project.name}`,
+            value: ProjectHelper.getProjectPath(project),
+          };
+        }
       }),
       message: "Choose a project",
       name: "choice",
@@ -369,6 +380,30 @@ export class QuestionHelper {
   public static confirmPushLocalChanges = async (): Promise<boolean> => {
     const question: Question = {
       message: `Found local changes, they have to be pushed before publishing`,
+      name: "choice",
+      type: "confirm",
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmSetup = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `Looks like you never used gittt before, should it be set up?`,
+      name: "choice",
+      type: "confirm",
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmInit = async (): Promise<boolean> => {
+    const question: Question = {
+      message: `This will reset the project if it is already initialized, are you sure?`,
       name: "choice",
       type: "confirm",
     }

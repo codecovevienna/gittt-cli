@@ -63,9 +63,11 @@ describe("Info test", function () {
 
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
-      public configDirExists = sinon.stub().resolves(true);
-      public isConfigFileValid = sinon.stub().resolves(true);
       public findAllProjects = findAllProjectsStub;
+    }
+
+    mockedHelper.ConfigHelper = class {
+      public isInitialized = sinon.stub().resolves(true);
     }
 
     mockedHelper.ProjectHelper = class {
@@ -87,7 +89,6 @@ describe("Info test", function () {
       "./helper": mockedHelper,
       "commander": mockedCommander,
     });
-
 
     const mockedApp: App = new proxy.App();
 

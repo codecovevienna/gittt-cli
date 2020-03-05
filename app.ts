@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import commander, { Command, CommanderStatic } from "commander";
-import inquirer from "inquirer";
 import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
@@ -17,10 +16,10 @@ import {
   QuestionHelper,
   TimerHelper,
   ValidationHelper,
+  RecordHelper,
+  ConfigHelper,
 } from "./helper";
 import {
-  IInitAnswers,
-  IInitProjectAnswers,
   IIntegrationLink,
   IJiraLink,
   IJiraPublishResult,
@@ -40,6 +39,7 @@ const JIRA_ENDPOINT_VERSION = "v2";
 
 export class App {
   private configDir: string;
+  private configHelper: ConfigHelper;
   private fileHelper: FileHelper;
   private timerHelper: TimerHelper;
   private gitHelper: GitHelper;
@@ -66,18 +66,10 @@ export class App {
   public async setup(): Promise<void> {
     this.configDir = path.join(FileHelper.getHomeDir(), `${APP_CONFIG_DIR}`);
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
+    this.configHelper = new ConfigHelper(this.fileHelper);
 
-    // TODO correct place to ask this?
-    if (!(await this.fileHelper.configDirExists()) || !(await this.fileHelper.isConfigFileValid())) {
-      const initAnswers: IInitAnswers = await inquirer.prompt([
-        {
-          message: `Looks like you never used ${APP_NAME}, should it be set up?`,
-          name: "setup",
-          type: "confirm",
-        },
-      ]) as IInitAnswers;
-
-      if (initAnswers.setup) {
+    if (!(await this.configHelper.isInitialized())) {
+      if (await QuestionHelper.confirmSetup()) {
         await this.initConfigDir();
         LogHelper.info("Initialized git-time-tracker (GITTT) you are good to go now ;)\n\n");
       } else {
@@ -93,6 +85,7 @@ export class App {
     this.initCommander();
   }
 
+  // TODO should be moved to config helper, but gitHelper needs a valid config dir
   public async initConfigDir(): Promise<void> {
     if (!(await this.fileHelper.configDirExists())) {
       this.fileHelper.createConfigDir();
@@ -173,7 +166,7 @@ export class App {
 
     LogHelper.debug(`Trying to find links for "${project.name}"`)
     // Check for previous data
-    const prevIntegrationLink: IIntegrationLink | undefined = (await this.fileHelper
+    const prevIntegrationLink: IIntegrationLink | undefined = (await this.configHelper
       .findLinksByProject(project, integration))[0];
 
     switch (integration) {
@@ -187,7 +180,7 @@ export class App {
         const jiraLink: IJiraLink = await QuestionHelper.askJiraLink(project, prevJiraLink, JIRA_ENDPOINT_VERSION);
 
         try {
-          await this.fileHelper.addOrUpdateLink(jiraLink);
+          await this.configHelper.addOrUpdateLink(jiraLink);
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -205,7 +198,7 @@ export class App {
         const multiPieLink: IMultipieLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
 
         try {
-          await this.fileHelper.addOrUpdateLink(multiPieLink);
+          await this.configHelper.addOrUpdateLink(multiPieLink);
         } catch (err) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
@@ -238,7 +231,7 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    const links: IIntegrationLink[] = (await this.fileHelper.findLinksByProject(project));
+    const links: IIntegrationLink[] = (await this.configHelper.findLinksByProject(project));
 
     if (links.length === 0) {
       LogHelper.warn(`Unable to find a link for "${project.name}"`);
@@ -249,12 +242,6 @@ export class App {
       } else {
         return this.exit(`Unable to publish without link`, 1);
       }
-    }
-
-    const populatedProject: IProject | undefined = await this.fileHelper.findProjectByName(project.name);
-
-    if (!populatedProject) {
-      return this.exit("Unable to find project", 1);
     }
 
     const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
@@ -275,9 +262,9 @@ export class App {
 
           // Map local project to jira key
           if (jiraLink.issue) {
-            LogHelper.info(`Mapping "${populatedProject.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
+            LogHelper.info(`Mapping "${project.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
           } else {
-            LogHelper.info(`Mapping "${populatedProject.name}" to Jira project "${jiraLink.key}"`);
+            LogHelper.info(`Mapping "${project.name}" to Jira project "${jiraLink.key}"`);
           }
 
           if (!jiraLink.host) {
@@ -295,7 +282,7 @@ export class App {
                 {
                   projectKey: jiraLink.key,
                   issueKey: jiraLink.issue,
-                  project: populatedProject,
+                  project,
                 },
                 {
                   headers: {
@@ -344,7 +331,7 @@ export class App {
           try {
             const publishResult: AxiosResponse = await axios
               .post(multipieUrl,
-                populatedProject,
+                project,
                 {
                   headers: {
                     "Authorization": `${multipieLink.username}`,
@@ -405,107 +392,6 @@ export class App {
     }
   }
 
-  public async filterRecordsByYear(records: IRecord[]): Promise<IRecord[]> {
-    const allYears: string[] = [];
-
-    for (const rc of records) {
-      const currentYear: string = moment(rc.end).format("YYYY");
-      if (allYears.indexOf(currentYear) === -1) {
-        allYears.push(currentYear);
-      }
-    }
-
-    // Check if records spanning over more than one year
-    if (allYears.length > 1) {
-      const choiceYear: any = await inquirer.prompt([
-        {
-          choices: allYears,
-          message: "List of years",
-          name: "year",
-          type: "list",
-        },
-      ]) as {
-        year: string;
-      };
-
-      return records.filter((rc: IRecord) => {
-        const currentYear: string = moment(rc.end).format("YYYY");
-        return currentYear === choiceYear.year;
-      });
-
-    } else {
-      return records;
-    }
-  }
-
-  public async filterRecordsByMonth(records: IRecord[]): Promise<IRecord[]> {
-    // Check for month
-    const allMonths: string[] = [];
-
-    for (const rc of records) {
-      const currentMonth: string = moment(rc.end).format("MMMM");
-      if (allMonths.indexOf(currentMonth) === -1) {
-        allMonths.push(currentMonth);
-      }
-    }
-
-    // Check if records spanning over more than one month
-    if (allMonths.length > 1) {
-      const choiceMonth: any = await inquirer.prompt([
-        {
-          choices: allMonths,
-          message: "List of Month",
-          name: "month",
-          type: "list",
-        },
-      ]) as {
-        month: string;
-      };
-
-      return records.filter((rc: IRecord) => {
-        const currentMonth: string = moment(rc.end).format("MMMM");
-        return currentMonth === choiceMonth.month;
-      });
-
-    } else {
-      return records;
-    }
-  }
-
-  public async filterRecordsByDay(records: IRecord[]): Promise<IRecord[]> {
-    // Check for days
-    const allDays: string[] = [];
-
-    for (const rc of records) {
-      const currentDay: string = moment(rc.end).format("DD");
-      if (allDays.indexOf(currentDay) === -1) {
-        allDays.push(currentDay);
-      }
-    }
-
-    // Check if records spanning over more than one day
-    if (allDays.length > 1) {
-      const choiceDay: any = await inquirer.prompt([
-        {
-          choices: allDays,
-          message: "List of Days",
-          name: "day",
-          type: "list",
-        },
-      ]) as {
-        day: string;
-      };
-
-      return records.filter((rc: IRecord) => {
-        const currentDay: string = moment(rc.end).format("DD");
-        return currentDay === choiceDay.day;
-      });
-
-    } else {
-      return records;
-    }
-  }
-
   public async editAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
@@ -557,9 +443,9 @@ export class App {
         return this.exit(`No records found for guid "${recordGuid}"`, 1);
       }
     } else {
-      recordsToEdit = await this.filterRecordsByYear(records);
-      recordsToEdit = await this.filterRecordsByMonth(recordsToEdit);
-      recordsToEdit = await this.filterRecordsByDay(recordsToEdit);
+      recordsToEdit = await RecordHelper.filterRecordsByYear(records);
+      recordsToEdit = await RecordHelper.filterRecordsByMonth(recordsToEdit);
+      recordsToEdit = await RecordHelper.filterRecordsByDay(recordsToEdit);
 
       chosenRecord = await QuestionHelper.chooseRecord(recordsToEdit);
     }
@@ -718,9 +604,9 @@ export class App {
         return this.exit(`No records found for guid "${recordGuid}"`, 1);
       }
     } else {
-      recordsToDelete = await this.filterRecordsByYear(records);
-      recordsToDelete = await this.filterRecordsByMonth(recordsToDelete);
-      recordsToDelete = await this.filterRecordsByDay(recordsToDelete);
+      recordsToDelete = await RecordHelper.filterRecordsByYear(records);
+      recordsToDelete = await RecordHelper.filterRecordsByMonth(recordsToDelete);
+      recordsToDelete = await RecordHelper.filterRecordsByDay(recordsToDelete);
 
       chosenRecord = await QuestionHelper.chooseRecord(recordsToDelete);
     }
@@ -779,12 +665,17 @@ export class App {
       commitMessage = `Committed ${amount} hour${amount > 1 ? "s" : ""} to ${project.name}`
     }
 
-    await this.projectHelper.addRecordToProject({
-      amount,
-      end: Date.now(),
-      message: commitMessage,
-      type: RECORD_TYPES.Time,
-    }, project);
+    try {
+      await this.projectHelper.addRecordToProject({
+        amount,
+        end: Date.now(),
+        message: commitMessage,
+        type: RECORD_TYPES.Time,
+      }, project);
+    } catch (err) {
+      LogHelper.debug("Unable to add record to project", err);
+      this.exit("Unable to add record to project", 1);
+    }
   }
 
   public async addAction(cmd: Command): Promise<void> {
@@ -861,7 +752,12 @@ export class App {
       type,
     };
 
-    await this.projectHelper.addRecordToProject(newRecord, project);
+    try {
+      await this.projectHelper.addRecordToProject(newRecord, project);
+    } catch (err) {
+      LogHelper.debug("Unable to add record to project", err);
+      this.exit("Unable to add record to project", 1);
+    }
   }
 
   public async importCsv(cmd: string, options: any): Promise<void> {
@@ -922,7 +818,7 @@ export class App {
         LogHelper.log(`Name:\t${foundProject.name}`);
         LogHelper.log(`Hours:\t${hours}h`);
 
-        const links: IIntegrationLink[] = await this.fileHelper.findLinksByProject(project);
+        const links: IIntegrationLink[] = await this.configHelper.findLinksByProject(project);
         for (const link of links) {
           switch (link.linkType) {
             case "Jira":
@@ -1006,24 +902,19 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    const projectWithRecords: IProject | undefined = await this.fileHelper.findProjectByName(project.name);
-    if (!projectWithRecords) {
-      return this.exit(`Unable to find project "${project.name}"`, 1);
-    }
-
-    if (projectWithRecords.records.length === 0) {
+    if (project.records.length === 0) {
       return this.exit(`No records found for "${project.name}"`, 1);
     }
 
     // sorting newest to latest
-    const records: IRecord[] = projectWithRecords.records.sort((a: IRecord, b: IRecord) => {
+    const records: IRecord[] = project.records.sort((a: IRecord, b: IRecord) => {
       const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
       const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
 
       return aStartTime.diff(bStartTime);
     });
 
-    LogHelper.info(`${projectWithRecords.name}`);
+    LogHelper.info(`${project.name}`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
     LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
@@ -1208,18 +1099,11 @@ export class App {
   }
 
   public async initAction(): Promise<void> {
-    const initProjectAnswers: IInitProjectAnswers = await inquirer.prompt([
-      {
-        message: "This will reset the project if it is already initialized, are you sure?",
-        name: "confirm",
-        type: "confirm",
-      },
-    ]);
-
-    if (initProjectAnswers.confirm) {
+    if (await QuestionHelper.confirmInit()) {
       try {
         await this.projectHelper.initProject();
       } catch (err) {
+        LogHelper.debug("Error initializing project", err);
         this.exit("Error initializing project", 1);
       }
     } else {

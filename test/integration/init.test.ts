@@ -2,7 +2,6 @@ import { CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { App } from "../../app";
-import { IInitProjectAnswers } from "../../interfaces";
 import { emptyHelper } from "../helper";
 
 describe("Init test", function () {
@@ -19,22 +18,23 @@ describe("Init test", function () {
 
     mockedHelper.FileHelper = class {
       public static getHomeDir = sinon.stub().returns("/home/test");
-      public configDirExists = sinon.stub().resolves(true);
-      public isConfigFileValid = sinon.stub().resolves(true);
+    }
+
+    mockedHelper.ConfigHelper = class {
+      public isInitialized = sinon.stub().resolves(true);
     }
 
     mockedHelper.ProjectHelper = class {
       public initProject = initProjectStub;
     }
 
+    mockedHelper.QuestionHelper = class {
+      public static confirmInit = sinon.stub().resolves(true);
+    }
+
     const proxy: any = proxyquire("../../app", {
       "./helper": mockedHelper,
       "commander": mockedCommander,
-      "inquirer": {
-        prompt: sinon.stub().resolves({
-          confirm: true,
-        } as IInitProjectAnswers),
-      },
     });
 
 

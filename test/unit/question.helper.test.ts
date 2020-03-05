@@ -490,5 +490,31 @@ describe("QuestionHelper", function () {
       const choice: string = await proxy.QuestionHelper.confirmPushLocalChanges();
       expect(choice).to.eq(true);
     });
+
+    it("should confirm setup", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: true,
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.confirmSetup();
+      expect(choice).to.eq(true);
+    });
+
+    it("should confirm init", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: true,
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.confirmInit();
+      expect(choice).to.eq(true);
+    });
   });
 });

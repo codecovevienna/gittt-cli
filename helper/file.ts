@@ -1,8 +1,10 @@
 import plainFs from "fs";
 import fs, { WriteOptions } from "fs-extra";
 import path from "path";
-import { IConfigFile, IIntegrationLink, IJiraLink, IMultipieLink, IProject, IProjectMeta, ITimerFile } from "../interfaces";
+import YAML from 'yaml'
+import { IConfigFile, IProject, IProjectMeta, ITimerFile, IGitttFile } from "../interfaces";
 import { LogHelper, parseProjectNameFromGitUrl, ProjectHelper } from "./";
+import { GitttFileError } from '../types/errors/gitttFileError';
 
 export class FileHelper {
   public static isFile = (input: string): boolean => {
@@ -56,6 +58,14 @@ export class FileHelper {
     fs.ensureDirSync(this.projectDir);
   }
 
+  public getProjectPath(project: IProject): string {
+    if (!project.meta) {
+      return path.join(this.projectDir);
+    } else {
+      return this.projectMetaToPath(project.meta);
+    }
+  }
+
   public initConfigFile = async (gitRepo: string): Promise<IConfigFile> => {
     const initial: IConfigFile = {
       created: Date.now(),
@@ -68,43 +78,11 @@ export class FileHelper {
     return initial;
   }
 
-  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieLink): Promise<IConfigFile> => {
-    const configObject: IConfigFile = await this.getConfigObject();
-
-    // TODO check if already exists
-    const cleanLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
-      // TODO linkType can be taken from class
-      // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      return !((li.projectName === link.projectName) && (li.linkType === link.linkType));
-    });
-
-    cleanLinks.push(link);
-
-    configObject.links = cleanLinks;
-
-    await this.saveConfigObject(configObject);
-
-    return configObject;
-  }
-
-  public findLinksByProject = async (project: IProject, linkType?: string): Promise<IIntegrationLink[]> => {
-    const configObject: IConfigFile = await this.getConfigObject();
-
-    const foundLinks: IIntegrationLink[] = configObject.links.filter((li: IIntegrationLink) => {
-      // TODO TBD: use different parameters as unique? e.g. more than one jira link per project?
-      if (linkType) {
-        return li.projectName === project.name && li.linkType === linkType;
-      }
-      return li.projectName === project.name;
-    });
-
-    return foundLinks;
-  }
-
   public initProject = async (project: IProject): Promise<IProject> => {
     try {
-      const projectPath: string = this.projectMetaToPath(project.meta);
-      LogHelper.debug(`Ensuring domain directory for ${project.meta.host}`);
+      const projectPath: string = await this.getProjectPath(project);
+
+      LogHelper.debug(`Ensuring domain directory for ${project.name}`);
       await fs.ensureDir(projectPath);
 
       await this.saveProjectObject(project);
@@ -135,6 +113,17 @@ export class FileHelper {
     } catch (err) {
       LogHelper.error("Error checking config file existence");
       return false;
+    }
+  }
+
+  public getGitttFile = async (): Promise<IGitttFile> => {
+    try {
+      return YAML.parse((await fs
+        .readFile(".gittt.yml"))
+        .toString()) as IGitttFile;
+    } catch (err) {
+      LogHelper.debug("Unable to parse .gittt.yml file", err);
+      throw new GitttFileError("Unable to parse .gittt.yml file")
     }
   }
 
@@ -181,11 +170,10 @@ export class FileHelper {
     }
   }
 
-  // TODO should maybe be private
   public saveProjectObject = async (project: IProject): Promise<void> => {
     try {
-      const projectMetaString: string = this.projectMetaToPath(project.meta);
-      const projectFilePath: string = path.join(projectMetaString, `${project.name}.json`);
+      const projectPath: string = await this.getProjectPath(project);
+      const projectFilePath: string = path.join(projectPath, `${project.name}.json`);
       LogHelper.debug(`Saving project file to ${projectFilePath}`);
       await fs.writeJson(projectFilePath, project, this.jsonWriteOptions);
       // TODO update cache
@@ -233,11 +221,20 @@ export class FileHelper {
       // Search in all domains
       const projectDomains: string[] = fs.readdirSync(this.projectDir);
       for (const projectDomain of projectDomains) {
-        const projectFiles: string[] = fs.readdirSync(path.join(this.projectDir, projectDomain));
-        for (const projectFile of projectFiles) {
-          const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile));
+        const tmpStat = fs.lstatSync(path.join(this.projectDir, projectDomain))
+
+        if (tmpStat.isFile()) {
+          const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain));
           if (project.name === projectName) {
             allFoundProjects.push(project);
+          }
+        } else {
+          const projectFiles: string[] = fs.readdirSync(path.join(this.projectDir, projectDomain));
+          for (const projectFile of projectFiles) {
+            const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile));
+            if (project.name === projectName) {
+              allFoundProjects.push(project);
+            }
           }
         }
       }
@@ -270,10 +267,17 @@ export class FileHelper {
     const allProjects: IProject[] = [];
     const projectDomains: string[] = fs.readdirSync(this.projectDir);
     for (const projectDomain of projectDomains) {
-      const projectFiles: string[] = fs.readdirSync(path.join(this.projectDir, projectDomain));
-      for (const projectFile of projectFiles) {
-        const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile));
+      const tmpStat = fs.lstatSync(path.join(this.projectDir, projectDomain))
+
+      if (tmpStat.isFile()) {
+        const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain));
         allProjects.push(project);
+      } else {
+        const projectFiles: string[] = fs.readdirSync(path.join(this.projectDir, projectDomain));
+        for (const projectFile of projectFiles) {
+          const project: IProject = await fs.readJson(path.join(this.projectDir, projectDomain, projectFile));
+          allProjects.push(project);
+        }
       }
     }
     return allProjects;
@@ -318,7 +322,7 @@ export class FileHelper {
     return path.join(this.projectDir, ProjectHelper.projectMetaToDomain(projectMeta));
   }
 
-  private saveConfigObject = async (config: IConfigFile): Promise<void> => {
+  public saveConfigObject = async (config: IConfigFile): Promise<void> => {
     try {
       await fs.writeJson(this.configFilePath, config, this.jsonWriteOptions);
       this.setConfigObject(config);
