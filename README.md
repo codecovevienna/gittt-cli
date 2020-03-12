@@ -49,7 +49,7 @@ cd ~/.gittt-cli/projects
 mv github_com/project_to_migrate.json .
 ```
 
-4. Open up the json file and remove the meta data object
+4. Open up the json file and remove the meta data object and fix the name
 ```diff
 2,6d1
 <     "meta": {
@@ -57,6 +57,7 @@ mv github_com/project_to_migrate.json .
 <         "port": null,
 <         "raw": "git@github.com:eiabea/tempea-api.git"
 <     },
+>     "name": "name_of_the_project_to_book_resources_to",
 ```
 5. Save the file and you are good to go
 
