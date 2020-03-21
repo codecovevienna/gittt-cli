@@ -97,17 +97,19 @@ $ gittt push
 
 Use the CSV importer option to import a csv file to your project.
 
-The CSV file has to include a header with at least the columns `MESSAGE,END,AMOUNT` (any other columns will be ignored)
+The CSV file has to include a header with at least the columns `MESSAGE,END,AMOUNT,TYPE` (any other columns will be ignored)
+
+Hint: The `TYPE` row is mandatory and currently only takes `Time` as a valid input.
 
 ```
-MESSAGE,END,AMOUNT
-"Added Production Build",1570298400000,0.5
+MESSAGE,END,AMOUNT,TYPE
+Added Production Build,1570298400000,0.5,Time
 ```
 
 Import data to your current project (aka. The git directory you are currently at) with
 
 ```
-$ gittt -f [path_to_your_file].csv
+$ gittt import [path_to_your_file].csv
 ```
 
 ## Releases

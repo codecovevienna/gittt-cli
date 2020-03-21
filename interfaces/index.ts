@@ -64,6 +64,7 @@ export interface ICsvRow {
   MESSAGE: string;
   END: number;
   AMOUNT: number;
+  TYPE: string;
 }
 
 export interface IPublishSummaryItem {
