@@ -5,9 +5,10 @@ import { ObjectReadableMock } from "stream-mock";
 import { ImportHelper } from "../../helper";
 import { IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
+import { AssertionError } from "assert";
 
 const csvFilePath = "/path/to/csv/file.csv";
-const csvCorrectInput = "AMOUNT,END,MESSAGE\n10,1556727733,Message Text\n1,1556723833,Message new Text";
+const csvCorrectInput = "AMOUNT,END,MESSAGE,TYPE\n10,1556727733,Message Text,Time\n1,1556723833,Message new Text,Time";
 const expectedCorrectOutput: IRecord[] = [{
   amount: 10,
   end: 1556727733,
@@ -21,11 +22,11 @@ const expectedCorrectOutput: IRecord[] = [{
   type: RECORD_TYPES.Time,
 }];
 
-const csvOnlyHeaderInput = "AMOUNT,END,MESSAGE";
-const csvWrongSeparatorInput = "AMOUNT;END;MESSAGE\n10;1556727733;Message Text\n1;1556723833;Message new Text";
-const csvMalformedDataInput = "AMOUNT,END,MESSAGE\n10,Message Text\n1,Hallo Test,Message new Text";
-const csvMalformedHeaderInput = "amount,end,message\n10,1556727733,Message Text\n1,1556723833,Message new Text";
-const csvNoHeaderInput = "10,1556727733,Message Text\n1,1556723833,Message new Text";
+const csvOnlyHeaderInput = "AMOUNT,END,MESSAGE,TYPE";
+const csvWrongSeparatorInput = "AMOUNT;END;MESSAGE;TYPE\n10;1556727733;Message Text,Time\n1;1556723833;Message new Text,Time";
+const csvMalformedDataInput = "AMOUNT,END,MESSAGE,TYPE\n10,Message Text,Time\n1,Hallo Test,Message new Text,Time";
+const csvMalformedHeaderInput = "amount,end,message,type\n10,1556727733,Message Text,Time\n1,1556723833,Message new Text,Time";
+const csvNoHeaderInput = "10,1556727733,Message Text,Time\n1,1556723833,Message new Text,Time";
 const csvBullshitInput = "ksdjf939jflwsfkdskjlfjlo3oqw9d92eijskljdjf apsflsflk jakjfieo jwfaksdjf  jfea fio";
 const csvMissingColumnInput = "AMOUNT,MESSAGE\n10,Message Text\n1,Message new Text";
 
@@ -77,10 +78,14 @@ describe("ImportHelper", function () {
     });
 
     const instance: ImportHelper = new fileProxy.ImportHelper();
-    const result: IRecord[] = await instance.importCsv(csvFilePath);
 
-    assert.isArray(result);
-    assert.deepStrictEqual(result, expectedEmptyArray);
+    let thrownError: AssertionError | undefined;
+    try {
+      await instance.importCsv(csvFilePath);
+    } catch (err) {
+      thrownError = err;
+    }
+    assert.isDefined(thrownError);
   });
 
   it("should fail due to malformed data", async function () {
@@ -91,10 +96,14 @@ describe("ImportHelper", function () {
     });
 
     const instance: ImportHelper = new fileProxy.ImportHelper();
-    const result: IRecord[] = await instance.importCsv(csvFilePath);
 
-    assert.isArray(result);
-    assert.deepStrictEqual(result, expectedEmptyArray);
+    let thrownError: AssertionError | undefined;
+    try {
+      await instance.importCsv(csvFilePath);
+    } catch (err) {
+      thrownError = err;
+    }
+    assert.isDefined(thrownError);
   });
 
   it("should fail due to malformed header", async function () {
@@ -105,10 +114,14 @@ describe("ImportHelper", function () {
     });
 
     const instance: ImportHelper = new fileProxy.ImportHelper();
-    const result: IRecord[] = await instance.importCsv(csvFilePath);
 
-    assert.isArray(result);
-    assert.deepStrictEqual(result, expectedEmptyArray);
+    let thrownError: AssertionError | undefined;
+    try {
+      await instance.importCsv(csvFilePath);
+    } catch (err) {
+      thrownError = err;
+    }
+    assert.isDefined(thrownError);
   });
 
   it("should fail due to missing header", async function () {
@@ -119,10 +132,14 @@ describe("ImportHelper", function () {
     });
 
     const instance: ImportHelper = new fileProxy.ImportHelper();
-    const result: IRecord[] = await instance.importCsv(csvFilePath);
 
-    assert.isArray(result);
-    assert.deepStrictEqual(result, expectedEmptyArray);
+    let thrownError: AssertionError | undefined;
+    try {
+      await instance.importCsv(csvFilePath);
+    } catch (err) {
+      thrownError = err;
+    }
+    assert.isDefined(thrownError);
   });
 
   it("should fail due to bullshit data", async function () {
@@ -147,10 +164,14 @@ describe("ImportHelper", function () {
     });
 
     const instance: ImportHelper = new fileProxy.ImportHelper();
-    const result: IRecord[] = await instance.importCsv(csvFilePath);
 
-    assert.isArray(result);
-    assert.deepStrictEqual(result, expectedEmptyArray);
+    let thrownError: AssertionError | undefined;
+    try {
+      await instance.importCsv(csvFilePath);
+    } catch (err) {
+      thrownError = err;
+    }
+    assert.isDefined(thrownError);
   });
 
 });

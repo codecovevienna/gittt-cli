@@ -1,60 +1,63 @@
-import assert from "assert";
-import csvParser, { CsvParser } from "csv-parser";
+import { assert, expect } from "chai";
+import * as  Papa from "papaparse";
 import fs from "fs-extra";
-import { isNumber, isString } from "util";
 import { ICsvRow, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
-import { LogHelper } from "./log";
+import { LogHelper } from './';
 
 export class ImportHelper {
   public importCsv = async (filePath: string): Promise<IRecord[]> => {
 
     const fd: fs.ReadStream = fs.createReadStream(filePath);
-    const parser: CsvParser = csvParser();
 
-    fd.pipe(parser);
+    return new Promise<IRecord[]>((resolve, reject) => {
+      Papa.parse(fd, {
+        header: true,
+        delimiter: ',',
+        newline: '\n',
+        complete: (parsed) => {
 
-    const result: IRecord[] = Array<IRecord>();
+          if (parsed.errors.length > 0) {
+            for (const err of parsed.errors) {
+              LogHelper.debug(`[${err.type}] ${err.message}, row: ${err.row}`);
+            }
+            reject(new Error("Unable to parse provided csv, check debug log for more information"));
+          }
 
-    return new Promise<IRecord[]>((resolve: (value?: IRecord[]) => void, reject: (reason?: any) => void): void => {
-      parser.on("data", (data: any) => {
-        try {
-          assert(data.AMOUNT != null && isString(data.AMOUNT));
-          assert(data.END != null && isString(data.END) && data.END > -1);
-          assert(data.MESSAGE != null &&
-            isString(data.MESSAGE) &&
-            data.MESSAGE.length > 0);
+          try {
+            resolve(parsed.data.map(chunk => {
+              assert.isNotEmpty(chunk.AMOUNT, "Amount is mandatory");
+              assert.isNotEmpty(chunk.END, "End is mandatory");
+              assert.isNotEmpty(chunk.MESSAGE, "Message is mandatory");
+              assert.isNotEmpty(chunk.TYPE, "Message is mandatory");
 
-          const row: ICsvRow = {
-            AMOUNT: parseFloat(data.AMOUNT),
-            END: parseInt(data.END, 10),
-            MESSAGE: data.MESSAGE.toString().replace(/"/gi, ""),
-          };
+              const row: ICsvRow = {
+                AMOUNT: parseFloat(chunk.AMOUNT),
+                END: parseInt(chunk.END, 10),
+                MESSAGE: chunk.MESSAGE.toString().replace(/"/gi, ""),
+                TYPE: chunk.TYPE.toString().replace(/"/gi, ""),
+              };
 
-          assert(row.AMOUNT != null && isNumber(row.AMOUNT));
-          assert(row.END != null && isNumber(row.END) && row.END > -1);
-          assert(row.MESSAGE != null &&
-            isString(row.MESSAGE) &&
-            row.MESSAGE.length > 0 &&
-            row.MESSAGE.indexOf('"') < 0);
+              assert.isNumber(row.AMOUNT);
+              assert.isNumber(row.END);
+              assert.isNotEmpty(row.MESSAGE);
+              expect(row.TYPE).to.eq(RECORD_TYPES.Time);
 
-          const record: IRecord = {
-            amount: row.AMOUNT,  // Amount
-            end: row.END, // End Date + End Time
-            message: row.MESSAGE, // Description
-            type: RECORD_TYPES.Time,
-          };
-
-          result.push(record);
-        } catch (err) {
-          LogHelper.debug(data, err);
+              return {
+                amount: row.AMOUNT,  // Amount
+                end: row.END, // End Date + End Time
+                message: row.MESSAGE, // Description
+                type: RECORD_TYPES.Time,
+              } as IRecord;
+            }));
+          } catch (err) {
+            reject(err)
+          }
+        },
+        error: (err) => {
+          reject(err)
         }
-      });
-
-      parser.on("end", () => resolve(result));
-
-      parser.on("error", () => reject());
+      })
     });
   }
-
 }
