@@ -53,9 +53,9 @@ export class FileHelper {
     this.timerFilePath = path.join(configDir, timerFileName);
   }
 
-  public createConfigDir = (): void => {
-    fs.ensureDirSync(this.configDir);
-    fs.ensureDirSync(this.projectDir);
+  public createConfigDir = async (): Promise<void> => {
+    await fs.ensureDir(this.configDir);
+    await fs.ensureDir(this.projectDir);
   }
 
   public getProjectPath(project: IProject): string {

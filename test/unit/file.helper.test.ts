@@ -222,7 +222,7 @@ describe("FileHelper", function () {
 
       const instance: FileHelper = new fileProxy.FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-      instance.createConfigDir();
+      await instance.createConfigDir();
 
       assert.isTrue(ensureDirSyncSpy.firstCall.calledWith(configDir));
       assert.isTrue(ensureDirSyncSpy.secondCall.calledWith(path.join(configDir, projectsDir)));
