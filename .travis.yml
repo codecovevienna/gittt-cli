@@ -24,6 +24,17 @@ jobs:
     on:
       tags: false
 
+  - stage: tsc
+    language: node_js
+    cache: npm
+    node_js:
+      - 12.16.1
+    script:
+      - npm install
+      - npm run build:prod
+    on:
+      tags: false
+
   - stage: build
     name: "Binary package"
     if: NOT type = pull_request AND tag IS present

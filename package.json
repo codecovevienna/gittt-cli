@@ -1,6 +1,6 @@
 {
   "name": "@codecovevienna/gittt-cli",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "Tracking time with CLI into a git repository",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -55,9 +55,9 @@
     "@types/inquirer": "^6.5.0",
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.9.3",
+    "@types/papaparse": "^5.0.3",
     "@types/shelljs": "^0.8.7",
     "@types/uuid": "^7.0.2",
-    "@types/papaparse": "^5.0.3",
     "@types/yaml": "^1.2.0",
     "axios": "^0.19.2",
     "chai": "^4.2.0",

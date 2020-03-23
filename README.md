@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/codecovevienna/gittt-cli.svg?branch=master)](https://travis-ci.org/codecovevienna/gittt-cli)
+[![Build Status](https://travis-ci.com/codecovevienna/gittt-cli.svg?branch=master)](https://travis-ci.com/codecovevienna/gittt-cli)
 [![codecov](https://codecov.io/gh/codecovevienna/gittt-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/codecovevienna/gittt-cli)
 
 # gittt-cli
