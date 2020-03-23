@@ -786,8 +786,13 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    const records: IRecord[] = await this.importHelper.importCsv(filePath);
-    await this.projectHelper.addRecordsToProject(records, project, true, false);
+    try {
+      const records: IRecord[] = await this.importHelper.importCsv(filePath);
+      await this.projectHelper.addRecordsToProject(records, project, true, false);
+    } catch (err) {
+      LogHelper.debug("Error importing records from csv", err);
+      this.exit(err.message, 1);
+    }
   }
 
   public async infoAction(cmd: Command): Promise<void> {

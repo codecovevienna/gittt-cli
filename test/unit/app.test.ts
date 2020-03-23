@@ -2064,8 +2064,70 @@ describe("App", function () {
       const mockedCommand: Command = new Command();
       mockedCommand.file = "mockedFile.csv";
 
-      // Mock arguments array to enable interactive mode
+      // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3"];
+
+      await mockedApp.importCsv(mockedCommand.file, mockedCommand);
+
+      assert.isTrue(addRecordsToProjectStub.calledOnce);
+    });
+
+    it("should add records from csv [interactive]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const addRecordsToProjectStub = sinon.stub().resolves();
+
+      mockedHelper.FileHelper = class {
+        public static isFile = sinon.stub().returns(true);
+        public static getHomeDir = sinon.stub().returns("/home/test");
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ImportHelper = class {
+        public importCsv = sinon.stub().resolves([
+          {
+            amount: 1337,
+            end: Date.now(),
+            guid: "g-u-i-d",
+            message: "Mocked record",
+            type: "Time",
+          },
+        ] as IRecord[]);
+      }
+
+      const getOrAskForProjectFromGitStub = sinon.stub().resolves({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+      } as IProject);
+
+      mockedHelper.ProjectHelper = class {
+        public addRecordsToProject = addRecordsToProjectStub;
+        public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateFile = sinon.stub().returns(true);
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.file = "mockedFile.csv";
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3", "4"];
 
       await mockedApp.importCsv(mockedCommand.file, mockedCommand);
 
@@ -2101,7 +2163,148 @@ describe("App", function () {
       const mockedCommand: Command = new Command();
       mockedCommand.file = "mockedFile.csv";
 
-      // Mock arguments array to enable interactive mode
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.importCsv(mockedCommand.file, mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
+    });
+
+    it("should fail to add records from csv [no valid git project]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      mockedHelper.FileHelper = class {
+        public static isFile = sinon.stub().returns(true);
+        public static getHomeDir = sinon.stub().returns("/home/test");
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateFile = sinon.stub().returns(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = sinon.stub().returns(undefined);
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.file = "mockedFile.csv";
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.importCsv(mockedCommand.file, mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
+    });
+
+    it("should fail to add records from csv [getting git project throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      mockedHelper.FileHelper = class {
+        public static isFile = sinon.stub().returns(true);
+        public static getHomeDir = sinon.stub().returns("/home/test");
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateFile = sinon.stub().returns(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = sinon.stub().throws(new Error("Mocked Error"));
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.file = "mockedFile.csv";
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.importCsv(mockedCommand.file, mockedCommand);
+
+      assert.isTrue(exitStub.calledOnce);
+
+      exitStub.restore();
+    });
+
+    it("should fail to add records from csv [importCsv throws]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().resolves({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+      } as IProject);
+
+      mockedHelper.FileHelper = class {
+        public static isFile = sinon.stub().returns(true);
+        public static getHomeDir = sinon.stub().returns("/home/test");
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateFile = sinon.stub().returns(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      mockedHelper.ImportHelper = class {
+        public importCsv = sinon.stub().rejects(new Error("Mocked Error"));
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      const exitStub = sinon.stub(mockedApp, "exit");
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.file = "mockedFile.csv";
+
+      // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3"];
 
       await mockedApp.importCsv(mockedCommand.file, mockedCommand);
