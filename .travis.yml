@@ -24,7 +24,7 @@ jobs:
     on:
       tags: false
 
-- stage: tsc
+  - stage: tsc
     language: node_js
     cache: npm
     node_js:
