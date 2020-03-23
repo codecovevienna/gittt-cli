@@ -1,4 +1,3 @@
-import plainFs from "fs";
 import fs, { WriteOptions } from "fs-extra";
 import path from "path";
 import YAML from 'yaml'
@@ -7,22 +6,6 @@ import { LogHelper, parseProjectNameFromGitUrl, ProjectHelper } from "./";
 import { GitttFileError } from '../types/errors/gitttFileError';
 
 export class FileHelper {
-  public static isFile = (input: string): boolean => {
-    const inputFilePath: string = input;
-    const stats: fs.Stats = fs.statSync(inputFilePath);
-    if (stats.isFile) {
-      try {
-        // fs-extra does not expose constants correctly, so we have to use the plain node fs ones
-        fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
-      } catch (e) {
-        return false;
-      }
-      return true;
-    }
-
-    return false;
-  }
-
   public static getHomeDir = (): string => {
     const home: string | null = require("os").homedir()
       || process.env.HOME
@@ -53,9 +36,9 @@ export class FileHelper {
     this.timerFilePath = path.join(configDir, timerFileName);
   }
 
-  public createConfigDir = (): void => {
-    fs.ensureDirSync(this.configDir);
-    fs.ensureDirSync(this.projectDir);
+  public createConfigDir = async (): Promise<void> => {
+    await fs.mkdirs(this.configDir);
+    await fs.mkdirs(this.projectDir);
   }
 
   public getProjectPath(project: IProject): string {
@@ -83,7 +66,7 @@ export class FileHelper {
       const projectPath: string = await this.getProjectPath(project);
 
       LogHelper.debug(`Ensuring domain directory for ${project.name}`);
-      await fs.ensureDir(projectPath);
+      await fs.mkdirs(projectPath);
 
       await this.saveProjectObject(project);
 

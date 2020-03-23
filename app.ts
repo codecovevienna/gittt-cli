@@ -88,7 +88,7 @@ export class App {
   // TODO should be moved to config helper, but gitHelper needs a valid config dir
   public async initConfigDir(): Promise<void> {
     if (!(await this.fileHelper.configDirExists())) {
-      this.fileHelper.createConfigDir();
+      await this.fileHelper.createConfigDir();
       this.gitHelper = new GitHelper(this.configDir, this.fileHelper);
 
       if (!(await this.fileHelper.isConfigFileValid())) {
