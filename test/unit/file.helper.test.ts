@@ -19,47 +19,6 @@ describe("FileHelper", function () {
     proxyquire.noCallThru();
   });
 
-  // describe("Is file", function () {
-  //   it("should validate file", async function () {
-  //     const proxy: any = proxyquire("../../helper/file", {
-  //       "fs-extra": {
-  //         accessSync: sinon.stub().returns(true),
-  //         statSync: sinon.stub()
-  //           .returns({
-  //             isFile: true,
-  //           }),
-  //       },
-  //     });
-  //     assert.isTrue(proxy.FileHelper.isFile("/tmp/mocked"));
-  //   });
-
-  //   it("should fail to validate file [file not readable]", async function () {
-  //     const proxy: any = proxyquire("../../helper/file", {
-  //       "fs-extra": {
-  //         accessSync: sinon.stub().throws(new Error("File is not readable")),
-  //         statSync: sinon.stub()
-  //           .returns({
-  //             isFile: true,
-  //           }),
-  //       },
-  //     });
-  //     assert.isFalse(proxy.FileHelper.isFile("/tmp/mocked"));
-  //   });
-
-  //   it("should fail to validate file [no file]", async function () {
-  //     const proxy: any = proxyquire("../../helper/file", {
-  //       "fs-extra": {
-  //         accessSync: sinon.stub().returns(true),
-  //         statSync: sinon.stub()
-  //           .returns({
-  //             isFile: false,
-  //           }),
-  //       },
-  //     });
-  //     assert.isFalse(proxy.FileHelper.isFile("/tmp/mocked"));
-  //   });
-  // });
-
   describe("Get home directory", function () {
     it("should get home directory [from os]", async function () {
       const proxy: any = proxyquire("../../helper/file", {
