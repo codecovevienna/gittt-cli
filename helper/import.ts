@@ -14,7 +14,7 @@ export class ImportHelper {
       Papa.parse(fd, {
         header: true,
         delimiter: ',',
-        newline: '\n',
+        transformHeader: h => h.trim(),
         complete: (parsed) => {
 
           if (parsed.errors.length > 0) {
