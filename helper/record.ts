@@ -7,6 +7,7 @@ export class RecordHelper {
   /*
    * returns {boolean} true if provided record is identical to any record in records
    */
+  // FIXME could be covered by lodash, e.g. _.uniqWith(records, _.isEqual)
   public static isRecordUnique = (record: IRecord, records: IRecord[]): boolean => {
     // check if amount, end, message and type is found in records
     return records.find((existingRecord: IRecord) => {

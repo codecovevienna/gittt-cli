@@ -181,6 +181,7 @@ export class ProjectHelper {
     records = records.filter((record: IRecord) => {
       let shouldAddRecord = true;
 
+      // Checks uniqueness only against existing records, the provided records have to be unique in the first place!
       if (uniqueOnly === true) {
         shouldAddRecord = RecordHelper.isRecordUnique(record, selectedProject.records);
       }
