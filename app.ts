@@ -788,7 +788,10 @@ export class App {
 
     try {
       const records: IRecord[] = await this.importHelper.importCsv(filePath);
-      await this.projectHelper.addRecordsToProject(records, project, true, false);
+      LogHelper.debug(`Parsed ${records.length} records from ${filePath}`);
+      const uniqueRecords = _.uniqWith(records, _.isEqual);
+      LogHelper.debug(`Filtered out ${records.length - uniqueRecords.length} duplicates`);
+      await this.projectHelper.addRecordsToProject(uniqueRecords, project, true, false);
     } catch (err) {
       LogHelper.debug("Error importing records from csv", err);
       this.exit(err.message, 1);

@@ -2072,6 +2072,97 @@ describe("App", function () {
       assert.isTrue(addRecordsToProjectStub.calledOnce);
     });
 
+    it("should filter duplicates and add records from csv", async function () {
+      const now = Date.now();
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const addRecordsToProjectStub = sinon.stub().resolves();
+
+      mockedHelper.FileHelper = class {
+        public static isFile = sinon.stub().returns(true);
+        public static getHomeDir = sinon.stub().returns("/home/test");
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ImportHelper = class {
+        public importCsv = sinon.stub().resolves([
+          {
+            amount: 1337,
+            end: now,
+            message: "Mocked record",
+            type: "Time",
+          },
+          {
+            amount: 1337,
+            end: now,
+            message: "Mocked record",
+            type: "Time",
+          },
+          {
+            amount: 1337,
+            end: now,
+            message: "Mocked record",
+            type: "Time",
+          },
+        ] as IRecord[]);
+      }
+
+      const getProjectByNameStub = sinon.stub().resolves({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+      } as IProject);
+
+      mockedHelper.ProjectHelper = class {
+        public addRecordsToProject = addRecordsToProjectStub;
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateFile = sinon.stub().returns(true);
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      const mockedCommand: Command = new Command();
+      mockedCommand.file = "mockedFile.csv";
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.importCsv(mockedCommand.file, mockedCommand);
+
+      assert.isTrue(addRecordsToProjectStub.calledOnceWithExactly([
+        {
+          amount: 1337,
+          end: now,
+          message: "Mocked record",
+          type: "Time",
+        }
+      ],
+        {
+          meta: {
+            host: "test.git.com",
+            port: 443,
+          },
+          name: "mocked",
+        },
+        true,
+        false
+      ));
+    });
+
     it("should add records from csv [interactive]", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
