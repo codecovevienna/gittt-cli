@@ -3142,9 +3142,7 @@ describe("App", function () {
           ]);
           const logChangesStub = sinon.stub().resolves([
             {
-              // eslint-disable-next-line @typescript-eslint/camelcase
               author_email: "mockedEmail",
-              // eslint-disable-next-line @typescript-eslint/camelcase
               author_name: "mockedAuthor",
               body: "mockedBody",
               date: "mockedDate",
@@ -3234,9 +3232,7 @@ describe("App", function () {
           ]);
           const logChangesStub = sinon.stub().resolves([
             {
-              // eslint-disable-next-line @typescript-eslint/camelcase
               author_email: "mockedEmail",
-              // eslint-disable-next-line @typescript-eslint/camelcase
               author_name: "mockedAuthor",
               body: "mockedBody",
               date: "mockedDate",

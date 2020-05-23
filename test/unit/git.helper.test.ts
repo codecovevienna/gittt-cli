@@ -49,9 +49,7 @@ describe("GitHelper", function () {
             return {
               all: [
                 {
-                  // eslint-disable-next-line @typescript-eslint/camelcase
                   author_email: "mock@mail.com",
-                  // eslint-disable-next-line @typescript-eslint/camelcase
                   author_name: "mockAuthor",
                   body: "mockedBody",
                   date: Date.UTC.toString(),
@@ -61,9 +59,7 @@ describe("GitHelper", function () {
                 },
               ],
               latest: {
-                // eslint-disable-next-line @typescript-eslint/camelcase
                 author_email: "mock@mail.com",
-                // eslint-disable-next-line @typescript-eslint/camelcase
                 author_name: "mockAuthor",
                 body: "mockedBody",
                 date: Date.UTC.toString(),
