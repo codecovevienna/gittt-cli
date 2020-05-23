@@ -236,7 +236,7 @@ export class App {
     if (links.length === 0) {
       LogHelper.warn(`Unable to find a link for "${project.name}"`);
       if (await QuestionHelper.confirmLinkCreation()) {
-        await this.linkAction(new Command());
+        await this.linkAction(cmd);
 
         return await this.publishAction(cmd);
       } else {
