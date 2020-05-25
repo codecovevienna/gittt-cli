@@ -824,6 +824,9 @@ export class App {
       // check if the project is a gittt project
       const foundProject: IProject = projects.filter((p: IProject) => project && p.name === project.name)[0];
       if (foundProject) {
+        LogHelper.info("");
+        LogHelper.info(`Current project:`);
+
         const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
         LogHelper.log(`Name:\t${foundProject.name}`);
         LogHelper.log(`Hours:\t${hours}h`);
@@ -858,14 +861,12 @@ export class App {
     LogHelper.info("");
     LogHelper.info(`Projects:`);
     // add hours to projects
-    const projectsWithHours: { hours: number; project: IProject }[] = [];
-    for (const prj of projects) {
-      const hours: number = await this.projectHelper.getTotalHours(prj.name);
-      projectsWithHours.push({
-        hours,
+    const projectsWithHours: { hours: number; project: IProject }[] = await Promise.all(projects.map(async prj => {
+      return {
+        hours: await this.projectHelper.getTotalHours(prj.name),
         project: prj,
-      });
-    }
+      }
+    }))
 
     // order projects
     const orderedProjects: { hours: number; project: IProject }[] = projectsWithHours
@@ -889,7 +890,7 @@ export class App {
 
     // print projects
     for (const prj of orderedProjects) {
-      LogHelper.log(`- ${prj.project.name}: ${prj.hours || "-1"}h`);
+      LogHelper.log(`- ${prj.project.name}: ${prj.hours}h`);
     }
   }
 
