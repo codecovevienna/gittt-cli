@@ -3,13 +3,10 @@ import { IProject, IProjectMeta } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import moment from "moment";
 import sinon from "sinon";
-import * as XLSX from 'xlsx';
+import { utils } from 'xlsx';
 import { assert } from "chai";
 
-// FIXME the meaningfulness of these tests are questioned, further more they stopped working due to a typescript issue
-// TypeError: Cannot set property writeFile of #<Object> which has only a getter
-// eslint-disable-next-line
-describe.skip("ExportHelper", function () {
+describe("ExportHelper", function () {
   before(function () {
     proxyquire.noCallThru();
   });
@@ -17,11 +14,11 @@ describe.skip("ExportHelper", function () {
   it("should export projects", async function () {
     const writeFileStub = sinon.stub();
 
-    const xlsxOrg = XLSX;
-    xlsxOrg.writeFile = writeFileStub;
-
     const proxy: any = proxyquire("../../helper/export", {
-      xlsx: xlsxOrg
+      xlsx: {
+        writeFile: writeFileStub,
+        utils,
+      }
     });
     const mockedProjects: IProject[] = [
       {
@@ -74,11 +71,11 @@ describe.skip("ExportHelper", function () {
   it("should export projects with parameters", async function () {
     const writeFileStub = sinon.stub();
 
-    const xlsxOrg = XLSX;
-    xlsxOrg.writeFile = writeFileStub;
-
     const proxy: any = proxyquire("../../helper/export", {
-      xlsx: xlsxOrg
+      xlsx: {
+        writeFile: writeFileStub,
+        utils,
+      }
     });
     const mockedProjects: IProject[] = [
       {
