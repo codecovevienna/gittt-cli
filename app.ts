@@ -4,7 +4,7 @@ import commander, { Command, CommanderStatic } from "commander";
 import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
-import { DefaultLogFields } from "simple-git/typings/response";
+
 import {
   ChartHelper,
   FileHelper,
@@ -29,6 +29,7 @@ import {
   IPublishSummaryItem,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
+import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");

@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import { ICsvRow, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { LogHelper } from './';
+import { ParseResult } from "papaparse";
 
 export class ImportHelper {
   public importCsv = async (filePath: string): Promise<IRecord[]> => {
@@ -15,7 +16,12 @@ export class ImportHelper {
         header: true,
         delimiter: ',',
         transformHeader: h => h.trim(),
-        complete: (parsed) => {
+        complete: (parsed: ParseResult<{
+          AMOUNT: string;
+          END: string;
+          MESSAGE: string;
+          TYPE: string;
+        }>) => {
 
           if (parsed.errors.length > 0) {
             for (const err of parsed.errors) {
