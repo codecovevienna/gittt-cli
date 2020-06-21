@@ -47,7 +47,7 @@ export class ImportHelper {
                   throw new Error(`Unable to parse provided csv. Line ${index + 2} has no valid END date.`);
                 }
 
-                end = parsedDate.unix();
+                end = parsedDate.unix() * 1000;
               } else {
                 end = parseInt(chunk.END, 10);
               }
