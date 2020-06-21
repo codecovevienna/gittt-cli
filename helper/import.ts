@@ -18,8 +18,8 @@ export class ImportHelper {
         delimiter: ',',
         transformHeader: h => h.trim(),
         complete: (parsed: ParseResult<{
-          AMOUNT: any;
-          END: any;
+          AMOUNT: string;
+          END: string;
           MESSAGE: string;
           TYPE: string;
         }>) => {
@@ -39,7 +39,7 @@ export class ImportHelper {
               assert.isNotEmpty(chunk.TYPE, "Message is mandatory");
 
               let end;
-              if (isNaN(chunk.END)) {
+              if (isNaN(+chunk.END)) {
                 // try to parse end date
                 const parsedDate = moment.utc(chunk.END);
 
@@ -52,9 +52,9 @@ export class ImportHelper {
                 end = parseInt(chunk.END, 10);
               }
 
-              // check amount for german seperator
+              // check amount for german separator
               let amount;
-              if (isNaN(chunk.AMOUNT)) {
+              if (isNaN(+chunk.AMOUNT)) {
                 amount = parseFloat(chunk.AMOUNT.replace(',', '.'));
               } else {
                 amount = parseFloat(chunk.AMOUNT)
