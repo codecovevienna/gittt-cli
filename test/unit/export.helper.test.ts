@@ -3,7 +3,7 @@ import { IProject, IProjectMeta } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import moment from "moment";
 import sinon from "sinon";
-import * as XLSX from 'xlsx';
+import { utils } from 'xlsx';
 import { assert } from "chai";
 
 describe("ExportHelper", function () {
@@ -14,11 +14,11 @@ describe("ExportHelper", function () {
   it("should export projects", async function () {
     const writeFileStub = sinon.stub();
 
-    const xlsxOrg = XLSX;
-    xlsxOrg.writeFile = writeFileStub;
-
     const proxy: any = proxyquire("../../helper/export", {
-      xlsx: xlsxOrg
+      xlsx: {
+        writeFile: writeFileStub,
+        utils,
+      }
     });
     const mockedProjects: IProject[] = [
       {
@@ -59,6 +59,7 @@ describe("ExportHelper", function () {
       } as IProject
     ]
 
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     const expectedWorksheet = { "SheetNames": ["TestProject_1", "TestProject_2"], "Sheets": { "TestProject_1": { "A1": { "v": "Date", "t": "s" }, "B1": { "v": "Type", "t": "s" }, "C1": { "v": "Amount", "t": "s" }, "D1": { "v": "Comment", "t": "s" }, "A2": { "v": 41313.666666666664, "z": "m/d/yy", "t": "n", "w": "2/8/13" }, "B2": { "v": "Time", "t": "s" }, "C2": { "v": 1337, "t": "n" }, "D2": { "v": "Test message", "t": "s" }, "A3": { "v": 41314.75, "z": "m/d/yy", "t": "n", "w": "2/9/13" }, "B3": { "v": "Time", "t": "s" }, "C3": { "v": 69, "t": "n" }, "D3": { "v": "Some other test message", "t": "s" }, "!ref": "A1:D3" }, "TestProject_2": { "A1": { "v": "Date", "t": "s" }, "B1": { "v": "Type", "t": "s" }, "C1": { "v": "Amount", "t": "s" }, "D1": { "v": "Comment", "t": "s" }, "A2": { "v": 41315.541666666664, "z": "m/d/yy", "t": "n", "w": "2/10/13" }, "B2": { "v": "Time", "t": "s" }, "C2": { "v": 12, "t": "n" }, "D2": { "v": "git init awesome project", "t": "s" }, "!ref": "A1:D2" } } }
 
     proxy.ExportHelper.export(undefined, undefined, undefined, mockedProjects);
@@ -71,11 +72,11 @@ describe("ExportHelper", function () {
   it("should export projects with parameters", async function () {
     const writeFileStub = sinon.stub();
 
-    const xlsxOrg = XLSX;
-    xlsxOrg.writeFile = writeFileStub;
-
     const proxy: any = proxyquire("../../helper/export", {
-      xlsx: xlsxOrg
+      xlsx: {
+        writeFile: writeFileStub,
+        utils,
+      }
     });
     const mockedProjects: IProject[] = [
       {
@@ -116,6 +117,7 @@ describe("ExportHelper", function () {
       } as IProject
     ]
 
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     const expectedWorksheet = { "SheetNames": ["TestProject_1", "TestProject_2"], "Sheets": { "TestProject_1": { "A1": { "v": "Date", "t": "s" }, "B1": { "v": "Type", "t": "s" }, "C1": { "v": "Amount", "t": "s" }, "D1": { "v": "Comment", "t": "s" }, "A2": { "v": 41313.666666666664, "z": "m/d/yy", "t": "n", "w": "2/8/13" }, "B2": { "v": "Time", "t": "s" }, "C2": { "v": 1337, "t": "n" }, "D2": { "v": "Test message", "t": "s" }, "A3": { "v": 41314.75, "z": "m/d/yy", "t": "n", "w": "2/9/13" }, "B3": { "v": "Time", "t": "s" }, "C3": { "v": 69, "t": "n" }, "D3": { "v": "Some other test message", "t": "s" }, "!ref": "A1:D3" }, "TestProject_2": { "A1": { "v": "Date", "t": "s" }, "B1": { "v": "Type", "t": "s" }, "C1": { "v": "Amount", "t": "s" }, "D1": { "v": "Comment", "t": "s" }, "A2": { "v": 41315.541666666664, "z": "m/d/yy", "t": "n", "w": "2/10/13" }, "B2": { "v": "Time", "t": "s" }, "C2": { "v": 12, "t": "n" }, "D2": { "v": "git init awesome project", "t": "s" }, "!ref": "A1:D2" } } }
 
     proxy.ExportHelper.export("/tmp", "test", "xlsx", mockedProjects);

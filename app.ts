@@ -4,7 +4,7 @@ import commander, { Command, CommanderStatic } from "commander";
 import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
-import { DefaultLogFields } from "simple-git/typings/response";
+
 import {
   ChartHelper,
   FileHelper,
@@ -29,6 +29,7 @@ import {
   IPublishSummaryItem,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
+import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
@@ -236,7 +237,7 @@ export class App {
     if (links.length === 0) {
       LogHelper.warn(`Unable to find a link for "${project.name}"`);
       if (await QuestionHelper.confirmLinkCreation()) {
-        await this.linkAction(new Command());
+        await this.linkAction(cmd);
 
         return await this.publishAction(cmd);
       } else {
@@ -824,6 +825,9 @@ export class App {
       // check if the project is a gittt project
       const foundProject: IProject = projects.filter((p: IProject) => project && p.name === project.name)[0];
       if (foundProject) {
+        LogHelper.info("");
+        LogHelper.info(`Current project:`);
+
         const hours: number = await this.projectHelper.getTotalHours(foundProject.name);
         LogHelper.log(`Name:\t${foundProject.name}`);
         LogHelper.log(`Hours:\t${hours}h`);
@@ -858,14 +862,12 @@ export class App {
     LogHelper.info("");
     LogHelper.info(`Projects:`);
     // add hours to projects
-    const projectsWithHours: { hours: number; project: IProject }[] = [];
-    for (const prj of projects) {
-      const hours: number = await this.projectHelper.getTotalHours(prj.name);
-      projectsWithHours.push({
-        hours,
+    const projectsWithHours: { hours: number; project: IProject }[] = await Promise.all(projects.map(async prj => {
+      return {
+        hours: await this.projectHelper.getTotalHours(prj.name),
         project: prj,
-      });
-    }
+      }
+    }))
 
     // order projects
     const orderedProjects: { hours: number; project: IProject }[] = projectsWithHours
@@ -889,7 +891,7 @@ export class App {
 
     // print projects
     for (const prj of orderedProjects) {
-      LogHelper.log(`- ${prj.project.name}: ${prj.hours || "-1"}h`);
+      LogHelper.log(`- ${prj.project.name}: ${prj.hours}h`);
     }
   }
 

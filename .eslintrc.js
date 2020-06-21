@@ -18,7 +18,21 @@ module.exports = {
   },
   rules: {
     "no-case-declarations": 0,
-    "@typescript-eslint/interface-name-prefix": 0
+    "@typescript-eslint/interface-name-prefix": 0,
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "variable",
+        "format": ["camelCase", "UPPER_CASE"]
+      }
+    ],
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "property",
+        "format": ["camelCase", "PascalCase"]
+      }
+    ]
   },
   overrides: [
     {
