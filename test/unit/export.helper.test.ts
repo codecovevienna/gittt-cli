@@ -5,6 +5,7 @@ import moment from "moment";
 import sinon from "sinon";
 import * as XLSX from 'xlsx';
 import { assert, expect } from "chai";
+import { utils } from 'xlsx';
 
 describe("ExportHelper", function () {
   before(function () {
@@ -20,11 +21,11 @@ describe("ExportHelper", function () {
       expect(expectedWorksheet["SheetNames"]).deep.equal(["TestProject_1", "TestProject_2"]);
     });
 
-    const xlsxOrg = XLSX;
-    xlsxOrg.writeFile = writeFileStub;
-
     const proxy: any = proxyquire("../../helper/export", {
-      xlsx: xlsxOrg
+      xlsx: {
+        writeFile: writeFileStub,
+        utils,
+      }
     });
     const mockedProjects: IProject[] = [
       {
@@ -77,11 +78,12 @@ describe("ExportHelper", function () {
       assert.isNotEmpty(expectedWorksheet["SheetNames"]);
       expect(expectedWorksheet["SheetNames"]).deep.equal(["TestProject_1", "TestProject_2"]);
     });
-    const xlsxOrg = XLSX;
-    xlsxOrg.writeFile = writeFileStub;
 
     const proxy: any = proxyquire("../../helper/export", {
-      xlsx: xlsxOrg
+      xlsx: {
+        writeFile: writeFileStub,
+        utils,
+      }
     });
     const mockedProjects: IProject[] = [
       {

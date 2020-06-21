@@ -1,5 +1,6 @@
 import simplegit, { SimpleGit, StatusResult } from "simple-git/promise";
-import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
+import { ListLogSummary } from "simple-git/typings/response";
+import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
 import { FileHelper, LogHelper, QuestionHelper } from "./";
 
 export class GitHelper {

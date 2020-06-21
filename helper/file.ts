@@ -7,6 +7,7 @@ import { GitttFileError } from '../types/errors/gitttFileError';
 
 export class FileHelper {
   public static getHomeDir = (): string => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const home: string | null = require("os").homedir()
       || process.env.HOME
       || process.env.HOMEPATH
