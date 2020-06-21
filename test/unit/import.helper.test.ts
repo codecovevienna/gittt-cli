@@ -6,6 +6,7 @@ import { ImportHelper } from "../../helper";
 import { IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { AssertionError } from "assert";
+import moment from "moment";
 
 const csvFilePath = "/path/to/csv/file.csv";
 const csvCorrectInput = "AMOUNT,END,MESSAGE,TYPE\n10,1556727733000,Message Text,Time\n1,1556723833000,\"Message, new Text\",Time";
@@ -30,11 +31,11 @@ const csvNoHeaderInput = "10,1556727733000,Message Text,Time\n1,1556723833,Messa
 const csvBullshitInput = "ksdjf939jflwsfkdskjlfjlo3oqw9d92eijskljdjf apsflsflk jakjfieo jwfaksdjf  jfea fio";
 const csvMissingColumnInput = "AMOUNT,MESSAGE\n10,Message Text\n1,Message new Text";
 
-const csvReadableDateDefaultFormatInput = "AMOUNT,END,MESSAGE,TYPE\n1,2019-01-29 13:00,Message new Text,Time";
+const csvReadableDateDefaultFormatInput = "AMOUNT,END,MESSAGE,TYPE\n1,2019-01-29 14:00,Message new Text,Time";
 const csvWrongReadableDateDefaultFormatInput = "AMOUNT,END,MESSAGE,TYPE\n1,asdf,Message new Text,Time";
 const csvReadableDateDefaultFormatOutput: IRecord[] = [{
   amount: 1,
-  end: 1548766800000,
+  end: moment("2019-01-29 14:00").unix() * 1000,
   message: "Message new Text",
   type: RECORD_TYPES.Time,
 }];
