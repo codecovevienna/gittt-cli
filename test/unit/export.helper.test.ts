@@ -3,7 +3,6 @@ import { IProject, IProjectMeta } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import moment from "moment";
 import sinon from "sinon";
-import * as XLSX from 'xlsx';
 import { assert, expect } from "chai";
 import { utils } from 'xlsx';
 
