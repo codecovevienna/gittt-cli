@@ -8,8 +8,8 @@ import { RECORD_TYPES } from "../../types";
 import { AssertionError } from "assert";
 
 const csvFilePath = "/path/to/csv/file.csv";
-const csvCorrectInput = "AMOUNT,END,MESSAGE,TYPE\n10,1556727733,Message Text,Time\n1,1556723833,Message new Text,Time";
-const expectedCorrectOutput: IRecord[] = [{
+const csvCorrectInput = "AMOUNT,END,MESSAGE,TYPE\n10,1556727733,Message Text,Time\n1,1556723833,\"Message, new Text\",Time";
+const csvCorrectOutput: IRecord[] = [{
   amount: 10,
   end: 1556727733,
   message: "Message Text",
@@ -18,7 +18,7 @@ const expectedCorrectOutput: IRecord[] = [{
 {
   amount: 1,
   end: 1556723833,
-  message: "Message new Text",
+  message: "Message, new Text",
   type: RECORD_TYPES.Time,
 }];
 
@@ -29,6 +29,22 @@ const csvMalformedHeaderInput = "amount,end,message,type\n10,1556727733,Message 
 const csvNoHeaderInput = "10,1556727733,Message Text,Time\n1,1556723833,Message new Text,Time";
 const csvBullshitInput = "ksdjf939jflwsfkdskjlfjlo3oqw9d92eijskljdjf apsflsflk jakjfieo jwfaksdjf  jfea fio";
 const csvMissingColumnInput = "AMOUNT,MESSAGE\n10,Message Text\n1,Message new Text";
+
+const csvReadableDateDefaultFormatInput = "AMOUNT,END,MESSAGE,TYPE\n1,2019-01-29 13:00,Message new Text,Time";
+const csvWrongReadableDateDefaultFormatInput = "AMOUNT,END,MESSAGE,TYPE\n1,asdf,Message new Text,Time";
+const csvReadableDateDefaultFormatOutput: IRecord[] = [{
+  amount: 1,
+  end: 1548766800,
+  message: "Message new Text",
+  type: RECORD_TYPES.Time,
+}];
+const csvCommaSeperatedAmountInput = "AMOUNT,END,MESSAGE,TYPE\n\"1,5\",1556723833,Message new Text,Time";
+const csvCommaSeperatedAmountOutput: IRecord[] = [{
+  amount: 1.5,
+  end: 1556723833,
+  message: "Message new Text",
+  type: RECORD_TYPES.Time,
+}];
 
 const expectedEmptyArray: IRecord[] = [];
 
@@ -53,10 +69,58 @@ describe("ImportHelper", function () {
     const result: IRecord[] = await instance.importCsv(csvFilePath);
 
     assert.isArray(result);
-    assert.deepStrictEqual(result, expectedCorrectOutput);
+    assert.deepStrictEqual(result, csvCorrectOutput);
   });
 
-  it("should fail due to only header", async function () {
+  it("should parse records with readable date", async function () {
+    const fileProxy: any = proxyquire("../../helper/import", {
+      "fs-extra": {
+        createReadStream: sinon.stub().returns(new ObjectReadableMock(csvReadableDateDefaultFormatInput)),
+      },
+    });
+
+    const instance: ImportHelper = new fileProxy.ImportHelper();
+    const result: IRecord[] = await instance.importCsv(csvFilePath);
+
+    assert.isArray(result);
+    assert.deepStrictEqual(result, csvReadableDateDefaultFormatOutput);
+  });
+
+  it("should fail with wrong date format", async function () {
+    const fileProxy: any = proxyquire("../../helper/import", {
+      "fs-extra": {
+        createReadStream: sinon.stub().returns(new ObjectReadableMock(csvWrongReadableDateDefaultFormatInput)),
+      },
+    });
+
+    const instance: ImportHelper = new fileProxy.ImportHelper();
+
+    let thrownError: AssertionError | undefined;
+    try {
+      await instance.importCsv(csvFilePath);
+    } catch (err) {
+      thrownError = err;
+    }
+    assert.isDefined(thrownError);
+    assert.isNotEmpty(thrownError?.message);
+    expect(thrownError?.message.indexOf("Line 2")).to.be.greaterThan(-1);
+  });
+
+  it("should parse records with comma seperated amount", async function () {
+    const fileProxy: any = proxyquire("../../helper/import", {
+      "fs-extra": {
+        createReadStream: sinon.stub().returns(new ObjectReadableMock(csvCommaSeperatedAmountInput)),
+      },
+    });
+
+    const instance: ImportHelper = new fileProxy.ImportHelper();
+    const result: IRecord[] = await instance.importCsv(csvFilePath);
+
+    assert.isArray(result);
+    assert.deepStrictEqual(result, csvCommaSeperatedAmountOutput);
+  });
+
+  it("should return empty array due to only header", async function () {
     const fileProxy: any = proxyquire("../../helper/import", {
       "fs-extra": {
         createReadStream: sinon.stub().returns(new ObjectReadableMock(csvOnlyHeaderInput)),
