@@ -106,6 +106,13 @@ MESSAGE,END,AMOUNT,TYPE
 Added Production Build,1570298400000,0.5,Time
 ```
 
+The `END` parameter can also be formated in the human readable form `Y-m-d HH:mm:ss` e.g.
+
+```
+MESSAGE,END,AMOUNT,TYPE
+Added Production Build,2019-10-05 18:00:00,0.5,Time
+```
+
 Import data to your current project (aka. The git directory you are currently at) with
 
 ```

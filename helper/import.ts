@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import { ICsvRow, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { LogHelper } from './';
+import moment from "moment";
 import { ParseResult } from "papaparse";
 
 export class ImportHelper {
@@ -27,21 +28,43 @@ export class ImportHelper {
             for (const err of parsed.errors) {
               LogHelper.debug(`[${err.type}] ${err.message}, row: ${err.row}`);
             }
-            reject(new Error("Unable to parse provided csv, check debug log for more information"));
+            return reject(new Error("Unable to parse provided csv, check debug log for more information"));
           }
 
           try {
-            resolve(parsed.data.map(chunk => {
+            resolve(parsed.data.map((chunk, index) => {
               assert.isNotEmpty(chunk.AMOUNT, "Amount is mandatory");
               assert.isNotEmpty(chunk.END, "End is mandatory");
               assert.isNotEmpty(chunk.MESSAGE, "Message is mandatory");
               assert.isNotEmpty(chunk.TYPE, "Message is mandatory");
 
+              let end;
+              if (isNaN(+chunk.END)) {
+                // try to parse end date
+                const parsedDate = moment.utc(chunk.END);
+
+                if (!parsedDate.isValid()) {
+                  throw new Error(`Unable to parse provided csv. Line ${index + 2} has no valid END date.`);
+                }
+
+                end = parsedDate.unix();
+              } else {
+                end = parseInt(chunk.END, 10);
+              }
+
+              // check amount for german separator
+              let amount;
+              if (isNaN(+chunk.AMOUNT)) {
+                amount = parseFloat(chunk.AMOUNT.replace(',', '.'));
+              } else {
+                amount = parseFloat(chunk.AMOUNT)
+              }
+
               const row: ICsvRow = {
-                AMOUNT: parseFloat(chunk.AMOUNT),
-                END: parseInt(chunk.END, 10),
-                MESSAGE: chunk.MESSAGE.toString().replace(/"/gi, ""),
-                TYPE: chunk.TYPE.toString().replace(/"/gi, ""),
+                AMOUNT: amount,
+                END: end,
+                MESSAGE: chunk.MESSAGE.toString().trim().replace(/"/gi, ""),
+                TYPE: chunk.TYPE.toString().trim().replace(/"/gi, ""),
               };
 
               assert.isNumber(row.AMOUNT);
