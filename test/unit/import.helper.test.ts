@@ -8,25 +8,25 @@ import { RECORD_TYPES } from "../../types";
 import { AssertionError } from "assert";
 
 const csvFilePath = "/path/to/csv/file.csv";
-const csvCorrectInput = "AMOUNT,END,MESSAGE,TYPE\n10,1556727733,Message Text,Time\n1,1556723833,\"Message, new Text\",Time";
+const csvCorrectInput = "AMOUNT,END,MESSAGE,TYPE\n10,1556727733000,Message Text,Time\n1,1556723833000,\"Message, new Text\",Time";
 const csvCorrectOutput: IRecord[] = [{
   amount: 10,
-  end: 1556727733,
+  end: 1556727733000,
   message: "Message Text",
   type: RECORD_TYPES.Time,
 },
 {
   amount: 1,
-  end: 1556723833,
+  end: 1556723833000,
   message: "Message, new Text",
   type: RECORD_TYPES.Time,
 }];
 
 const csvOnlyHeaderInput = "AMOUNT,END,MESSAGE,TYPE";
-const csvWrongSeparatorInput = "AMOUNT;END;MESSAGE;TYPE\n10;1556727733;Message Text,Time\n1;1556723833;Message new Text,Time";
+const csvWrongSeparatorInput = "AMOUNT;END;MESSAGE;TYPE\n10;1556727733000;Message Text,Time\n1;1556723833000;Message new Text,Time";
 const csvMalformedDataInput = "AMOUNT,END,MESSAGE,TYPE\n10,Message Text,Time\n1,Hallo Test,Message new Text,Time";
-const csvMalformedHeaderInput = "amount,end,message,type\n10,1556727733,Message Text,Time\n1,1556723833,Message new Text,Time";
-const csvNoHeaderInput = "10,1556727733,Message Text,Time\n1,1556723833,Message new Text,Time";
+const csvMalformedHeaderInput = "amount,end,message,type\n10,1556727733000,Message Text,Time\n1,1556723833,Message new Text,Time";
+const csvNoHeaderInput = "10,1556727733000,Message Text,Time\n1,1556723833,Message new Text,Time";
 const csvBullshitInput = "ksdjf939jflwsfkdskjlfjlo3oqw9d92eijskljdjf apsflsflk jakjfieo jwfaksdjf  jfea fio";
 const csvMissingColumnInput = "AMOUNT,MESSAGE\n10,Message Text\n1,Message new Text";
 
@@ -34,14 +34,14 @@ const csvReadableDateDefaultFormatInput = "AMOUNT,END,MESSAGE,TYPE\n1,2019-01-29
 const csvWrongReadableDateDefaultFormatInput = "AMOUNT,END,MESSAGE,TYPE\n1,asdf,Message new Text,Time";
 const csvReadableDateDefaultFormatOutput: IRecord[] = [{
   amount: 1,
-  end: 1548766800,
+  end: 1548766800000,
   message: "Message new Text",
   type: RECORD_TYPES.Time,
 }];
-const csvCommaSeperatedAmountInput = "AMOUNT,END,MESSAGE,TYPE\n\"1,5\",1556723833,Message new Text,Time";
+const csvCommaSeperatedAmountInput = "AMOUNT,END,MESSAGE,TYPE\n\"1,5\",1556723833000,Message new Text,Time";
 const csvCommaSeperatedAmountOutput: IRecord[] = [{
   amount: 1.5,
-  end: 1556723833,
+  end: 1556723833000,
   message: "Message new Text",
   type: RECORD_TYPES.Time,
 }];
