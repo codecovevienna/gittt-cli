@@ -2,9 +2,9 @@ import { assert, expect } from "chai";
 import path from "path";
 import proxyquire from "proxyquire";
 import { StatusResult } from "simple-git/promise";
-import { DefaultLogFields, ListLogSummary } from "simple-git/typings/response";
 import sinon from "sinon";
 import { FileHelper, GitHelper, LogHelper } from "../../helper/";
+import { ListLogSummary, DefaultLogFields } from "simple-git";
 
 const sandboxDir = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");

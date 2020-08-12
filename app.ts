@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
-import commander, { Command, CommanderStatic } from "commander";
+import commander, { Command } from "commander";
 import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
@@ -126,7 +126,7 @@ export class App {
     }
   }
 
-  public async exportAction(cmd: Command): Promise<void> {
+  public async exportAction(cmd: commander.Command): Promise<void> {
     LogHelper.print(`Gathering projects...`)
     let projectsToExport: IProject[] = [];
     if (cmd.project) {
@@ -145,7 +145,7 @@ export class App {
     LogHelper.info(`✓ Export done`)
   }
 
-  public async linkAction(cmd: Command): Promise<void> {
+  public async linkAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let project: IProject | undefined;
@@ -213,7 +213,7 @@ export class App {
     }
   }
 
-  public async publishAction(cmd: Command): Promise<void> {
+  public async publishAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let project: IProject | undefined;
@@ -393,7 +393,7 @@ export class App {
     }
   }
 
-  public async editAction(cmd: Command): Promise<void> {
+  public async editAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let project: IProject | undefined;
@@ -551,7 +551,7 @@ export class App {
   }
 
   // TODO pretty much the same as editAction, refactor?
-  public async removeAction(cmd: Command): Promise<void> {
+  public async removeAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let project: IProject | undefined;
@@ -630,7 +630,7 @@ export class App {
       }: ${chosenRecord.amount} ${chosenRecord.type} - "${_.truncate(chosenRecord.message)}") from project ${updatedProject.name}`);
   }
 
-  public async commitAction(cmd: Command): Promise<void> {
+  public async commitAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let amount: number;
@@ -679,7 +679,7 @@ export class App {
     }
   }
 
-  public async addAction(cmd: Command): Promise<void> {
+  public async addAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let year: number;
@@ -799,7 +799,7 @@ export class App {
     }
   }
 
-  public async infoAction(cmd: Command): Promise<void> {
+  public async infoAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     const order: string = ORDER_TYPE.indexOf(cmd.order) === -1 ? ORDER_TYPE[0] : cmd.order;
@@ -895,7 +895,7 @@ export class App {
     }
   }
 
-  public async listAction(cmd: Command): Promise<void> {
+  public async listAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let project: IProject | undefined;
@@ -1013,7 +1013,7 @@ export class App {
     LogHelper.info(`SUM:\t${sumOfTime}h`);
   }
 
-  public async reportAction(cmd: Command): Promise<void> {
+  public async reportAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
     let project: IProject | undefined;
@@ -1086,7 +1086,7 @@ export class App {
     LogHelper.log(ChartHelper.chart(weekdayData, true, 50, false, "h"));
   }
 
-  public async stopAction(cmd: Command): Promise<void> {
+  public async stopAction(cmd: commander.Command): Promise<void> {
     let project: IProject | undefined;
 
     if (cmd.kill) {
@@ -1123,7 +1123,7 @@ export class App {
     }
   }
 
-  public initCommander(): CommanderStatic {
+  public initCommander() {
     // Only matters for tests to omit 'MaxListenersExceededWarning'
     commander.removeAllListeners();
     commander.on("command:*", () => {
@@ -1141,7 +1141,7 @@ export class App {
       .option("-a, --amount <amount>", "Amount of hours spent")
       .option("-m, --message [message]", "Description of the spent hours")
       .option("-p, --project [project]", "Specify a project to commit to")
-      .action(async (cmd: Command): Promise<void> => await this.commitAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => await this.commitAction(cmd));
 
     // add command
     commander
@@ -1156,7 +1156,7 @@ export class App {
       .option("-w, --message [message]", "Specify the message of the record")
       .option("-t, --type [type]", "Specify the type of the record")
       .option("-p, --project [project]", "Specify the project to add the record")
-      .action(async (cmd: Command): Promise<void> => await this.addAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => await this.addAction(cmd));
 
     // push command
     commander
@@ -1175,7 +1175,7 @@ export class App {
       .option("-o, --order <type>", "Specify the ordering (hours or name) default is " + ORDER_TYPE[0])
       .option("-d, --direction <direction>", "Specify the ordering direction (asc, desc)" + ORDER_DIRECTION[0])
       .option("-p, --project [project]", "Specify the project to get the information")
-      .action((cmd: Command): Promise<void> => this.infoAction(cmd));
+      .action((cmd: commander.Command): Promise<void> => this.infoAction(cmd));
 
     // list command
     // will be changed in GITTT-85
@@ -1183,7 +1183,7 @@ export class App {
       .command("list")
       .description("List of time tracks in project")
       .option("-p, --project [project]", "Specify the project to get the time tracks")
-      .action((cmd: Command): Promise<void> => this.listAction(cmd));
+      .action((cmd: commander.Command): Promise<void> => this.listAction(cmd));
 
     commander
       .command("today")
@@ -1197,7 +1197,7 @@ export class App {
       .description("Prints a small report")
       .option("-d, --days [number]", "Specify for how many days the report should be printed.")
       .option("-p, --project [project]", "Specify the project the report should be printed for")
-      .action((cmd: Command): Promise<void> => this.reportAction(cmd));
+      .action((cmd: commander.Command): Promise<void> => this.reportAction(cmd));
 
     commander
       .command("setup")
@@ -1230,14 +1230,14 @@ export class App {
       .command("link")
       .description("Initialize or edit link to third party applications")
       .option("-p, --project [project]", "Specify the project to link")
-      .action(async (cmd: Command): Promise<void> => await this.linkAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => await this.linkAction(cmd));
 
     // publish command
     commander
       .command("publish")
       .description("Publishes stored records to external endpoint")
       .option("-p, --project [project]", "Specify the project to publish")
-      .action(async (cmd: Command): Promise<void> => await this.publishAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => await this.publishAction(cmd));
 
     // edit command
     commander
@@ -1253,7 +1253,7 @@ export class App {
       .option("-w, --message [message]", "Specify the message of the record")
       .option("-t, --type [type]", "Specify the type of the record")
       .option("-p, --project [project]", "Specify the project to edit")
-      .action(async (cmd: Command): Promise<void> => await this.editAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => await this.editAction(cmd));
 
     // remove command
     commander
@@ -1261,7 +1261,7 @@ export class App {
       .description("Remove record from a project")
       .option("-g, --guid [guid]", "GUID of the record to remove")
       .option("-p, --project [project]", "Specify the project to remove a record")
-      .action(async (cmd: Command): Promise<void> => await this.removeAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => await this.removeAction(cmd));
 
     // import command
     commander
@@ -1278,7 +1278,7 @@ export class App {
       .option("-d, --directory [directory]", "Directory where to store the export (default: current working dir)")
       .option("-t, --type [file type]", "File type of the export (default: ods) - supported types: https://github.com/SheetJS/sheetjs#supported-output-formats")
       .option("-p, --project [project to export]", "Name of the project")
-      .action(async (cmd: Command): Promise<void> => {
+      .action(async (cmd: commander.Command): Promise<void> => {
         await this.exportAction(cmd);
       });
 
