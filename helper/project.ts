@@ -167,12 +167,9 @@ export class ProjectHelper {
     uniqueOnly?: boolean,
     nonOverlappingOnly?: boolean,
   ): Promise<void> => {
-    const gitttProject: IProject = await this.getGitttProject();
-
     const selectedProject: IProject | undefined = project ?
       project :
-      // await this.findOrInitProjectByName(this.getProjectFromGit().name);
-      gitttProject;
+      await this.getGitttProject();
 
     if (!selectedProject) {
       return;

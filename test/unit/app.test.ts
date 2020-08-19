@@ -1,13 +1,13 @@
 import { assert, expect } from "chai";
-import { Command, CommanderStatic } from "commander";
+import commander, { Command, CommanderStatic } from "commander";
 import proxyquire from "proxyquire";
-import { DefaultLogFields } from "simple-git/typings/response";
 import sinon from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
 import { IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
+import { DefaultLogFields } from "simple-git";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
@@ -516,7 +516,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 69;
       mockedCommand.guid = "mocked-guid";
       mockedCommand.type = RECORD_TYPES.Time;
@@ -733,7 +734,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 69;
       mockedCommand.guid = "mocked-guid";
       mockedCommand.type = RECORD_TYPES.Time;
@@ -800,7 +802,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 69;
       mockedCommand.guid = "unknown-guid";
       mockedCommand.type = RECORD_TYPES.Time;
@@ -865,7 +868,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 3;
       mockedCommand.type = RECORD_TYPES.Time;
 
@@ -932,7 +936,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.guid = "mocked-guid";
       mockedCommand.type = RECORD_TYPES.Time;
 
@@ -996,7 +1001,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 420;
       mockedCommand.guid = "mocked-guid";
 
@@ -1038,7 +1044,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
@@ -1115,7 +1122,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
@@ -1157,7 +1165,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
@@ -1206,7 +1215,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
@@ -1262,7 +1272,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
@@ -1329,7 +1340,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.guid = "mocked-guid";
 
       // Mock arguments array to be greater than 3
@@ -1392,7 +1404,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       const helpStub = sinon.stub(mockedCommand, "help");
 
@@ -1456,7 +1469,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.guid = "unknown-guid";
 
       // Mock arguments array to be greater than 3
@@ -1497,7 +1511,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
@@ -1545,7 +1560,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 1337
 
       process.argv = ["namespace", "mocked", "commit", "-a", "1337"];
@@ -1604,7 +1620,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       process.argv = ["namespace", "mocked", "commit"];
 
@@ -1657,7 +1674,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 1337;
       mockedCommand.message = "custom";
 
@@ -1708,7 +1726,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = "noNumber";
 
       process.argv = ["namespace", "mocked", "commit", "-a", "noNumber"];
@@ -1747,7 +1766,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 1337;
       mockedCommand.project = "unknown";
 
@@ -1787,7 +1807,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
@@ -1822,7 +1843,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       const helpStub = sinon.stub(mockedCommand, "help");
 
@@ -1854,7 +1876,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = "invalid";
 
       const helpStub = sinon.stub(mockedCommand, "help");
@@ -1887,7 +1910,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 69;
 
       const helpStub = sinon.stub(mockedCommand, "help");
@@ -1934,7 +1958,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 2;
       mockedCommand.type = RECORD_TYPES.Time;
       mockedCommand.year = 2019;
@@ -1997,7 +2022,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
@@ -2061,7 +2087,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.file = "mockedFile.csv";
 
       // Mock arguments array to disable interactive mode
@@ -2135,7 +2162,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.file = "mockedFile.csv";
 
       // Mock arguments array to disable interactive mode
@@ -2214,7 +2242,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.file = "mockedFile.csv";
 
       // Mock arguments array to enable interactive mode
@@ -2251,7 +2280,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.file = "mockedFile.csv";
 
       // Mock arguments array to disable interactive mode
@@ -2294,7 +2324,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.file = "mockedFile.csv";
 
       // Mock arguments array to disable interactive mode
@@ -2337,7 +2368,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.file = "mockedFile.csv";
 
       // Mock arguments array to disable interactive mode
@@ -2392,7 +2424,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.file = "mockedFile.csv";
 
       // Mock arguments array to disable interactive mode
@@ -2437,7 +2470,8 @@ describe("App", function () {
 
         await mockedApp.setup();
 
-        const mockedCommand: Command = new Command();
+        const program = new commander.Command();
+        const mockedCommand: commander.Command = program.createCommand();
 
         // Mock arguments array to enable interactive mode
         process.argv = ["1", "2", "3"];
@@ -2491,7 +2525,8 @@ describe("App", function () {
 
         await mockedApp.setup();
 
-        const mockedCommand: Command = new Command();
+        const program = new commander.Command();
+        const mockedCommand: commander.Command = program.createCommand();
 
         // Mock arguments array to enable interactive mode
         process.argv = ["1", "2", "3"];
@@ -2565,7 +2600,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -2635,7 +2671,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
           mockedCommand.project = "mocked_project_1";
 
           // Mock arguments array to disable interactive mode
@@ -2712,7 +2749,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -2775,7 +2813,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -2814,7 +2853,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to disable interactive mode
           process.argv = ["1", "2", "3", "4"];
@@ -2884,7 +2924,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -2955,7 +2996,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
           mockedCommand.project = "mocked_project_1";
 
           // Mock arguments array to disable interactive mode
@@ -3027,7 +3069,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3103,7 +3146,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3195,7 +3239,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3286,7 +3331,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3338,7 +3384,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3401,7 +3448,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3463,7 +3511,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3529,7 +3578,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3599,7 +3649,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3669,7 +3720,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3719,7 +3771,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3790,7 +3843,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3831,7 +3885,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to disable interactive mode
           process.argv = ["1", "2", "3", "4"];
@@ -3902,7 +3957,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -3971,7 +4027,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
           mockedCommand.project = "mocked_project_1";
 
           // Mock arguments array to disable interactive mode
@@ -4041,7 +4098,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -4102,7 +4160,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -4172,7 +4231,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -4239,7 +4299,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
           mockedCommand.project = "mocked_project_1";
 
           // Mock arguments array to disable interactive mode
@@ -4311,7 +4372,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -4388,7 +4450,8 @@ describe("App", function () {
 
           await mockedApp.setup();
 
-          const mockedCommand: Command = new Command();
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
 
           // Mock arguments array to enable interactive mode
           process.argv = ["1", "2", "3"];
@@ -4601,7 +4664,8 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const mockedCommand: Command = new Command();
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
 
       // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];

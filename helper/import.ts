@@ -41,7 +41,7 @@ export class ImportHelper {
               let end;
               if (isNaN(+chunk.END)) {
                 // try to parse end date
-                const parsedDate = moment(chunk.END);
+                const parsedDate = moment(chunk.END, "YYYY-MM-DD HH:mm");
 
                 if (!parsedDate.isValid()) {
                   throw new Error(`Unable to parse provided csv. Line ${index + 2} has no valid END date.`);
