@@ -89,7 +89,7 @@ export class ValidationHelper {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public static validateJiraUsername = (input: any): boolean | string | Promise<boolean | string> => {
+  public static validateUsername = (input: any): boolean | string | Promise<boolean | string> => {
     // TODO improve
     if (!input) {
       return "The username has to be a longer than one character";
@@ -99,6 +99,20 @@ export class ValidationHelper {
       return true;
     } else {
       return "The username has to be a longer than one character";
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static validatePassword = (input: any): boolean | string | Promise<boolean | string> => {
+    // TODO improve
+    if (!input) {
+      return "The password has to be a longer than one character";
+    }
+    const inputString: string = input;
+    if (inputString.length > 1) {
+      return true;
+    } else {
+      return "The password has to be a longer than one character";
     }
   }
 
