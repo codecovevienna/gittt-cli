@@ -4309,6 +4309,8 @@ describe("App", function () {
         });
       });
 
+      // TODO add oauth client to proxyquire
+      // TODO add failing token test
       describe.skip("Publish", function () {
         it("should publish records to Multipie endpoint", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
