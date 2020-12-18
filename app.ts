@@ -25,11 +25,13 @@ import {
   IJiraPublishResult,
   IProject,
   IRecord,
-  IMultipieLink,
+  IMultipieInputLink,
   IPublishSummaryItem,
+  IMultipieStoreLink,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
+import ClientOAuth2, { Token } from "client-oauth2";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
@@ -37,6 +39,9 @@ const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
 const APP_CONFIG_DIR = ".gittt-cli";
 const JIRA_ENDPOINT_VERSION = "v2";
+const MULTIPIE_OAUTH_ACCESS_TOKEN_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/token"
+const MULTIPIE_OAUTH_AUTHORIZATION_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/auth"
+const MULTIPIE_OAUTH_REDIRECT_URI = MULTIPIE_OAUTH_AUTHORIZATION_URI;
 
 export class App {
   private configDir: string;
@@ -46,8 +51,21 @@ export class App {
   private gitHelper: GitHelper;
   private projectHelper: ProjectHelper;
   private importHelper: ImportHelper;
+  private multipieAuth: ClientOAuth2
 
   public start(): void {
+
+    // TODO maybe outsource this to own oauth helper
+
+    this.multipieAuth = new ClientOAuth2({
+      clientId: 'gittt-cli',
+      clientSecret: '3d7d8937-bb46-4ac6-9b1e-0912e1ca1195',
+      accessTokenUri: MULTIPIE_OAUTH_ACCESS_TOKEN_URI,
+      authorizationUri: MULTIPIE_OAUTH_AUTHORIZATION_URI,
+      redirectUri: MULTIPIE_OAUTH_REDIRECT_URI,
+      scopes: ['openid', 'offline_access']
+    })
+
     if (process.argv.length === 2) {
       commander.help();
     } else {
@@ -190,19 +208,35 @@ export class App {
         break;
 
       case "Multipie":
-        let prevMultipieLink: IMultipieLink | undefined;
+        let prevMultipieLink: IMultipieInputLink | undefined;
         if (prevIntegrationLink) {
           LogHelper.info(`Found link for "${project.name}", enriching dialog with previous data`)
-          prevMultipieLink = prevIntegrationLink as IMultipieLink;
+          prevMultipieLink = prevIntegrationLink as IMultipieInputLink;
         }
 
-        const multiPieLink: IMultipieLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
+        const multiPieInputLink: IMultipieInputLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
 
         try {
-          await this.configHelper.addOrUpdateLink(multiPieLink);
+          const authResponse: Token = await this.multipieAuth.owner.getToken(multiPieInputLink.username, multiPieInputLink.password);
+          LogHelper.debug(`Got offline access refresh token from ${MULTIPIE_OAUTH_ACCESS_TOKEN_URI}`);
+
+          const offlineToken: IMultipieStoreLink = {
+            projectName: multiPieInputLink.projectName,
+            linkType: multiPieInputLink.linkType,
+            host: multiPieInputLink.host,
+            endpoint: multiPieInputLink.endpoint,
+            refreshToken: authResponse.refreshToken,
+          }
+
+          try {
+            await this.configHelper.addOrUpdateLink(offlineToken);
+          } catch (err) {
+            LogHelper.debug(`Unable to add link to config file`, err);
+            return this.exit(`Unable to add link to config file`, 1);
+          }
         } catch (err) {
-          LogHelper.debug(`Unable to add link to config file`, err);
-          return this.exit(`Unable to add link to config file`, 1);
+          LogHelper.debug(`Unable to authenticate user`, err);
+          return this.exit(`Unable to authenticate user`, 1);
         }
 
         break;
@@ -323,19 +357,33 @@ export class App {
           break;
 
         case "Multipie":
-          const multipieLink: IMultipieLink = link as IMultipieLink;
+          const multipieLink: IMultipieStoreLink = link as IMultipieStoreLink;
 
           const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
 
           LogHelper.debug(`Publishing to ${multipieUrl}`);
 
           try {
+
+            const { refreshToken } = multipieLink;
+            if (!refreshToken) {
+              this.exit(`Unable to find refresh token for this project, please login via 'gittt link'`, 1);
+              return;
+            }
+
+            const offlineToken: Token = await this.multipieAuth.createToken("", refreshToken, {});
+
+            LogHelper.debug(`Refreshing token to get access token`);
+
+            const refreshedToken = await offlineToken.refresh();
+            LogHelper.debug(`Got access token`);
+
             const publishResult: AxiosResponse = await axios
               .post(multipieUrl,
                 project,
                 {
                   headers: {
-                    "Authorization": `${multipieLink.username}`,
+                    "Authorization": `Bearer ${refreshedToken.accessToken}`,
                     "Cache-Control": "no-cache",
                     "Content-Type": "application/json",
                   },
@@ -846,7 +894,7 @@ export class App {
               }
               break;
             case "Multipie":
-              const multipieLink: IMultipieLink = link as IMultipieLink;
+              const multipieLink: IMultipieInputLink = link as IMultipieInputLink;
               LogHelper.log("");
               LogHelper.log("Multipie link:");
               LogHelper.log(`> Host:\t\t${multipieLink.host}`);
