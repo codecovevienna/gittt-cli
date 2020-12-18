@@ -4,7 +4,7 @@ import sinon from "sinon";
 import { QuestionHelper } from "../../helper";
 import { IJiraLink, IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
-import { IMultipieLink } from '../../interfaces/index';
+import { IMultipieInputLink } from '../../interfaces/index';
 
 describe("QuestionHelper", function () {
   describe("Static", function () {
@@ -274,7 +274,7 @@ describe("QuestionHelper", function () {
           },
         });
 
-        const choice: IMultipieLink = await proxy.QuestionHelper.askMultipieLink({
+        const choice: IMultipieInputLink = await proxy.QuestionHelper.askMultipieLink({
           meta: {
             host: "mocked.com",
             port: 443,
@@ -299,7 +299,7 @@ describe("QuestionHelper", function () {
           },
         });
 
-        const choice: IMultipieLink = await proxy.QuestionHelper.askMultipieLink({
+        const choice: IMultipieInputLink = await proxy.QuestionHelper.askMultipieLink({
           meta: {
             host: "mocked.com",
             port: 443,
@@ -312,7 +312,7 @@ describe("QuestionHelper", function () {
             linkType: "Multipie",
             projectName: "mocked_project_1",
             username: "mocked"
-          } as IMultipieLink);
+          } as IMultipieInputLink);
 
         expect(choice.host).to.eq("http://mocked.com");
         expect(choice.endpoint).to.eq("/v1/publish");

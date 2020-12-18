@@ -4,7 +4,7 @@ import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import { IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieLink, IMultipiePublishResult } from "../../interfaces";
+import { IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieInputLink, IMultipiePublishResult } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 import { DefaultLogFields } from "simple-git";
@@ -3898,9 +3898,9 @@ describe("App", function () {
       });
     });
 
-    describe("Multipie", function () {
+    describe.only("Multipie", function () {
       describe("Add/Edit", function () {
-        it("should add new Multipie link", async function () {
+        it.only("should add new Multipie link", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
           const addOrUpdateLinkStub = sinon.stub().resolves();
 
@@ -3944,7 +3944,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_project_1",
                 username: "mocked",
-              } as IJiraLink
+              } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
@@ -4014,7 +4014,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_project_1",
                 username: "mocked",
-              } as IMultipieLink
+              } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
@@ -4067,7 +4067,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_project_1",
                 username: "mocked"
-              } as IMultipieLink
+              } as IMultipieInputLink
             ]
             );
           }
@@ -4084,7 +4084,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_,project_1",
                 username: "mocked",
-              } as IMultipieLink
+              } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
@@ -4144,7 +4144,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_,project_1",
                 username: "mocked",
-              } as IMultipieLink
+              } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
@@ -4193,7 +4193,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               username: "test",
-            } as IMultipieLink,
+            } as IMultipieInputLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
@@ -4261,7 +4261,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               username: "test",
-            } as IMultipieLink,
+            } as IMultipieInputLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
@@ -4331,7 +4331,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               username: "test",
-            } as IMultipieLink,
+            } as IMultipieInputLink,
           ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
@@ -4403,7 +4403,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               username: "test",
-            } as IMultipieLink,
+            } as IMultipieInputLink,
           ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
@@ -5101,7 +5101,7 @@ describe("App", function () {
           username: "mock",
           linkType: "Multipie",
           projectName: "Name1",
-        } as IMultipieLink,
+        } as IMultipieInputLink,
       ]);
 
       mockedHelper.FileHelper = class {

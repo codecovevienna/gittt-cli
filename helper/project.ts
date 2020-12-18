@@ -369,7 +369,7 @@ export class ProjectHelper {
   //           LogHelper.info(`✓ Updated Jira link`);
   //           break;
   //         case "Multipie":
-  //           const migratedMultipieLink: IMultipieLink = link as IMultipieLink;
+  //           const migratedMultipieLink: IMultipieInputLink = link as IMultipieInputLink;
   //           migratedMultipieLink.projectName = to.name;
 
   //           await this.fileHelper.addOrUpdateLink(migratedMultipieLink);

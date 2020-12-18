@@ -72,10 +72,10 @@ describe("ValidationHelper", function () {
   });
 
   it("should validate jira user", async function () {
-    assert.isTrue(ValidationHelper.validateJiraUsername("gittt-user"));
+    assert.isTrue(ValidationHelper.validateUsername("gittt-user"));
 
-    assert.isString(ValidationHelper.validateJiraUsername(undefined));
-    assert.isString(ValidationHelper.validateJiraUsername("1"));
+    assert.isString(ValidationHelper.validateUsername(undefined));
+    assert.isString(ValidationHelper.validateUsername("1"));
   });
 
   it("should validate jira endpoint", async function () {

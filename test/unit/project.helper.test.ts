@@ -1740,7 +1740,7 @@ describe("ProjectHelper", function () {
   //         linkType: "Multipie",
   //         projectName: "test_mocked",
   //         username: "gittt",
-  //       } as IMultipieLink,
+  //       } as IMultipieInputLink,
   //     ]);
   //     const addOrUpdateLinkStub = sinon.stub(mockedFileHelper, "addOrUpdateLink").resolves();
 
