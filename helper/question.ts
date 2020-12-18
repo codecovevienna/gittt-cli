@@ -1,7 +1,7 @@
 import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
-import { IJiraLink, IMultipieInputLink, IProject, IRecord } from "../interfaces";
+import { IJiraLink, IMultipieInputLink, IMultipieStoreLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { ProjectHelper, ValidationHelper } from "./";
 
@@ -192,7 +192,7 @@ export class QuestionHelper {
     return link;
   }
 
-  public static askMultipieLink = async (project: IProject, prevData?: IMultipieInputLink): Promise<IMultipieInputLink> => {
+  public static askMultipieLink = async (project: IProject, prevData?: IMultipieStoreLink): Promise<IMultipieInputLink> => {
     const multipieAnswers = await inquirer.prompt([
       {
         default: prevData ? prevData.host : "https://multipie.gittt.org",
@@ -204,17 +204,15 @@ export class QuestionHelper {
         validate: ValidationHelper.validateJiraEndpoint,
       },
       {
-        default: prevData ? prevData.username : undefined,
         message: "Multipie username",
         name: "username",
         type: "input",
         validate: ValidationHelper.validateUsername
       },
       {
-        default: prevData ? prevData.password : undefined,
         message: "Multipie password",
         name: "password",
-        type: "input",
+        type: "password",
         validate: ValidationHelper.validatePassword
       },
     ]) as {

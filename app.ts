@@ -39,8 +39,10 @@ const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
 const APP_CONFIG_DIR = ".gittt-cli";
 const JIRA_ENDPOINT_VERSION = "v2";
-const MULTIPIE_OAUTH_ACCESS_TOKEN_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/token"
-const MULTIPIE_OAUTH_AUTHORIZATION_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/auth"
+const MULTIPIE_OAUTH_CLIENT_ID = "cc-gittt-cli";
+const MULTIPIE_OAUTH_CLIENT_SECRET = "3d7d8937-bb46-4ac6-9b1e-0912e1ca1195";
+const MULTIPIE_OAUTH_ACCESS_TOKEN_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/token";
+const MULTIPIE_OAUTH_AUTHORIZATION_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/auth";
 const MULTIPIE_OAUTH_REDIRECT_URI = MULTIPIE_OAUTH_AUTHORIZATION_URI;
 
 export class App {
@@ -54,18 +56,6 @@ export class App {
   private multipieAuth: ClientOAuth2
 
   public start(): void {
-
-    // TODO maybe outsource this to own oauth helper
-
-    this.multipieAuth = new ClientOAuth2({
-      clientId: 'cc-gittt-cli',
-      clientSecret: '3d7d8937-bb46-4ac6-9b1e-0912e1ca1195',
-      accessTokenUri: MULTIPIE_OAUTH_ACCESS_TOKEN_URI,
-      authorizationUri: MULTIPIE_OAUTH_AUTHORIZATION_URI,
-      redirectUri: MULTIPIE_OAUTH_REDIRECT_URI,
-      scopes: ['openid', 'offline_access']
-    })
-
     if (process.argv.length === 2) {
       commander.help();
     } else {
@@ -86,6 +76,16 @@ export class App {
     this.configDir = path.join(FileHelper.getHomeDir(), `${APP_CONFIG_DIR}`);
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
     this.configHelper = new ConfigHelper(this.fileHelper);
+
+    // TODO maybe outsource this to own oauth helper
+    this.multipieAuth = new ClientOAuth2({
+      clientId: MULTIPIE_OAUTH_CLIENT_ID,
+      clientSecret: MULTIPIE_OAUTH_CLIENT_SECRET,
+      accessTokenUri: MULTIPIE_OAUTH_ACCESS_TOKEN_URI,
+      authorizationUri: MULTIPIE_OAUTH_AUTHORIZATION_URI,
+      redirectUri: MULTIPIE_OAUTH_REDIRECT_URI,
+      scopes: ['openid', 'offline_access']
+    })
 
     if (!(await this.configHelper.isInitialized())) {
       if (await QuestionHelper.confirmSetup()) {
@@ -215,7 +215,6 @@ export class App {
         }
 
         const multiPieInputLink: IMultipieInputLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
-
         try {
           const authResponse: Token = await this.multipieAuth.owner.getToken(multiPieInputLink.username, multiPieInputLink.password);
           LogHelper.debug(`Got offline access refresh token from ${MULTIPIE_OAUTH_ACCESS_TOKEN_URI}`);

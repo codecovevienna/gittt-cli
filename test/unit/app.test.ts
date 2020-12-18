@@ -4,13 +4,13 @@ import proxyquire from "proxyquire";
 import sinon from "sinon";
 import { App } from "../../app";
 import { LogHelper } from "../../helper/index";
-import { IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieInputLink, IMultipiePublishResult } from "../../interfaces";
+import { IJiraLink, IJiraPublishResult, IProject, IRecord, IMultipieInputLink, IMultipiePublishResult, IMultipieStoreLink } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { emptyHelper } from "../helper";
 import { DefaultLogFields } from "simple-git";
 
-LogHelper.DEBUG = false;
-LogHelper.silence = true;
+LogHelper.DEBUG = true;
+LogHelper.silence = false;
 
 describe("App", function () {
   before(function () {
@@ -3898,9 +3898,9 @@ describe("App", function () {
       });
     });
 
-    describe.only("Multipie", function () {
+    describe("Multipie", function () {
       describe("Add/Edit", function () {
-        it.only("should add new Multipie link", async function () {
+        it("should add new Multipie link", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
           const addOrUpdateLinkStub = sinon.stub().resolves();
 
@@ -3944,6 +3944,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_project_1",
                 username: "mocked",
+                password: "mocked",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
@@ -3951,6 +3952,17 @@ describe("App", function () {
 
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  owner: {
+                    getToken: sinon.stub().resolves({
+                      refreshToken: "mockedToken"
+                    })
+                  }
+                }
+              }
+            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -3966,6 +3978,9 @@ describe("App", function () {
           await mockedApp.linkAction(mockedCommand);
 
           assert.isTrue(addOrUpdateLinkStub.calledOnce);
+          assert.isTrue(addOrUpdateLinkStub.calledWithMatch({
+            refreshToken: "mockedToken"
+          }));
         });
 
         it("should add new Multipie link [non interactive]", async function () {
@@ -4014,6 +4029,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_project_1",
                 username: "mocked",
+                password: "mocked",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
@@ -4021,8 +4037,18 @@ describe("App", function () {
 
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  owner: {
+                    getToken: sinon.stub().resolves({
+                      refreshToken: "mockedToken"
+                    })
+                  }
+                }
+              }
+            }
           });
-
           const mockedApp: App = new proxy.App();
 
           await mockedApp.setup();
@@ -4037,6 +4063,9 @@ describe("App", function () {
           await mockedApp.linkAction(mockedCommand);
 
           assert.isTrue(addOrUpdateLinkStub.calledOnce);
+          assert.isTrue(addOrUpdateLinkStub.calledWithMatch({
+            refreshToken: "mockedToken"
+          }));
         });
 
         it("should edit previous Multipie link", async function () {
@@ -4066,8 +4095,8 @@ describe("App", function () {
                 host: "http://github.com",
                 linkType: "Multipie",
                 projectName: "mocked_project_1",
-                username: "mocked"
-              } as IMultipieInputLink
+                refreshToken: "mocked"
+              } as IMultipieStoreLink
             ]
             );
           }
@@ -4084,6 +4113,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_,project_1",
                 username: "mocked",
+                password: "mocked",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
@@ -4092,6 +4122,17 @@ describe("App", function () {
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
             "commander": mockedCommander,
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  owner: {
+                    getToken: sinon.stub().resolves({
+                      refreshToken: "mockedToken"
+                    })
+                  }
+                }
+              }
+            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4107,6 +4148,9 @@ describe("App", function () {
           await mockedApp.linkAction(mockedCommand);
 
           assert.isTrue(addOrUpdateLinkStub.calledOnce);
+          assert.isTrue(addOrUpdateLinkStub.calledWithMatch({
+            refreshToken: "mockedToken"
+          }));
         });
 
         it("should fail to add new Multipie link [error while adding]", async function () {
@@ -4144,6 +4188,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_,project_1",
                 username: "mocked",
+                password: "mocked",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
@@ -4152,6 +4197,17 @@ describe("App", function () {
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
             "commander": mockedCommander,
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  owner: {
+                    getToken: sinon.stub().resolves({
+                      refreshToken: "mockedToken"
+                    })
+                  }
+                }
+              }
+            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4169,13 +4225,91 @@ describe("App", function () {
           await mockedApp.linkAction(mockedCommand);
 
           assert.isTrue(addOrUpdateLinkStub.calledOnce);
+          assert.isTrue(addOrUpdateLinkStub.calledWithMatch({
+            refreshToken: "mockedToken"
+          }));
+          assert.isTrue(exitStub.calledOnce);
+
+          exitStub.restore();
+        });
+
+        it("should fail to add new Multipie link [token error]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+          const mockedCommander: CommanderStatic = proxyquire("commander", {});
+
+          const getOrAskForProjectFromGitStub = sinon.stub().returns({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const addOrUpdateLinkStub = sinon.stub().resolves();
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
+            public addOrUpdateLink = addOrUpdateLinkStub;
+            public findLinksByProject = sinon.stub().resolves([]);
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          mockedHelper.QuestionHelper = class {
+            public static askMultipieLink = sinon.stub().resolves(
+              {
+                host: "http://mocked.com",
+                endpoint: "/v1/publish",
+                linkType: "Multipie",
+                projectName: "mocked_,project_1",
+                username: "mocked",
+                password: "mocked",
+              } as IMultipieInputLink
+            );
+            public static chooseIntegration = sinon.stub().resolves("Multipie");
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "commander": mockedCommander,
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  owner: {
+                    getToken: sinon.stub().throws()
+                  }
+                }
+              }
+            }
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit");
+
+          await mockedApp.setup();
+
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.linkAction(mockedCommand);
+
+          assert.isTrue(addOrUpdateLinkStub.notCalled);
           assert.isTrue(exitStub.calledOnce);
 
           exitStub.restore();
         });
       });
 
-      describe("Publish", function () {
+      describe.skip("Publish", function () {
         it("should publish records to Multipie endpoint", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
 
