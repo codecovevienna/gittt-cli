@@ -58,7 +58,7 @@ export class App {
     // TODO maybe outsource this to own oauth helper
 
     this.multipieAuth = new ClientOAuth2({
-      clientId: 'gittt-cli',
+      clientId: 'cc-gittt-cli',
       clientSecret: '3d7d8937-bb46-4ac6-9b1e-0912e1ca1195',
       accessTokenUri: MULTIPIE_OAUTH_ACCESS_TOKEN_URI,
       authorizationUri: MULTIPIE_OAUTH_AUTHORIZATION_URI,
