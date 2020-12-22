@@ -4309,9 +4309,7 @@ describe("App", function () {
         });
       });
 
-      // TODO add oauth client to proxyquire
-      // TODO add failing token test
-      describe.skip("Publish", function () {
+      describe("Publish", function () {
         it("should publish records to Multipie endpoint", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
 
@@ -4328,8 +4326,8 @@ describe("App", function () {
               endpoint: "/v1/publish",
               linkType: "Multipie",
               projectName: "mocked_project_1",
-              username: "test",
-            } as IMultipieInputLink,
+              refreshToken: "test",
+            } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
@@ -4361,6 +4359,17 @@ describe("App", function () {
             "axios": {
               post: axiosPostStub,
             },
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  createToken: sinon.stub().resolves({
+                    refresh: sinon.stub().resolves({
+                      accessToken: "mocked"
+                    })
+                  })
+                }
+              }
+            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4378,6 +4387,7 @@ describe("App", function () {
           assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
+          expect(axiosPostStub.getCall(0).lastArg.headers.Authorization).to.eq("Bearer mocked")
         });
 
         it("should publish records to Multipie endpoint [non interactive]", async function () {
@@ -4396,8 +4406,8 @@ describe("App", function () {
               endpoint: "/v1/publish",
               linkType: "Multipie",
               projectName: "mocked_project_1",
-              username: "test",
-            } as IMultipieInputLink,
+              refreshToken: "test",
+            } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
           const axiosPostStub = sinon.stub().resolves({
@@ -4429,6 +4439,17 @@ describe("App", function () {
             "axios": {
               post: axiosPostStub,
             },
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  createToken: sinon.stub().resolves({
+                    refresh: sinon.stub().resolves({
+                      accessToken: "mocked"
+                    })
+                  })
+                }
+              }
+            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4447,6 +4468,7 @@ describe("App", function () {
           assert.isTrue(findLinksByProjectStub.calledOnce);
           assert.isTrue(getProjectByNameStub.calledOnce);
           assert.isTrue(axiosPostStub.calledOnce);
+          expect(axiosPostStub.getCall(0).lastArg.headers.Authorization).to.eq("Bearer mocked")
         });
 
 
@@ -4466,8 +4488,8 @@ describe("App", function () {
               endpoint: "/v1/publish",
               linkType: "Multipie",
               projectName: "mocked_project_1",
-              username: "test",
-            } as IMultipieInputLink,
+              refreshToken: "test",
+            } as IMultipieStoreLink,
           ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
@@ -4500,6 +4522,17 @@ describe("App", function () {
             "axios": {
               post: axiosPostStub,
             },
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  createToken: sinon.stub().resolves({
+                    refresh: sinon.stub().resolves({
+                      accessToken: "mocked"
+                    })
+                  })
+                }
+              }
+            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4517,6 +4550,7 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(axiosPostStub.calledOnce);
+          expect(axiosPostStub.getCall(0).lastArg.headers.Authorization).to.eq("Bearer mocked")
           assert.isTrue(exitStub.called);
 
           exitStub.restore();
@@ -4538,8 +4572,8 @@ describe("App", function () {
               endpoint: "/v1/publish",
               linkType: "Multipie",
               projectName: "mocked_project_1",
-              username: "test",
-            } as IMultipieInputLink,
+              refreshToken: "test",
+            } as IMultipieStoreLink,
           ]);
           const findProjectByNameStub = sinon.stub().resolves({
             meta: {
@@ -4578,6 +4612,17 @@ describe("App", function () {
             "axios": {
               post: axiosPostStub,
             },
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  createToken: sinon.stub().resolves({
+                    refresh: sinon.stub().resolves({
+                      accessToken: "mocked"
+                    })
+                  })
+                }
+              }
+            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4595,6 +4640,167 @@ describe("App", function () {
           await mockedApp.publishAction(mockedCommand);
 
           assert.isTrue(axiosPostStub.calledOnce);
+          expect(axiosPostStub.getCall(0).lastArg.headers.Authorization).to.eq("Bearer mocked")
+          assert.isTrue(exitStub.called);
+
+          exitStub.restore();
+        });
+
+        it("should fail to publish records to Multipie endpoint [no refresh token]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getOrAskForProjectFromGitStub = sinon.stub().returns({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              refreshToken: undefined,
+            } as IMultipieStoreLink,
+          ]);
+          const logChangesStub = sinon.stub().resolves([]);
+          const axiosPostStub = sinon.stub().resolves({
+            status: 200,
+            data: {
+              success: true,
+            } as IMultipiePublishResult,
+          });
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
+            public findLinksByProject = findLinksByProjectStub;
+          }
+
+          mockedHelper.GitHelper = class {
+            public logChanges = logChangesStub;
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "axios": {
+              post: axiosPostStub,
+            },
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  createToken: sinon.stub().resolves({
+                    refresh: sinon.stub().rejects(new Error("No refresh token provided"))
+                  })
+                }
+              }
+            }
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit");
+
+          await mockedApp.setup();
+
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(axiosPostStub.notCalled);
+          assert.isTrue(exitStub.called);
+
+          exitStub.restore();
+        });
+
+        it("should fail to publish records to Multipie endpoint [invalid refresh token]", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getOrAskForProjectFromGitStub = sinon.stub().returns({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              refreshToken: "test",
+            } as IMultipieStoreLink,
+          ]);
+          const logChangesStub = sinon.stub().resolves([]);
+          const axiosPostStub = sinon.stub().resolves({
+            status: 200,
+            data: {
+              success: true,
+            } as IMultipiePublishResult,
+          });
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
+            public findLinksByProject = findLinksByProjectStub;
+          }
+
+          mockedHelper.GitHelper = class {
+            public logChanges = logChangesStub;
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "axios": {
+              post: axiosPostStub,
+            },
+            "client-oauth2": class ClientOAuth2 {
+              constructor() {
+                return {
+                  createToken: sinon.stub().resolves({
+                    refresh: sinon.stub().rejects(new Error("Invalid refresh token provided"))
+                  })
+                }
+              }
+            }
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          const exitStub = sinon.stub(mockedApp, "exit");
+
+          await mockedApp.setup();
+
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(axiosPostStub.notCalled);
           assert.isTrue(exitStub.called);
 
           exitStub.restore();
