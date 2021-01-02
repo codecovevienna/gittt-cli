@@ -3945,24 +3945,26 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "mocked",
                 password: "mocked",
+                clientSecret: "mocked",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
 
-          const proxy: any = proxyquire("../../app", {
-            "./helper": mockedHelper,
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  owner: {
-                    getToken: sinon.stub().resolves({
-                      refreshToken: "mockedToken"
-                    })
-                  }
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                owner: {
+                  getToken: sinon.stub().resolves({
+                    refreshToken: "mockedToken"
+                  })
                 }
               }
             }
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
           });
 
           const mockedApp: App = new proxy.App();
@@ -4030,25 +4032,28 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "mocked",
                 password: "mocked",
+                clientSecret: "mocked",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
 
-          const proxy: any = proxyquire("../../app", {
-            "./helper": mockedHelper,
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  owner: {
-                    getToken: sinon.stub().resolves({
-                      refreshToken: "mockedToken"
-                    })
-                  }
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                owner: {
+                  getToken: sinon.stub().resolves({
+                    refreshToken: "mockedToken"
+                  })
                 }
               }
             }
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
           });
+
           const mockedApp: App = new proxy.App();
 
           await mockedApp.setup();
@@ -4095,7 +4100,8 @@ describe("App", function () {
                 host: "http://github.com",
                 linkType: "Multipie",
                 projectName: "mocked_project_1",
-                refreshToken: "mocked"
+                refreshToken: "mocked",
+                clientSecret: "mocked",
               } as IMultipieStoreLink
             ]
             );
@@ -4119,20 +4125,21 @@ describe("App", function () {
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
 
-          const proxy: any = proxyquire("../../app", {
-            "./helper": mockedHelper,
-            "commander": mockedCommander,
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  owner: {
-                    getToken: sinon.stub().resolves({
-                      refreshToken: "mockedToken"
-                    })
-                  }
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                owner: {
+                  getToken: sinon.stub().resolves({
+                    refreshToken: "mockedToken"
+                  })
                 }
               }
             }
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "commander": mockedCommander,
           });
 
           const mockedApp: App = new proxy.App();
@@ -4189,25 +4196,27 @@ describe("App", function () {
                 projectName: "mocked_,project_1",
                 username: "mocked",
                 password: "mocked",
+                clientSecret: "mocked",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
 
-          const proxy: any = proxyquire("../../app", {
-            "./helper": mockedHelper,
-            "commander": mockedCommander,
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  owner: {
-                    getToken: sinon.stub().resolves({
-                      refreshToken: "mockedToken"
-                    })
-                  }
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                owner: {
+                  getToken: sinon.stub().resolves({
+                    refreshToken: "mockedToken"
+                  })
                 }
               }
             }
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "commander": mockedCommander,
           });
 
           const mockedApp: App = new proxy.App();
@@ -4269,23 +4278,25 @@ describe("App", function () {
                 projectName: "mocked_,project_1",
                 username: "mocked",
                 password: "mocked",
+                clientSecret: "mocked",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
           }
 
-          const proxy: any = proxyquire("../../app", {
-            "./helper": mockedHelper,
-            "commander": mockedCommander,
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  owner: {
-                    getToken: sinon.stub().throws()
-                  }
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                owner: {
+                  getToken: sinon.stub().throws()
                 }
               }
             }
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "commander": mockedCommander,
           });
 
           const mockedApp: App = new proxy.App();
@@ -4327,6 +4338,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
+              clientSecret: "mocked",
             } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
@@ -4354,22 +4366,23 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
 
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                createToken: sinon.stub().resolves({
+                  refresh: sinon.stub().resolves({
+                    accessToken: "mocked"
+                  })
+                })
+              }
+            }
+          }
+
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
             "axios": {
               post: axiosPostStub,
             },
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  createToken: sinon.stub().resolves({
-                    refresh: sinon.stub().resolves({
-                      accessToken: "mocked"
-                    })
-                  })
-                }
-              }
-            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4407,6 +4420,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
+              clientSecret: "mocked",
             } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
@@ -4434,22 +4448,23 @@ describe("App", function () {
             public getProjectByName = getProjectByNameStub;
           }
 
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                createToken: sinon.stub().resolves({
+                  refresh: sinon.stub().resolves({
+                    accessToken: "mocked"
+                  })
+                })
+              }
+            }
+          }
+
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
             "axios": {
               post: axiosPostStub,
             },
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  createToken: sinon.stub().resolves({
-                    refresh: sinon.stub().resolves({
-                      accessToken: "mocked"
-                    })
-                  })
-                }
-              }
-            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4489,6 +4504,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
+              clientSecret: "mocked",
             } as IMultipieStoreLink,
           ]);
           const findProjectByNameStub = sinon.stub().resolves({
@@ -4517,22 +4533,23 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
 
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                createToken: sinon.stub().resolves({
+                  refresh: sinon.stub().resolves({
+                    accessToken: "mocked"
+                  })
+                })
+              }
+            }
+          }
+
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
             "axios": {
               post: axiosPostStub,
             },
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  createToken: sinon.stub().resolves({
-                    refresh: sinon.stub().resolves({
-                      accessToken: "mocked"
-                    })
-                  })
-                }
-              }
-            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4573,6 +4590,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
+              clientSecret: "mocked",
             } as IMultipieStoreLink,
           ]);
           const findProjectByNameStub = sinon.stub().resolves({
@@ -4607,21 +4625,22 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
 
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                createToken: sinon.stub().resolves({
+                  refresh: sinon.stub().resolves({
+                    accessToken: "mocked"
+                  })
+                })
+              }
+            }
+          }
+
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
             "axios": {
               post: axiosPostStub,
-            },
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  createToken: sinon.stub().resolves({
-                    refresh: sinon.stub().resolves({
-                      accessToken: "mocked"
-                    })
-                  })
-                }
-              }
             }
           });
 
@@ -4663,6 +4682,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: undefined,
+              clientSecret: "mocked",
             } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
@@ -4690,20 +4710,21 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
 
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                createToken: sinon.stub().resolves({
+                  refresh: sinon.stub().rejects(new Error("No refresh token provided"))
+                })
+              }
+            }
+          }
+
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
             "axios": {
               post: axiosPostStub,
             },
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  createToken: sinon.stub().resolves({
-                    refresh: sinon.stub().rejects(new Error("No refresh token provided"))
-                  })
-                }
-              }
-            }
           });
 
           const mockedApp: App = new proxy.App();
@@ -4743,6 +4764,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
+              clientSecret: "mocked",
             } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
@@ -4770,20 +4792,21 @@ describe("App", function () {
             public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
           }
 
+          mockedHelper.AuthHelper = class {
+            public getAuthClient = () => {
+              return {
+                createToken: sinon.stub().resolves({
+                  refresh: sinon.stub().rejects(new Error("Invalid refresh token provided"))
+                })
+              }
+            }
+          }
+
           const proxy: any = proxyquire("../../app", {
             "./helper": mockedHelper,
             "axios": {
               post: axiosPostStub,
             },
-            "client-oauth2": class ClientOAuth2 {
-              constructor() {
-                return {
-                  createToken: sinon.stub().resolves({
-                    refresh: sinon.stub().rejects(new Error("Invalid refresh token provided"))
-                  })
-                }
-              }
-            }
           });
 
           const mockedApp: App = new proxy.App();

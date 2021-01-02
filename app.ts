@@ -6,6 +6,7 @@ import moment, { Moment } from "moment";
 import path from "path";
 
 import {
+  AuthHelper,
   ChartHelper,
   FileHelper,
   ExportHelper,
@@ -32,7 +33,6 @@ import {
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
 import { Token } from "client-oauth2";
-import { AuthHelper } from "./helper/auth";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
