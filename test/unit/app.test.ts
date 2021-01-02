@@ -3945,7 +3945,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "mocked",
                 password: "mocked",
-                clientSecret: "mocked",
+                clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
@@ -4032,7 +4032,7 @@ describe("App", function () {
                 projectName: "mocked_project_1",
                 username: "mocked",
                 password: "mocked",
-                clientSecret: "mocked",
+                clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
@@ -4101,7 +4101,7 @@ describe("App", function () {
                 linkType: "Multipie",
                 projectName: "mocked_project_1",
                 refreshToken: "mocked",
-                clientSecret: "mocked",
+                clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
               } as IMultipieStoreLink
             ]
             );
@@ -4196,7 +4196,7 @@ describe("App", function () {
                 projectName: "mocked_,project_1",
                 username: "mocked",
                 password: "mocked",
-                clientSecret: "mocked",
+                clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
@@ -4278,7 +4278,7 @@ describe("App", function () {
                 projectName: "mocked_,project_1",
                 username: "mocked",
                 password: "mocked",
-                clientSecret: "mocked",
+                clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
               } as IMultipieInputLink
             );
             public static chooseIntegration = sinon.stub().resolves("Multipie");
@@ -4338,7 +4338,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
-              clientSecret: "mocked",
+              clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
             } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
@@ -4420,7 +4420,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
-              clientSecret: "mocked",
+              clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
             } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
@@ -4504,7 +4504,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
-              clientSecret: "mocked",
+              clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
             } as IMultipieStoreLink,
           ]);
           const findProjectByNameStub = sinon.stub().resolves({
@@ -4590,7 +4590,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
-              clientSecret: "mocked",
+              clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
             } as IMultipieStoreLink,
           ]);
           const findProjectByNameStub = sinon.stub().resolves({
@@ -4682,7 +4682,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: undefined,
-              clientSecret: "mocked",
+              clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
             } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);
@@ -4764,7 +4764,7 @@ describe("App", function () {
               linkType: "Multipie",
               projectName: "mocked_project_1",
               refreshToken: "test",
-              clientSecret: "mocked",
+              clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
             } as IMultipieStoreLink,
           ]);
           const logChangesStub = sinon.stub().resolves([]);

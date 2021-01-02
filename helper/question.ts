@@ -207,7 +207,7 @@ export class QuestionHelper {
         message: "gittt-cli client secret",
         name: "clientSecret",
         type: "input",
-        validate: ValidationHelper.validateUsername,
+        validate: ValidationHelper.validateClientSecret,
       },
       {
         message: "Multipie username",
