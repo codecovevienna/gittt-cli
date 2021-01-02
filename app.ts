@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
-import commander, { Command } from "commander";
+import commander from "commander";
 import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
@@ -31,7 +31,8 @@ import {
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
-import ClientOAuth2, { Token } from "client-oauth2";
+import { Token } from "client-oauth2";
+import { AuthHelper } from "./helper/auth";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
@@ -39,11 +40,6 @@ const APP_NAME: string = packageJson.name;
 const APP_VERSION: string = packageJson.version;
 const APP_CONFIG_DIR = ".gittt-cli";
 const JIRA_ENDPOINT_VERSION = "v2";
-const MULTIPIE_OAUTH_CLIENT_ID = "cc-gittt-cli";
-const MULTIPIE_OAUTH_CLIENT_SECRET = "3d7d8937-bb46-4ac6-9b1e-0912e1ca1195";
-const MULTIPIE_OAUTH_ACCESS_TOKEN_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/token";
-const MULTIPIE_OAUTH_AUTHORIZATION_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/auth";
-const MULTIPIE_OAUTH_REDIRECT_URI = MULTIPIE_OAUTH_AUTHORIZATION_URI;
 
 export class App {
   private configDir: string;
@@ -53,7 +49,7 @@ export class App {
   private gitHelper: GitHelper;
   private projectHelper: ProjectHelper;
   private importHelper: ImportHelper;
-  private multipieAuth: ClientOAuth2
+  private authHelper: AuthHelper;
 
   public start(): void {
     if (process.argv.length === 2) {
@@ -77,16 +73,6 @@ export class App {
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
     this.configHelper = new ConfigHelper(this.fileHelper);
 
-    // TODO maybe outsource this to own oauth helper
-    this.multipieAuth = new ClientOAuth2({
-      clientId: MULTIPIE_OAUTH_CLIENT_ID,
-      clientSecret: MULTIPIE_OAUTH_CLIENT_SECRET,
-      accessTokenUri: MULTIPIE_OAUTH_ACCESS_TOKEN_URI,
-      authorizationUri: MULTIPIE_OAUTH_AUTHORIZATION_URI,
-      redirectUri: MULTIPIE_OAUTH_REDIRECT_URI,
-      scopes: ['openid', 'offline_access']
-    })
-
     if (!(await this.configHelper.isInitialized())) {
       if (await QuestionHelper.confirmSetup()) {
         await this.initConfigDir();
@@ -100,6 +86,7 @@ export class App {
     this.projectHelper = new ProjectHelper(this.gitHelper, this.fileHelper);
     this.timerHelper = new TimerHelper(this.fileHelper, this.projectHelper);
     this.importHelper = new ImportHelper();
+    this.authHelper = new AuthHelper();
 
     this.initCommander();
   }
@@ -215,15 +202,17 @@ export class App {
         }
 
         const multiPieInputLink: IMultipieInputLink = await QuestionHelper.askMultipieLink(project, prevMultipieLink);
+        const multipieAuth = this.authHelper.getAuthClient(multiPieInputLink);
         try {
-          const authResponse: Token = await this.multipieAuth.owner.getToken(multiPieInputLink.username, multiPieInputLink.password);
-          LogHelper.debug(`Got offline access refresh token from ${MULTIPIE_OAUTH_ACCESS_TOKEN_URI}`);
+          const authResponse: Token = await multipieAuth.owner.getToken(multiPieInputLink.username, multiPieInputLink.password);
+          LogHelper.debug(`Got offline access refresh token`);
 
           const offlineToken: IMultipieStoreLink = {
             projectName: multiPieInputLink.projectName,
             linkType: multiPieInputLink.linkType,
             host: multiPieInputLink.host,
             endpoint: multiPieInputLink.endpoint,
+            clientSecret: multiPieInputLink.clientSecret,
             refreshToken: authResponse.refreshToken,
           }
 
@@ -358,6 +347,8 @@ export class App {
         case "Multipie":
           const multipieLink: IMultipieStoreLink = link as IMultipieStoreLink;
 
+          const multipieAuth = this.authHelper.getAuthClient(multipieLink);
+
           const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
 
           LogHelper.debug(`Publishing to ${multipieUrl}`);
@@ -370,7 +361,7 @@ export class App {
               return;
             }
 
-            const offlineToken: Token = await this.multipieAuth.createToken("", refreshToken, {});
+            const offlineToken: Token = await multipieAuth.createToken("", refreshToken, {});
 
             LogHelper.debug(`Refreshing token to get access token`);
 

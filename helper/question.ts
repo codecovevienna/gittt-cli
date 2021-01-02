@@ -204,6 +204,12 @@ export class QuestionHelper {
         validate: ValidationHelper.validateJiraEndpoint,
       },
       {
+        message: "gittt-cli client secret",
+        name: "clientSecret",
+        type: "input",
+        validate: ValidationHelper.validateUsername,
+      },
+      {
         message: "Multipie username",
         name: "username",
         type: "input",
@@ -219,9 +225,10 @@ export class QuestionHelper {
       host: string;
       username: string;
       password: string;
+      clientSecret: string;
     };
 
-    const { host, username, password } = multipieAnswers;
+    const { host, username, password, clientSecret } = multipieAnswers;
 
     const projectName: string = project.name;
 
@@ -232,6 +239,7 @@ export class QuestionHelper {
       projectName,
       username,
       password,
+      clientSecret,
     };
 
     return link;
