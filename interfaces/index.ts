@@ -32,10 +32,19 @@ export interface IJiraLink extends IIntegrationLink {
   issue: string;
 }
 
-export interface IMultipieLink extends IIntegrationLink {
-  username: string;
+// Private per design to enforce one of the child interfaces
+interface IMultipieLink extends IIntegrationLink {
   host: string;
   endpoint: string;
+  clientSecret: string;
+}
+
+export interface IMultipieInputLink extends IMultipieLink {
+  username: string;
+  password: string;
+}
+export interface IMultipieStoreLink extends IMultipieLink {
+  refreshToken?: string;
 }
 
 export interface IGitttFile {

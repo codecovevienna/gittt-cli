@@ -1,5 +1,5 @@
 import { FileHelper } from './file';
-import { IProject, IIntegrationLink, IConfigFile, IJiraLink, IMultipieLink } from '../interfaces';
+import { IProject, IIntegrationLink, IConfigFile, IJiraLink, IMultipieInputLink, IMultipieStoreLink } from '../interfaces';
 
 export class ConfigHelper {
 
@@ -28,7 +28,7 @@ export class ConfigHelper {
     return foundLinks;
   }
 
-  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieLink): Promise<IConfigFile> => {
+  public addOrUpdateLink = async (link: IIntegrationLink | IJiraLink | IMultipieStoreLink): Promise<IConfigFile> => {
     const configObject: IConfigFile = await this.fileHelper.getConfigObject();
 
     // TODO check if already exists

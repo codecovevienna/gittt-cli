@@ -89,16 +89,44 @@ export class ValidationHelper {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public static validateJiraUsername = (input: any): boolean | string | Promise<boolean | string> => {
-    // TODO improve
+  public static validateUsername = (input: any): boolean | string | Promise<boolean | string> => {
     if (!input) {
-      return "The username has to be a longer than one character";
+      return "No input provided";
     }
+
     const inputString: string = input;
-    if (inputString.length > 1) {
+    if (new RegExp("^[a-z0-9_-]{3,64}$").test(inputString)) {
       return true;
     } else {
-      return "The username has to be a longer than one character";
+      return "The username has to be a 3 to 64 characters long";
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static validatePassword = (input: any): boolean | string | Promise<boolean | string> => {
+    if (!input) {
+      return "No input provided";
+    }
+
+    const inputString: string = input;
+    if (new RegExp("^[a-z0-9_-]{3,64}$").test(inputString)) {
+      return true;
+    } else {
+      return "The password has to be a 3 to 64 characters long";
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static validateClientSecret = (input: any): boolean | string | Promise<boolean | string> => {
+    if (!input) {
+      return "No input provided";
+    }
+
+    const inputString: string = input;
+    if (new RegExp("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").test(inputString)) {
+      return true;
+    } else {
+      return "The provided string does not seem to be a valid client secret";
     }
   }
 

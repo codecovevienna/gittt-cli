@@ -71,11 +71,32 @@ describe("ValidationHelper", function () {
     assert.isString(ValidationHelper.validateGitUrl("http://github.com/company/project.git"));
   });
 
-  it("should validate jira user", async function () {
-    assert.isTrue(ValidationHelper.validateJiraUsername("gittt-user"));
+  it("should validate username", async function () {
+    assert.isTrue(ValidationHelper.validateUsername("gittt-user"));
+    assert.isTrue(ValidationHelper.validateUsername("gitt"));
 
-    assert.isString(ValidationHelper.validateJiraUsername(undefined));
-    assert.isString(ValidationHelper.validateJiraUsername("1"));
+    assert.isString(ValidationHelper.validateUsername(undefined));
+    assert.isString(ValidationHelper.validateUsername("gi"));
+    assert.isString(ValidationHelper.validateUsername("Es0xooVe5xoochoob6saequea8AhFaipheique9xaiShae0quaeth7Eeni6fah5ke"));
+  });
+
+  it("should validate password", async function () {
+    assert.isTrue(ValidationHelper.validatePassword("password"));
+    assert.isTrue(ValidationHelper.validatePassword("123"));
+
+    assert.isString(ValidationHelper.validatePassword(undefined));
+    assert.isString(ValidationHelper.validatePassword("1"));
+    assert.isString(ValidationHelper.validatePassword("dai9Acahco9aval3mahyeehei5wei3be1iaqu9ianeec2wiv4aeh3zueTh0xeejuo"));
+  });
+
+  it("should validate client secret", async function () {
+    assert.isTrue(ValidationHelper.validateClientSecret("19666a4f-32dd-4049-b082-684c74115f28"));
+
+    assert.isString(ValidationHelper.validateClientSecret(undefined));
+    assert.isString(ValidationHelper.validateClientSecret("19666a4f-32dd-4049-b082-684c74115f2"));
+    assert.isString(ValidationHelper.validateClientSecret("19666a4f-32dd-4049-b0826-84c74115f28"));
+    assert.isString(ValidationHelper.validateClientSecret("19666a4f-32dd-4049.b082-684c74115f28"));
+    assert.isString(ValidationHelper.validateClientSecret("19666a4f332dd-4049-b082-684c74115f28"));
   });
 
   it("should validate jira endpoint", async function () {

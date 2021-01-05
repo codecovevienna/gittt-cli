@@ -12,6 +12,7 @@ export { ExportHelper } from "./export";
 export { ValidationHelper } from "./validation";
 export { RecordHelper } from "./record";
 export { ChartHelper } from "./chart";
+export { AuthHelper } from "./auth";
 
 export function parseProjectNameFromGitUrl(input: string): IProject {
   const split: RegExpMatchArray | null = input

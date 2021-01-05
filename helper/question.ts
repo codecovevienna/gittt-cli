@@ -1,7 +1,7 @@
 import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
-import { IJiraLink, IMultipieLink, IProject, IRecord } from "../interfaces";
+import { IJiraLink, IMultipieInputLink, IMultipieStoreLink, IProject, IRecord } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { ProjectHelper, ValidationHelper } from "./";
 
@@ -192,7 +192,7 @@ export class QuestionHelper {
     return link;
   }
 
-  public static askMultipieLink = async (project: IProject, prevData?: IMultipieLink): Promise<IMultipieLink> => {
+  public static askMultipieLink = async (project: IProject, prevData?: IMultipieStoreLink): Promise<IMultipieInputLink> => {
     const multipieAnswers = await inquirer.prompt([
       {
         default: prevData ? prevData.host : "https://multipie.gittt.org",
@@ -204,27 +204,42 @@ export class QuestionHelper {
         validate: ValidationHelper.validateJiraEndpoint,
       },
       {
-        default: prevData ? prevData.username : undefined,
+        message: "gittt-cli client secret",
+        name: "clientSecret",
+        type: "input",
+        validate: ValidationHelper.validateClientSecret,
+      },
+      {
         message: "Multipie username",
         name: "username",
         type: "input",
-        // TODO validate
+        validate: ValidationHelper.validateUsername
+      },
+      {
+        message: "Multipie password",
+        name: "password",
+        type: "password",
+        validate: ValidationHelper.validatePassword
       },
     ]) as {
       host: string;
       username: string;
+      password: string;
+      clientSecret: string;
     };
 
-    const { host, username } = multipieAnswers;
+    const { host, username, password, clientSecret } = multipieAnswers;
 
     const projectName: string = project.name;
 
-    const link: IMultipieLink = {
+    const link: IMultipieInputLink = {
       host,
       endpoint: `/v1/publish`,
       linkType: "Multipie",
       projectName,
       username,
+      password,
+      clientSecret,
     };
 
     return link;

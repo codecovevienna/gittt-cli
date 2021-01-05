@@ -63,6 +63,7 @@
     "axios": "^0.21.0",
     "chai": "^4.2.0",
     "chalk": "^4.1.0",
+    "client-oauth2": "^4.3.3",
     "commander": "^6.2.0",
     "csv-parser": "^2.3.3",
     "fs-extra": "^9.0.1",
