@@ -245,13 +245,13 @@ export class App {
         if (cmd.all) {
           projects = await this.projectHelper.getAllProjects();
         } else {
-          let project: IProject | undefined = await this.projectHelper.getProjectByName(cmd.project);
+          const project: IProject | undefined = await this.projectHelper.getProjectByName(cmd.project);
           if (project) {
             projects = [project];
           }
         }
       } else {
-        let project: IProject | undefined = await this.projectHelper.getOrAskForProjectFromGit();
+        const project: IProject | undefined = await this.projectHelper.getOrAskForProjectFromGit();
         if (project) {
           projects = [project];
         }
