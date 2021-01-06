@@ -228,6 +228,10 @@ export class ProjectHelper {
     return foundProject;
   }
 
+  public getAllProjects = async (): Promise<IProject[]> => {
+    return this.fileHelper.findAllProjects();
+  }
+
   public getProjectFromGit = (): IProject => {
     LogHelper.debug("Checking number of remote urls");
     const gitRemoteExec: ExecOutputReturnValue = shelljs.exec("git remote", {

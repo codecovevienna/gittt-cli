@@ -238,26 +238,46 @@ export class App {
   public async publishAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
-    let project: IProject | undefined;
+    let projects: Array<IProject> = [];
 
     try {
       if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        if (cmd.all) {
+          projects = await this.projectHelper.getAllProjects();
+        } else {
+          let project: IProject | undefined = await this.projectHelper.getProjectByName(cmd.project);
+          if (project) {
+            projects = [project];
+          }
+        }
       } else {
-        project = await this.projectHelper.getOrAskForProjectFromGit();
+        let project: IProject | undefined = await this.projectHelper.getOrAskForProjectFromGit();
+        if (project) {
+          projects = [project];
+        }
       }
     } catch (err) {
       return this.exit(err.message, 1);
     }
 
-    if (!project) {
+    if (projects.length < 1 || !projects) {
       return this.exit("No valid git project", 1);
     }
 
-    const links: IIntegrationLink[] = (await this.configHelper.findLinksByProject(project));
+    const projectIntegrationLinks = await Promise.all(
+      await projects.map(async (project) => {
+        const links = await this.configHelper.findLinksByProject(project);
+        return {
+          name: project.name,
+          meta: project.meta,
+          records: project.records,
+          integrationLinks: links
+        };
+      })
+    );
 
-    if (links.length === 0) {
-      LogHelper.warn(`Unable to find a link for "${project.name}"`);
+    if (projectIntegrationLinks.length === 1 && projectIntegrationLinks[0].integrationLinks.length === 0) {
+      LogHelper.warn(`Unable to find a link for "${projectIntegrationLinks[0].name}"`);
       if (await QuestionHelper.confirmLinkCreation()) {
         await this.linkAction(cmd);
 
@@ -278,143 +298,145 @@ export class App {
 
     const publishSummary: IPublishSummaryItem[] = [];
 
-    for (const link of links) {
-      switch (link.linkType) {
-        case "Jira":
-          const jiraLink: IJiraLink = link as IJiraLink;
+    for (const project of projectIntegrationLinks) {
+      for (const link of project.integrationLinks) {
+        switch (link.linkType) {
+          case "Jira":
+            const jiraLink: IJiraLink = link as IJiraLink;
 
-          // Map local project to jira key
-          if (jiraLink.issue) {
-            LogHelper.info(`Mapping "${project.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
-          } else {
-            LogHelper.info(`Mapping "${project.name}" to Jira project "${jiraLink.key}"`);
-          }
+            // Map local project to jira key
+            if (jiraLink.issue) {
+              LogHelper.info(`Mapping "${project.name}" to Jira issue "${jiraLink.issue}" within project "${jiraLink.key}"`);
+            } else {
+              LogHelper.info(`Mapping "${project.name}" to Jira project "${jiraLink.key}"`);
+            }
 
-          if (!jiraLink.host) {
-            // Handle deprecated config
-            return this.exit('The configuration of this jira link is deprecated, please consider updating the link with "gittt link"', 1)
-          }
+            if (!jiraLink.host) {
+              // Handle deprecated config
+              return this.exit('The configuration of this jira link is deprecated, please consider updating the link with "gittt link"', 1)
+            }
 
-          const jiraUrl = `${jiraLink.host}${jiraLink.endpoint}`;
+            const jiraUrl = `${jiraLink.host}${jiraLink.endpoint}`;
 
-          LogHelper.debug(`Publishing to ${jiraUrl}`);
+            LogHelper.debug(`Publishing to ${jiraUrl}`);
 
-          try {
-            const publishResult: AxiosResponse = await axios
-              .post(jiraUrl,
-                {
-                  projectKey: jiraLink.key,
-                  issueKey: jiraLink.issue,
+            try {
+              const publishResult: AxiosResponse = await axios
+                .post(jiraUrl,
+                  {
+                    projectKey: jiraLink.key,
+                    issueKey: jiraLink.issue,
+                    project,
+                  },
+                  {
+                    headers: {
+                      "Authorization": `Basic ${jiraLink.hash}`,
+                      "Cache-Control": "no-cache",
+                      "Content-Type": "application/json",
+                    },
+                  },
+                );
+
+              const data: IJiraPublishResult = publishResult.data;
+
+              if (data.success) {
+                publishSummary.push({
+                  success: true,
+                  type: link.linkType,
+                })
+              } else {
+                publishSummary.push({
+                  success: false,
+                  type: link.linkType,
+                  reason: `Publishing failed [${publishResult.status}]`
+                })
+              }
+            } catch (err) {
+              delete err.config;
+              delete err.request;
+              delete err.response;
+              LogHelper.debug("Publish request failed", err);
+              publishSummary.push({
+                success: false,
+                type: link.linkType,
+                reason: `Publish request failed, please consider updating the link`
+              })
+            }
+
+            break;
+
+          case "Multipie":
+            const multipieLink: IMultipieStoreLink = link as IMultipieStoreLink;
+
+            const multipieAuth = this.authHelper.getAuthClient(multipieLink);
+
+            const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
+
+            LogHelper.debug(`Publishing to ${multipieUrl}`);
+
+            try {
+
+              const { refreshToken } = multipieLink;
+              if (!refreshToken) {
+                this.exit(`Unable to find refresh token for this project, please login via 'gittt link'`, 1);
+                return;
+              }
+
+              const offlineToken: Token = await multipieAuth.createToken("", refreshToken, {});
+
+              LogHelper.debug(`Refreshing token to get access token`);
+
+              const refreshedToken = await offlineToken.refresh();
+              LogHelper.debug(`Got access token`);
+
+              const publishResult: AxiosResponse = await axios
+                .post(multipieUrl,
                   project,
-                },
-                {
-                  headers: {
-                    "Authorization": `Basic ${jiraLink.hash}`,
-                    "Cache-Control": "no-cache",
-                    "Content-Type": "application/json",
+                  {
+                    headers: {
+                      "Authorization": `Bearer ${refreshedToken.accessToken}`,
+                      "Cache-Control": "no-cache",
+                      "Content-Type": "application/json",
+                    },
                   },
-                },
-              );
+                );
 
-            const data: IJiraPublishResult = publishResult.data;
+              const data: any = publishResult.data;
 
-            if (data.success) {
-              publishSummary.push({
-                success: true,
-                type: link.linkType,
-              })
-            } else {
+              if (data && (publishResult.status === 200 || publishResult.status === 201)) {
+                publishSummary.push({
+                  success: true,
+                  type: link.linkType,
+                })
+              } else {
+                publishSummary.push({
+                  success: false,
+                  type: link.linkType,
+                  reason: `Publishing failed [${publishResult.status}]`
+                })
+              }
+            } catch (err) {
+              delete err.config;
+              delete err.request;
+              delete err.response;
+              LogHelper.debug("Publish request failed", err);
               publishSummary.push({
                 success: false,
                 type: link.linkType,
-                reason: `Publishing failed [${publishResult.status}]`
+                reason: `Publish request failed, please consider updating the link`
               })
             }
-          } catch (err) {
-            delete err.config;
-            delete err.request;
-            delete err.response;
-            LogHelper.debug("Publish request failed", err);
+
+            break;
+
+          default:
             publishSummary.push({
               success: false,
-              type: link.linkType,
-              reason: `Publish request failed, please consider updating the link`
+              type: "unknown",
+              reason: `Link type "${link.linkType}" not implemented`
             })
-          }
-
-          break;
-
-        case "Multipie":
-          const multipieLink: IMultipieStoreLink = link as IMultipieStoreLink;
-
-          const multipieAuth = this.authHelper.getAuthClient(multipieLink);
-
-          const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
-
-          LogHelper.debug(`Publishing to ${multipieUrl}`);
-
-          try {
-
-            const { refreshToken } = multipieLink;
-            if (!refreshToken) {
-              this.exit(`Unable to find refresh token for this project, please login via 'gittt link'`, 1);
-              return;
-            }
-
-            const offlineToken: Token = await multipieAuth.createToken("", refreshToken, {});
-
-            LogHelper.debug(`Refreshing token to get access token`);
-
-            const refreshedToken = await offlineToken.refresh();
-            LogHelper.debug(`Got access token`);
-
-            const publishResult: AxiosResponse = await axios
-              .post(multipieUrl,
-                project,
-                {
-                  headers: {
-                    "Authorization": `Bearer ${refreshedToken.accessToken}`,
-                    "Cache-Control": "no-cache",
-                    "Content-Type": "application/json",
-                  },
-                },
-              );
-
-            const data: any = publishResult.data;
-
-            if (data && (publishResult.status === 200 || publishResult.status === 201)) {
-              publishSummary.push({
-                success: true,
-                type: link.linkType,
-              })
-            } else {
-              publishSummary.push({
-                success: false,
-                type: link.linkType,
-                reason: `Publishing failed [${publishResult.status}]`
-              })
-            }
-          } catch (err) {
-            delete err.config;
-            delete err.request;
-            delete err.response;
-            LogHelper.debug("Publish request failed", err);
-            publishSummary.push({
-              success: false,
-              type: link.linkType,
-              reason: `Publish request failed, please consider updating the link`
-            })
-          }
-
-          break;
-
-        default:
-          publishSummary.push({
-            success: false,
-            type: "unknown",
-            reason: `Link type "${link.linkType}" not implemented`
-          })
-          break;
+            break;
+        }
       }
     }
 
@@ -1275,6 +1297,7 @@ export class App {
       .command("publish")
       .description("Publishes stored records to external endpoint")
       .option("-p, --project [project]", "Specify the project to publish")
+      .option("-a, --all", "Publish all projects")
       .action(async (cmd: commander.Command): Promise<void> => await this.publishAction(cmd));
 
     // edit command
