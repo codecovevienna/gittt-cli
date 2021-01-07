@@ -285,6 +285,12 @@ export class App {
       } else {
         return this.exit(`Unable to publish without link`, 1);
       }
+    } else {
+      for (const project of projectIntegrationLinks) {
+        if (project.integrationLinks.length === 0) {
+          LogHelper.warn(`Unable to find a link for "${project.name}"`);
+        }
+      }
     }
 
     const logs: ReadonlyArray<DefaultLogFields> = await this.gitHelper.logChanges();
