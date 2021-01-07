@@ -4828,7 +4828,101 @@ describe("App", function () {
 
           exitStub.restore();
         });
+      });
+    });
 
+    describe("Publish All Projects", function () {
+      it("should publish all projects to Multipie endpoint [non interactive]", async function () {
+        const mockedHelper: any = Object.assign({}, emptyHelper);
+
+        const getAllProjectsStub = sinon.stub().returns([
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          },
+          {
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_2",
+          }
+        ] as IProject[]);
+        const findLinksByProjectStub = sinon.stub().returns([
+          {
+            host: "http://multipie.mocked.com:2990",
+            endpoint: "/v1/publish",
+            linkType: "Multipie",
+            projectName: "mocked_project_1",
+            refreshToken: "test",
+            clientSecret: "19666a4f-32dd-4049-b082-684c74115f28",
+          } as IMultipieStoreLink,
+        ]);
+        const logChangesStub = sinon.stub().resolves([]);
+        const axiosPostStub = sinon.stub().resolves({
+          status: 201,
+          data: {
+            success: true,
+          } as IMultipiePublishResult,
+        });
+
+        mockedHelper.FileHelper = class {
+          public static getHomeDir = sinon.stub().returns("/home/test");
+        }
+
+        mockedHelper.ConfigHelper = class {
+          public isInitialized = sinon.stub().resolves(true);
+          public findLinksByProject = findLinksByProjectStub;
+        }
+
+        mockedHelper.GitHelper = class {
+          public logChanges = logChangesStub;
+        }
+
+        mockedHelper.ProjectHelper = class {
+          public getAllProjects = getAllProjectsStub;
+        }
+
+        mockedHelper.AuthHelper = class {
+          public getAuthClient = () => {
+            return {
+              createToken: sinon.stub().resolves({
+                refresh: sinon.stub().resolves({
+                  accessToken: "mocked"
+                })
+              })
+            }
+          }
+        }
+
+        const proxy: any = proxyquire("../../app", {
+          "./helper": mockedHelper,
+          "axios": {
+            post: axiosPostStub,
+          },
+        });
+
+        const mockedApp: App = new proxy.App();
+
+        await mockedApp.setup();
+
+        const program = new commander.Command();
+        const mockedCommand: commander.Command = program.createCommand();
+        mockedCommand.all = true;
+
+        // Mock arguments array to disable interactive mode
+        process.argv = ["1", "2", "3", "4"];
+
+        await mockedApp.publishAction(mockedCommand);
+
+        assert.isTrue(getAllProjectsStub.calledOnce);
+        assert.isTrue(findLinksByProjectStub.calledTwice);
+        assert.isTrue(axiosPostStub.calledTwice);
+        expect(axiosPostStub.getCall(0).lastArg.headers.Authorization).to.eq("Bearer mocked")
+        expect(axiosPostStub.getCall(1).lastArg.headers.Authorization).to.eq("Bearer mocked")
       });
     });
   });
