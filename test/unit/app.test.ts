@@ -4835,14 +4835,6 @@ describe("App", function () {
       it("should publish all projects to Multipie endpoint [non interactive]", async function () {
         const mockedHelper: any = Object.assign({}, emptyHelper);
 
-        // const getProjectByNameStub = sinon.stub().returns({
-        //   meta: {
-        //     host: "github.com",
-        //     port: 443,
-        //   },
-        //   name: "mocked_project_1",
-        // } as IProject);
-
         const getAllProjectsStub = sinon.stub().returns([
           {
             meta: {
