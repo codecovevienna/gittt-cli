@@ -1,5 +1,5 @@
 import simplegit, { SimpleGit, StatusResult } from "simple-git/promise";
-import { ListLogSummary } from "simple-git/typings/response";
+import { LogResult } from "simple-git/typings/response";
 import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
 import { FileHelper, LogHelper, QuestionHelper } from "./";
 
@@ -12,7 +12,7 @@ export class GitHelper {
   }
 
   public logChanges = async (): Promise<ReadonlyArray<DefaultLogFields>> => {
-    const listLogSummery: ListLogSummary = await this.git.log({
+    const listLogSummery: LogResult = await this.git.log({
       from: "HEAD",
       to: "origin/master",
     });
