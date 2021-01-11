@@ -4,7 +4,7 @@ import proxyquire from "proxyquire";
 import { StatusResult } from "simple-git/promise";
 import sinon from "sinon";
 import { FileHelper, GitHelper, LogHelper } from "../../helper/";
-import { ListLogSummary, DefaultLogFields } from "simple-git";
+import { LogResult, DefaultLogFields } from "simple-git";
 
 const sandboxDir = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -45,7 +45,7 @@ describe("GitHelper", function () {
     const proxy: any = proxyquire("../../helper/git", {
       "simple-git/promise": (): any => {
         return {
-          log: (): ListLogSummary => {
+          log: (): LogResult => {
             return {
               all: [
                 {
