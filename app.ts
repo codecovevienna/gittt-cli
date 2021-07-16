@@ -374,33 +374,42 @@ export class App {
           case "Multipie":
             const multipieLink: IMultipieStoreLink = link as IMultipieStoreLink;
 
-            const multipieAuth = this.authHelper.getAuthClient(multipieLink);
-
-            const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
-
-            LogHelper.debug(`Publishing to ${multipieUrl}`);
-
             try {
+              let authorizationHeader = "";
 
-              const { refreshToken } = multipieLink;
-              if (!refreshToken) {
-                this.exit(`Unable to find refresh token for this project, please login via 'gittt link'`, 1);
-                return;
+              if (multipieLink.username) {
+                // Legacy flow
+                LogHelper.debug("Found username parameter in link configuration, using legacy auth method")
+                authorizationHeader = this.authHelper.getLegacyAuth(multipieLink);
+              } else {
+                const multipieAuth = this.authHelper.getAuthClient(multipieLink);
+
+                const { refreshToken } = multipieLink;
+                if (!refreshToken) {
+                  this.exit(`Unable to find refresh token for this project, please login via 'gittt link'`, 1);
+                  return;
+                }
+
+                const offlineToken: Token = await multipieAuth.createToken("", refreshToken, {});
+
+                LogHelper.debug(`Refreshing token to get access token`);
+
+                const refreshedToken: Token = await offlineToken.refresh();
+                LogHelper.debug(`Got access token`);
+
+                authorizationHeader = `Bearer ${refreshedToken.accessToken}`
               }
 
-              const offlineToken: Token = await multipieAuth.createToken("", refreshToken, {});
+              const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
 
-              LogHelper.debug(`Refreshing token to get access token`);
-
-              const refreshedToken = await offlineToken.refresh();
-              LogHelper.debug(`Got access token`);
+              LogHelper.debug(`Publishing to ${multipieUrl}`);
 
               const publishResult: AxiosResponse = await axios
                 .post(multipieUrl,
                   project,
                   {
                     headers: {
-                      "Authorization": `Bearer ${refreshedToken.accessToken}`,
+                      "Authorization": authorizationHeader,
                       "Cache-Control": "no-cache",
                       "Content-Type": "application/json",
                     },
