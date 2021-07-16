@@ -4403,6 +4403,81 @@ describe("App", function () {
           expect(axiosPostStub.getCall(0).lastArg.headers.Authorization).to.eq("Bearer mocked")
         });
 
+        it("should publish records to Multipie endpoint (legacy auth)", async function () {
+          const mockedHelper: any = Object.assign({}, emptyHelper);
+
+          const getOrAskForProjectFromGitStub = sinon.stub().returns({
+            meta: {
+              host: "github.com",
+              port: 443,
+            },
+            name: "mocked_project_1",
+          } as IProject);
+          const findLinksByProjectStub = sinon.stub().returns([
+            {
+              host: "http://multipie.mocked.com:2990",
+              endpoint: "/v1/publish",
+              linkType: "Multipie",
+              projectName: "mocked_project_1",
+              username: "19666a4f-32dd-4049-b082-684c74115f28",
+            } as IMultipieStoreLink,
+          ]);
+          const logChangesStub = sinon.stub().resolves([]);
+          const axiosPostStub = sinon.stub().resolves({
+            status: 200,
+            data: {
+              success: true,
+            } as IMultipiePublishResult,
+          });
+
+          mockedHelper.FileHelper = class {
+            public static getHomeDir = sinon.stub().returns("/home/test");
+          }
+
+          mockedHelper.ConfigHelper = class {
+            public isInitialized = sinon.stub().resolves(true);
+            public findLinksByProject = findLinksByProjectStub;
+          }
+
+          mockedHelper.GitHelper = class {
+            public logChanges = logChangesStub;
+          }
+
+          mockedHelper.ProjectHelper = class {
+            public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+          }
+
+          mockedHelper.AuthHelper = class {
+            public getLegacyAuth = () => {
+              return "19666a4f-32dd-4049-b082-684c74115f28";
+            }
+          }
+
+          const proxy: any = proxyquire("../../app", {
+            "./helper": mockedHelper,
+            "axios": {
+              post: axiosPostStub,
+            },
+          });
+
+          const mockedApp: App = new proxy.App();
+
+          await mockedApp.setup();
+
+          const program = new commander.Command();
+          const mockedCommand: commander.Command = program.createCommand();
+
+          // Mock arguments array to enable interactive mode
+          process.argv = ["1", "2", "3"];
+
+          await mockedApp.publishAction(mockedCommand);
+
+          assert.isTrue(findLinksByProjectStub.calledOnce);
+          assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
+          assert.isTrue(axiosPostStub.calledOnce);
+          expect(axiosPostStub.getCall(0).lastArg.headers.Authorization).to.eq("19666a4f-32dd-4049-b082-684c74115f28")
+        });
+
         it("should publish records to Multipie endpoint [non interactive]", async function () {
           const mockedHelper: any = Object.assign({}, emptyHelper);
 

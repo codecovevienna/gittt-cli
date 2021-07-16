@@ -36,7 +36,8 @@ export interface IJiraLink extends IIntegrationLink {
 interface IMultipieLink extends IIntegrationLink {
   host: string;
   endpoint: string;
-  clientSecret: string;
+  clientSecret?: string;
+  username?: string;
 }
 
 export interface IMultipieInputLink extends IMultipieLink {
