@@ -32,4 +32,21 @@ describe("AuthHelper", function () {
     })).to.eq("token");
 
   });
+
+  it("create instance and get legacy auth", async function () {
+    const proxy: any = proxyquire("../../helper/auth", {});
+
+    const instance: AuthHelper = new proxy.AuthHelper();
+
+    const legacyAuth = await instance.getLegacyAuth({
+      host: "mocked",
+      endpoint: "mocked",
+      linkType: "mocked",
+      username: "mocked",
+      projectName: "mocked",
+    })
+
+    expect(legacyAuth).to.eq("mocked");
+
+  });
 })
