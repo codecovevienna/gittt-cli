@@ -1,7 +1,6 @@
 import { assert, expect } from "chai";
 import { parseProjectNameFromGitUrl, findTicketNumberInBranch, findTicketNumberInMessage } from "../../helper";
 import { IProject } from "../../interfaces";
-import { findTicketNumberInBranch } from '../../helper/index';
 
 describe("Helper", function () {
   it("should parse git url [with namespace]", function () {
