@@ -19,6 +19,7 @@ import {
   ValidationHelper,
   RecordHelper,
   ConfigHelper,
+  appendTicketNumber,
 } from "./helper";
 import {
   IIntegrationLink,
@@ -741,8 +742,7 @@ export class App {
       commitMessage = `Committed ${amount} hour${amount > 1 ? "s" : ""} to ${project.name}`
     }
 
-    // TODO add this and test it
-    // commitMessage = await appendTicketNumber(commitMessage, await this.gitHelper.getCurrentBranch())
+    commitMessage = await appendTicketNumber(commitMessage, await this.gitHelper.getCurrentBranch())
 
     try {
       await this.projectHelper.addRecordToProject({

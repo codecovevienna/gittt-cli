@@ -1550,6 +1550,12 @@ describe("App", function () {
         public getProjectByName = getProjectByNameStub;
       }
 
+      mockedHelper.GitHelper = class {
+        public getCurrentBranch = sinon.stub().resolves(undefined);
+      }
+
+      mockedHelper.appendTicketNumber = sinon.stub().resolves("Committed 1337 hours to mocked");
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
@@ -1610,6 +1616,12 @@ describe("App", function () {
         public static askMessage = sinon.stub().resolves("");
       }
 
+      mockedHelper.GitHelper = class {
+        public getCurrentBranch = sinon.stub().resolves(undefined);
+      }
+
+      mockedHelper.appendTicketNumber = sinon.stub().resolves("Committed 1337 hours to mocked");
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
@@ -1664,6 +1676,12 @@ describe("App", function () {
         public getProjectByName = getProjectByNameStub;
       }
 
+      mockedHelper.GitHelper = class {
+        public getCurrentBranch = sinon.stub().resolves(undefined);
+      }
+
+      mockedHelper.appendTicketNumber = sinon.stub().resolves("custom");
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
@@ -1688,6 +1706,68 @@ describe("App", function () {
         amount: 1337,
         end: 123456789,
         message: "custom",
+        type: RECORD_TYPES.Time,
+      }));
+
+      dateStub.restore();
+    });
+
+    it("should commit hours [with appended ticket number]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const addRecordStub = sinon.stub().resolves();
+
+      const getProjectByNameStub = sinon.stub().resolves({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+      } as IProject);
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public addRecordToProject = addRecordStub;
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      mockedHelper.GitHelper = class {
+        public getCurrentBranch = sinon.stub().resolves(undefined);
+      }
+
+      mockedHelper.appendTicketNumber = sinon.stub().resolves("message with appended ticket number [#1337]");
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const dateStub = sinon.stub(Date, "now").returns(123456789);
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
+      mockedCommand.amount = 1337;
+      mockedCommand.message = "custom";
+
+      process.argv = ["namespace", "mocked", "commit", "-a", "1337", "-m", "custom"];
+
+      await mockedApp.commitAction(mockedCommand);
+
+      assert.isTrue(getProjectByNameStub.calledOnce);
+      assert.isTrue(addRecordStub.calledWith({
+        amount: 1337,
+        end: 123456789,
+        message: "message with appended ticket number [#1337]",
         type: RECORD_TYPES.Time,
       }));
 
