@@ -1,6 +1,7 @@
 import { assert, expect } from "chai";
-import { parseProjectNameFromGitUrl, findTicketNumberInBranch } from "../../helper";
+import { parseProjectNameFromGitUrl, findTicketNumberInBranch, findTicketNumberInMessage } from "../../helper";
 import { IProject } from "../../interfaces";
+import { findTicketNumberInBranch } from '../../helper/index';
 
 describe("Helper", function () {
   it("should parse git url [with namespace]", function () {
@@ -73,6 +74,43 @@ describe("Helper", function () {
 
     it("should not get ticket number from branch [empty branch string]", async function () {
       const ticketNumber = findTicketNumberInBranch("");
+      expect(ticketNumber).to.be.undefined;
+    })
+  })
+
+  describe("findTicketNumberInMessage", function () {
+    it("should find ticket number in message", async function () {
+      const ticketNumber = findTicketNumberInMessage("Implemented awesome feature (#1337)");
+      expect(ticketNumber).to.eq("1337");
+    })
+
+    it("should find ticket number in message with spaces", async function () {
+      const ticketNumber = findTicketNumberInMessage("Implemented awesome feature (#  1337)");
+      expect(ticketNumber).to.eq("1337");
+    })
+
+    it("should find ticket number in message with different braces", async function () {
+      const ticketNumber = findTicketNumberInMessage("Implemented awesome feature {#1337}");
+      expect(ticketNumber).to.eq("1337");
+    })
+
+    it("should find ticket number in message somewhere in the message", async function () {
+      const ticketNumber = findTicketNumberInMessage("Implemented [#1337] awesome feature");
+      expect(ticketNumber).to.eq("1337");
+    })
+
+    it("should not find ticket number in message", async function () {
+      const ticketNumber = findTicketNumberInMessage("Implemented awesome feature [$1337]");
+      expect(ticketNumber).to.be.undefined;
+    })
+
+    it("should not find ticket number in message with spaces", async function () {
+      const ticketNumber = findTicketNumberInMessage("Implemented awesome feature [$  1337]");
+      expect(ticketNumber).to.be.undefined;
+    })
+
+    it("should not find ticket number in message with text between # and numbers", async function () {
+      const ticketNumber = findTicketNumberInMessage("Implemented awesome feature [#woot1337]");
       expect(ticketNumber).to.be.undefined;
     })
   })
