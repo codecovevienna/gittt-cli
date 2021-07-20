@@ -90,12 +90,12 @@ describe("GitHelper", function () {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const branchSpy = sinon.spy();
+    const pullSpy = sinon.spy();
     const pushSpy = sinon.spy();
     const proxy: any = proxyquire("../../helper/git", {
       "simple-git/promise": (): any => {
         return {
-          pull: branchSpy,
+          pull: pullSpy,
           push: pushSpy,
         };
       },
@@ -105,7 +105,7 @@ describe("GitHelper", function () {
 
     await instance.pushChanges();
 
-    assert.isTrue(branchSpy.calledOnce);
+    assert.isTrue(pullSpy.calledOnce);
     assert.isTrue(pushSpy.calledOnce);
   });
 
