@@ -118,7 +118,6 @@ export class GitHelper {
       }
       return gitBranchExec.stdout;
     } catch (err) {
-      console.log(err);
       LogHelper.debug("Unable to get current branch", err);
       LogHelper.error("Unable to get current branch");
       return undefined;
