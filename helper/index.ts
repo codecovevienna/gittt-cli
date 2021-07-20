@@ -51,7 +51,15 @@ export function parseProjectNameFromGitUrl(input: string): IProject {
     records: [],
   };
 }
-
+/**
+ * Extracts ticket number from branch
+ * 
+ * The branch has to look something like this: 1337-awesome-feature
+ * Which would return 1337
+ * 
+ * @param  {string} branch
+ * @returns {string} ticket number
+ */
 export function findTicketNumberInBranch(branch: string): string | undefined {
   const match: RegExpExecArray | null = new RegExp(/(^[0-9]+)-.*/).exec(branch);
   if (!match) {
