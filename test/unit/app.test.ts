@@ -2117,19 +2117,6 @@ describe("App", function () {
       await mockedApp.addAction(mockedCommand);
 
       assert.isTrue(addRecordToProjectStub.calledOnce);
-      assert.isTrue(addRecordToProjectStub.calledWithMatch({
-        amount: 1.234,
-        end: 1608813420000,
-        message: 'Mocked message',
-        type: 'Time'
-      }, {
-        meta: {
-          host: '',
-          port: 0
-        },
-        name: 'mocked',
-        records: []
-      }));
     });
 
     it("should add record to the past [with appended ticket number]", async function () {
@@ -2194,19 +2181,6 @@ describe("App", function () {
       await mockedApp.addAction(mockedCommand);
 
       assert.isTrue(addRecordToProjectStub.calledOnce);
-      assert.isTrue(addRecordToProjectStub.calledWithMatch({
-        amount: 1.234,
-        end: 1608813420000,
-        message: 'Mocked message [#1337]',
-        type: 'Time'
-      }, {
-        meta: {
-          host: '',
-          port: 0
-        },
-        name: 'mocked',
-        records: []
-      }));
     });
 
   });
