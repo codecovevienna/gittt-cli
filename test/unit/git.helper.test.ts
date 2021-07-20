@@ -90,12 +90,12 @@ describe("GitHelper", function () {
     const mockedFileHelper: FileHelper = new fileProxy
       .FileHelper(configDir, configFileName, timerFileName, projectsDir);
 
-    const pullSpy = sinon.spy();
+    const branchSpy = sinon.spy();
     const pushSpy = sinon.spy();
     const proxy: any = proxyquire("../../helper/git", {
       "simple-git/promise": (): any => {
         return {
-          pull: pullSpy,
+          pull: branchSpy,
           push: pushSpy,
         };
       },
@@ -105,7 +105,7 @@ describe("GitHelper", function () {
 
     await instance.pushChanges();
 
-    assert.isTrue(pullSpy.calledOnce);
+    assert.isTrue(branchSpy.calledOnce);
     assert.isTrue(pushSpy.calledOnce);
   });
 
@@ -433,4 +433,32 @@ describe("GitHelper", function () {
       assert.isDefined(err);
     }
   });
+
+  describe.only("getCurrentBranch", async function () {
+    it("should get current branch", async function () {
+      const fileProxy: any = proxyquire("../../helper/file", {});
+      const mockedFileHelper: FileHelper = new fileProxy
+        .FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      const shellExecStub = sinon.stub()
+        .returns({
+          code: 0,
+          stderr: "",
+          stdout: "1337-awesome-new-feature",
+        })
+
+      const proxy: any = proxyquire("../../helper/git", {
+        shelljs: {
+          exec: shellExecStub,
+        },
+      });
+
+      const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
+
+      const currentBranch = await instance.getCurrentBranch();
+
+      expect(currentBranch).to.eq("1337-awesome-new-feature")
+    })
+  })
+
 });

@@ -2,6 +2,7 @@ import simplegit, { SimpleGit, StatusResult } from "simple-git/promise";
 import { LogResult } from "simple-git/typings/response";
 import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
 import { FileHelper, LogHelper, QuestionHelper } from "./";
+import shelljs, { ExecOutputReturnValue } from "shelljs";
 
 export class GitHelper {
   private git: SimpleGit;
@@ -92,6 +93,35 @@ export class GitHelper {
 
       // Force fileHelper to load config file from disk
       this.fileHelper.invalidateCache();
+    }
+  }
+  /**
+   * Gets the current branch of the git repo the app is currently in, NOT the branch of the main repo in ~/.gittt-cli
+   * 
+   * @returns Promise with either a string with the branch or undefined
+   */
+  public getCurrentBranch = async (): Promise<string | undefined> => {
+    try {
+      LogHelper.debug("Getting current branch");
+      // this.git is configured to look into ~/.gittt-cli, so we execute a shell command in the current directory instead
+      const gitBranchExec: ExecOutputReturnValue = shelljs.exec("git branch --show-current", {
+        silent: true,
+      }) as ExecOutputReturnValue;
+
+      if (gitBranchExec.code !== 0) {
+        if (gitBranchExec.code === 128) {
+          LogHelper.debug(`"git branch --show-current" returned with exit code 128`);
+          return undefined;
+        }
+        LogHelper.debug("Error executing git branch --show-current", new Error(gitBranchExec.stderr));
+        return undefined;
+      }
+      return gitBranchExec.stdout;
+    } catch (err) {
+      console.log(err);
+      LogHelper.debug("Unable to get current branch", err);
+      LogHelper.error("Unable to get current branch");
+      return undefined;
     }
   }
 }
