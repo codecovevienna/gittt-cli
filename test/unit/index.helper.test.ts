@@ -135,6 +135,19 @@ describe("Helper", function () {
       expect(appendedMessage).to.eq("initial message [#1337]");
     })
 
+    it("should append ticket number [favor ticket number from message]", async function () {
+      const proxy: any = proxyquire("../../helper", {
+        "./question": {
+          QuestionHelper: class {
+            public static confirmTicketNumber = sinon.stub().resolves(true);
+          }
+        }
+      });
+
+      const appendedMessage = await proxy.appendTicketNumber("initial message (#69)", "1337-awesome-feature");
+      expect(appendedMessage).to.eq("initial message (#69)");
+    })
+
     it("should not append ticket number [no confirm]", async function () {
       const proxy: any = proxyquire("../../helper", {
         "./question": {
