@@ -516,5 +516,18 @@ describe("QuestionHelper", function () {
       const choice: string = await proxy.QuestionHelper.confirmInit();
       expect(choice).to.eq(true);
     });
+
+    it.only("should confirm ticket number", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: true,
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.confirmTicketNumber("1337");
+      expect(choice).to.eq(true);
+    });
   });
 });

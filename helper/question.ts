@@ -427,4 +427,16 @@ export class QuestionHelper {
 
     return choice.choice;
   }
+
+  public static confirmTicketNumber = async (ticketNumber: string): Promise<boolean> => {
+    const question: Question = {
+      message: `Ticket number (${ticketNumber}) found in branch name, should it be added to the commit message?`,
+      name: "choice",
+      type: "confirm",
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
 }
