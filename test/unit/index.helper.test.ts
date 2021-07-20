@@ -1,3 +1,5 @@
+import proxyquire from "proxyquire";
+import sinon from "sinon";
 import { assert, expect } from "chai";
 import { parseProjectNameFromGitUrl, findTicketNumberInBranch, findTicketNumberInMessage } from "../../helper";
 import { IProject } from "../../interfaces";
@@ -111,6 +113,46 @@ describe("Helper", function () {
     it("should not find ticket number in message with text between # and numbers", async function () {
       const ticketNumber = findTicketNumberInMessage("Implemented awesome feature [#woot1337]");
       expect(ticketNumber).to.be.undefined;
+    })
+  })
+
+  describe("appendTicketNumber", function () {
+
+    before(function () {
+      proxyquire.noCallThru();
+    });
+
+    it("should append ticket number", async function () {
+      const proxy: any = proxyquire("../../helper", {
+        "./question": {
+          QuestionHelper: class {
+            public static confirmTicketNumber = sinon.stub().resolves(true);
+          }
+        }
+      });
+
+      const appendedMessage = await proxy.appendTicketNumber("initial message", "1337-awesome-feature");
+      expect(appendedMessage).to.eq("initial message [#1337]");
+    })
+
+    it("should not append ticket number [no confirm]", async function () {
+      const proxy: any = proxyquire("../../helper", {
+        "./question": {
+          QuestionHelper: class {
+            public static confirmTicketNumber = sinon.stub().resolves(false);
+          }
+        }
+      });
+
+      const appendedMessage = await proxy.appendTicketNumber("initial message", "1337-awesome-feature");
+      expect(appendedMessage).to.eq("initial message");
+    })
+
+    it("should not append ticket number [no branch name]", async function () {
+      const proxy: any = proxyquire("../../helper", {});
+
+      const appendedMessage = await proxy.appendTicketNumber("initial message", undefined);
+      expect(appendedMessage).to.eq("initial message");
     })
   })
 });

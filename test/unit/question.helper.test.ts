@@ -517,7 +517,7 @@ describe("QuestionHelper", function () {
       expect(choice).to.eq(true);
     });
 
-    it.only("should confirm ticket number", async function () {
+    it("should confirm ticket number", async function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
           prompt: sinon.stub().resolves({

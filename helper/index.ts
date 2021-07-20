@@ -1,4 +1,6 @@
 import { IProject } from "../interfaces";
+import { LogHelper } from "./log";
+import { QuestionHelper } from "./question";
 
 export { ConfigHelper } from "./config";
 export { GitHelper } from "./git";
@@ -89,4 +91,27 @@ export function findTicketNumberInMessage(msg: string): string | undefined {
  */
 export function findTicketNumberInBranch(branch: string): string | undefined {
   return executeRegExp(new RegExp(/(^[0-9]+)-.*/), branch);
+}
+
+export async function appendTicketNumber(initialMessage: string, branchName: string | undefined): Promise<string> {
+  let commitMessage = initialMessage;
+
+  const ticketNumberMsg = findTicketNumberInMessage(initialMessage);
+  let ticketNumberBranch = undefined;
+  if (branchName) {
+    ticketNumberBranch = findTicketNumberInBranch(branchName);
+  }
+
+  if (ticketNumberMsg && ticketNumberBranch) {
+    LogHelper.debug(`Found ticket number in branch and commit message (message: ${ticketNumberMsg}, branch: ${ticketNumberBranch})`)
+    LogHelper.debug(`Favor ticket number "${ticketNumberMsg}" in message and append nothing)`)
+  } else if (!ticketNumberMsg && ticketNumberBranch) {
+    LogHelper.debug(`Found ticket number only in branch (branch: ${ticketNumberBranch})`)
+    const confirm = await QuestionHelper.confirmTicketNumber(ticketNumberBranch);
+    if (confirm) {
+      commitMessage = `${commitMessage} [#${ticketNumberBranch}]`;
+    }
+  }
+
+  return commitMessage;
 }
