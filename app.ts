@@ -833,6 +833,10 @@ export class App {
       type,
     };
 
+    if (newRecord.message) {
+      newRecord.message = await appendTicketNumber(newRecord.message, await this.gitHelper.getCurrentBranch());
+    }
+
     try {
       await this.projectHelper.addRecordToProject(newRecord, project);
     } catch (err) {

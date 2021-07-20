@@ -2094,6 +2094,12 @@ describe("App", function () {
         public static chooseType = sinon.stub().resolves("Time");
       }
 
+      mockedHelper.GitHelper = class {
+        public getCurrentBranch = sinon.stub().resolves(undefined);
+      }
+
+      mockedHelper.appendTicketNumber = sinon.stub().resolves("Mocked message");
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
@@ -2111,6 +2117,96 @@ describe("App", function () {
       await mockedApp.addAction(mockedCommand);
 
       assert.isTrue(addRecordToProjectStub.calledOnce);
+      assert.isTrue(addRecordToProjectStub.calledWithMatch({
+        amount: 1.234,
+        end: 1608813420000,
+        message: 'Mocked message',
+        type: 'Time'
+      }, {
+        meta: {
+          host: '',
+          port: 0
+        },
+        name: 'mocked',
+        records: []
+      }));
+    });
+
+    it("should add record to the past [with appended ticket number]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const addRecordToProjectStub = sinon.stub().resolves();
+      const getOrAskForProjectFromGitStub = sinon.stub().resolves(
+        {
+          meta: {
+            host: "",
+            port: 0,
+          },
+          name: "mocked",
+          records: [],
+        } as IProject,
+      );
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public addRecordToProject = addRecordToProjectStub;
+        public getOrAskForProjectFromGit = getOrAskForProjectFromGitStub;
+      }
+
+      mockedHelper.QuestionHelper = class {
+        public static askAmount = sinon.stub().resolves(1.234);
+        public static askDay = sinon.stub().resolves(24);
+        public static askHour = sinon.stub().resolves(13);
+        public static askMessage = sinon.stub().resolves("Mocked message");
+        public static askMinute = sinon.stub().resolves(37);
+        public static askMonth = sinon.stub().resolves(24);
+        public static askYear = sinon.stub().resolves(2019);
+        public static chooseType = sinon.stub().resolves("Time");
+      }
+
+      mockedHelper.GitHelper = class {
+        public getCurrentBranch = sinon.stub().resolves("1337-awesome-new-feature");
+      }
+
+      mockedHelper.appendTicketNumber = sinon.stub().resolves("Mocked message [#1337]");
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
+
+      // Mock arguments array to enable interactive mode
+      process.argv = ["1", "2", "3"];
+
+      await mockedApp.addAction(mockedCommand);
+
+      assert.isTrue(addRecordToProjectStub.calledOnce);
+      assert.isTrue(addRecordToProjectStub.calledWithMatch({
+        amount: 1.234,
+        end: 1608813420000,
+        message: 'Mocked message [#1337]',
+        type: 'Time'
+      }, {
+        meta: {
+          host: '',
+          port: 0
+        },
+        name: 'mocked',
+        records: []
+      }));
     });
 
   });
