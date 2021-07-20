@@ -434,7 +434,7 @@ describe("GitHelper", function () {
     }
   });
 
-  describe("getCurrentBranch", async function () {
+  describe("getCurrentBranch", function () {
     it("should get current branch", async function () {
       const fileProxy: any = proxyquire("../../helper/file", {});
       const mockedFileHelper: FileHelper = new fileProxy
