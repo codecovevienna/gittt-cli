@@ -51,3 +51,13 @@ export function parseProjectNameFromGitUrl(input: string): IProject {
     records: [],
   };
 }
+
+export function findTicketNumberInBranch(branch: string): string | undefined {
+  const match: RegExpExecArray | null = new RegExp(/(^[0-9]+)-.*/).exec(branch);
+  if (!match) {
+    return undefined
+  }
+
+  // Return index 1, which contains first match group instead of whole match
+  return match[1];
+}

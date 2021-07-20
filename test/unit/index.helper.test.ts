@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { parseProjectNameFromGitUrl } from "../../helper";
+import { parseProjectNameFromGitUrl, findTicketNumberInBranch } from "../../helper";
 import { IProject } from "../../interfaces";
 
 describe("Helper", function () {
@@ -54,4 +54,26 @@ describe("Helper", function () {
       assert.isDefined(err);
     }
   });
+
+  describe("findTicketNumberInBranch", function () {
+    it("should get ticket number from branch", async function () {
+      const ticketNumber = findTicketNumberInBranch("1337-awesome-new-feature");
+      expect(ticketNumber).to.eq("1337");
+    })
+
+    it("should not get ticket number from branch [number not in the beginning]", async function () {
+      const ticketNumber = findTicketNumberInBranch("woot-1337-awesome-new-feature");
+      expect(ticketNumber).to.be.undefined;
+    })
+
+    it("should not get ticket number from branch [no ticket number]", async function () {
+      const ticketNumber = findTicketNumberInBranch("awesome-new-feature");
+      expect(ticketNumber).to.be.undefined;
+    })
+
+    it("should not get ticket number from branch [empty branch string]", async function () {
+      const ticketNumber = findTicketNumberInBranch("");
+      expect(ticketNumber).to.be.undefined;
+    })
+  })
 });
