@@ -119,6 +119,19 @@ describe("QuestionHelper", function () {
       expect(choice).to.eq("message");
     });
 
+    it("should ask for message and get undefined", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: "",
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.askMessage();
+      expect(choice).to.be.undefined;
+    });
+
     it("should ask for git url", async function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {

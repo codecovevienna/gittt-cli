@@ -100,7 +100,7 @@ export class QuestionHelper {
     return parseFloat(choice.choice);
   }
 
-  public static askMessage = async (defaultValue?: string): Promise<string> => {
+  public static askMessage = async (defaultValue?: string): Promise<string | undefined> => {
     const choice: any = await inquirer.prompt([
       {
         default: defaultValue ? defaultValue : undefined,
@@ -110,7 +110,7 @@ export class QuestionHelper {
       },
     ]);
 
-    return choice.choice;
+    return choice.choice.length > 0 ? choice.choice : undefined;
   }
 
   public static askGitUrl = async (): Promise<string> => {
