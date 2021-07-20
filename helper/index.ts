@@ -51,6 +51,33 @@ export function parseProjectNameFromGitUrl(input: string): IProject {
     records: [],
   };
 }
+
+function executeRegExp(regex: RegExp, input: string): string | undefined {
+  const match: RegExpExecArray | null = regex.exec(input);
+  if (!match) {
+    return undefined
+  }
+
+  // Return index 1, which contains first match group instead of whole match
+  return match[1];
+}
+
+/**
+ * Extracts ticket number from commit message
+ * 
+ * The commit message has to look something like this: Implemented awesome feature (#1337)
+ * Which would return 1337
+ * 
+ * White spaces between the # an the ticket number are supported, but # is mandatory
+ * e.g. Implemented awesome feature (# 1337)
+ * 
+ * @param  {string} branch
+ * @returns {string} ticket number
+ */
+export function findTicketNumberInMessage(msg: string): string | undefined {
+  return executeRegExp(new RegExp(/#[ ]*([0-9]+)/), msg);
+}
+
 /**
  * Extracts ticket number from branch
  * 
@@ -61,11 +88,5 @@ export function parseProjectNameFromGitUrl(input: string): IProject {
  * @returns {string} ticket number
  */
 export function findTicketNumberInBranch(branch: string): string | undefined {
-  const match: RegExpExecArray | null = new RegExp(/(^[0-9]+)-.*/).exec(branch);
-  if (!match) {
-    return undefined
-  }
-
-  // Return index 1, which contains first match group instead of whole match
-  return match[1];
+  return executeRegExp(new RegExp(/(^[0-9]+)-.*/), branch);
 }
