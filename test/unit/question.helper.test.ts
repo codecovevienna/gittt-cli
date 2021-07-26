@@ -119,6 +119,19 @@ describe("QuestionHelper", function () {
       expect(choice).to.eq("message");
     });
 
+    it("should ask for message and get undefined", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: "",
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.askMessage();
+      expect(choice).to.be.undefined;
+    });
+
     it("should ask for git url", async function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
@@ -514,6 +527,19 @@ describe("QuestionHelper", function () {
       });
 
       const choice: string = await proxy.QuestionHelper.confirmInit();
+      expect(choice).to.eq(true);
+    });
+
+    it("should confirm ticket number", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: true,
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.confirmTicketNumber("1337");
       expect(choice).to.eq(true);
     });
   });

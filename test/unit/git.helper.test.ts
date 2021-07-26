@@ -433,4 +433,103 @@ describe("GitHelper", function () {
       assert.isDefined(err);
     }
   });
+
+  describe("getCurrentBranch", function () {
+    it("should get current branch", async function () {
+      const fileProxy: any = proxyquire("../../helper/file", {});
+      const mockedFileHelper: FileHelper = new fileProxy
+        .FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      const shellExecStub = sinon.stub()
+        .returns({
+          code: 0,
+          stderr: "",
+          stdout: "1337-awesome-new-feature",
+        })
+
+      const proxy: any = proxyquire("../../helper/git", {
+        shelljs: {
+          exec: shellExecStub,
+        },
+      });
+
+      const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
+
+      const currentBranch = await instance.getCurrentBranch();
+
+      expect(currentBranch).to.eq("1337-awesome-new-feature")
+    });
+
+    it("should fail to get current branch [no git repo]", async function () {
+      const fileProxy: any = proxyquire("../../helper/file", {});
+      const mockedFileHelper: FileHelper = new fileProxy
+        .FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      const shellExecStub = sinon.stub()
+        .returns({
+          code: 128,
+          stderr: "",
+          stdout: "",
+        })
+
+      const proxy: any = proxyquire("../../helper/git", {
+        shelljs: {
+          exec: shellExecStub,
+        },
+      });
+
+      const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
+
+      const currentBranch = await instance.getCurrentBranch();
+
+      expect(currentBranch).to.be.undefined;
+    });
+
+    it("should fail to get current branch [generic shell exec error]", async function () {
+      const fileProxy: any = proxyquire("../../helper/file", {});
+      const mockedFileHelper: FileHelper = new fileProxy
+        .FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      const shellExecStub = sinon.stub()
+        .returns({
+          code: 1,
+          stderr: "",
+          stdout: "Generic error",
+        })
+
+      const proxy: any = proxyquire("../../helper/git", {
+        shelljs: {
+          exec: shellExecStub,
+        },
+      });
+
+      const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
+
+      const currentBranch = await instance.getCurrentBranch();
+
+      expect(currentBranch).to.be.undefined;
+    });
+
+    it("should fail to get current branch [shelljs throws]", async function () {
+      const fileProxy: any = proxyquire("../../helper/file", {});
+      const mockedFileHelper: FileHelper = new fileProxy
+        .FileHelper(configDir, configFileName, timerFileName, projectsDir);
+
+      const shellExecStub = sinon.stub()
+        .throws("Module not found")
+
+      const proxy: any = proxyquire("../../helper/git", {
+        shelljs: {
+          exec: shellExecStub,
+        },
+      });
+
+      const instance: GitHelper = new proxy.GitHelper(configDir, mockedFileHelper);
+
+      const currentBranch = await instance.getCurrentBranch();
+
+      expect(currentBranch).to.be.undefined;
+    });
+  })
+
 });

@@ -1,4 +1,6 @@
 import { IProject } from "../interfaces";
+import { LogHelper } from "./log";
+import { QuestionHelper } from "./question";
 
 export { ConfigHelper } from "./config";
 export { GitHelper } from "./git";
@@ -50,4 +52,66 @@ export function parseProjectNameFromGitUrl(input: string): IProject {
     name: parsedName,
     records: [],
   };
+}
+
+function executeRegExp(regex: RegExp, input: string): string | undefined {
+  const match: RegExpExecArray | null = regex.exec(input);
+  if (!match) {
+    return undefined
+  }
+
+  // Return index 1, which contains first match group instead of whole match
+  return match[1];
+}
+
+/**
+ * Extracts ticket number from commit message
+ * 
+ * The commit message has to look something like this: Implemented awesome feature (#1337)
+ * Which would return 1337
+ * 
+ * White spaces between the # an the ticket number are supported, but # is mandatory
+ * e.g. Implemented awesome feature (# 1337)
+ * 
+ * @param  {string} branch
+ * @returns {string} ticket number
+ */
+export function findTicketNumberInMessage(msg: string): string | undefined {
+  return executeRegExp(new RegExp(/#[ ]*([0-9]+)/), msg);
+}
+
+/**
+ * Extracts ticket number from branch
+ * 
+ * The branch has to look something like this: 1337-awesome-feature
+ * Which would return 1337
+ * 
+ * @param  {string} branch
+ * @returns {string} ticket number
+ */
+export function findTicketNumberInBranch(branch: string): string | undefined {
+  return executeRegExp(new RegExp(/(^[0-9]+)-.*/), branch);
+}
+
+export async function appendTicketNumber(initialMessage: string, branchName: string | undefined): Promise<string> {
+  let commitMessage = initialMessage;
+
+  const ticketNumberMsg = findTicketNumberInMessage(initialMessage);
+  let ticketNumberBranch = undefined;
+  if (branchName) {
+    ticketNumberBranch = findTicketNumberInBranch(branchName);
+  }
+
+  if (ticketNumberMsg && ticketNumberBranch) {
+    LogHelper.debug(`Found ticket number in branch and commit message (message: ${ticketNumberMsg}, branch: ${ticketNumberBranch})`)
+    LogHelper.debug(`Favor ticket number "${ticketNumberMsg}" in message and append nothing)`)
+  } else if (!ticketNumberMsg && ticketNumberBranch) {
+    LogHelper.debug(`Found ticket number only in branch (branch: ${ticketNumberBranch})`)
+    const confirm = await QuestionHelper.confirmTicketNumber(ticketNumberBranch);
+    if (confirm) {
+      commitMessage = `${commitMessage} [#${ticketNumberBranch}]`;
+    }
+  }
+
+  return commitMessage;
 }

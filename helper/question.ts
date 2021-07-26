@@ -100,7 +100,7 @@ export class QuestionHelper {
     return parseFloat(choice.choice);
   }
 
-  public static askMessage = async (defaultValue?: string): Promise<string> => {
+  public static askMessage = async (defaultValue?: string): Promise<string | undefined> => {
     const choice: any = await inquirer.prompt([
       {
         default: defaultValue ? defaultValue : undefined,
@@ -110,7 +110,7 @@ export class QuestionHelper {
       },
     ]);
 
-    return choice.choice;
+    return choice.choice.length > 0 ? choice.choice : undefined;
   }
 
   public static askGitUrl = async (): Promise<string> => {
@@ -419,6 +419,18 @@ export class QuestionHelper {
   public static confirmInit = async (): Promise<boolean> => {
     const question: Question = {
       message: `This will reset the project if it is already initialized, are you sure?`,
+      name: "choice",
+      type: "confirm",
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static confirmTicketNumber = async (ticketNumber: string): Promise<boolean> => {
+    const question: Question = {
+      message: `Ticket number (${ticketNumber}) found in branch name, should it be added to the commit message?`,
       name: "choice",
       type: "confirm",
     }

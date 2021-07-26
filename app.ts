@@ -19,6 +19,7 @@ import {
   ValidationHelper,
   RecordHelper,
   ConfigHelper,
+  appendTicketNumber,
 } from "./helper";
 import {
   IIntegrationLink,
@@ -741,6 +742,8 @@ export class App {
       commitMessage = `Committed ${amount} hour${amount > 1 ? "s" : ""} to ${project.name}`
     }
 
+    commitMessage = await appendTicketNumber(commitMessage, await this.gitHelper.getCurrentBranch())
+
     try {
       await this.projectHelper.addRecordToProject({
         amount,
@@ -829,6 +832,10 @@ export class App {
       message: message ? message : undefined,
       type,
     };
+
+    if (newRecord.message) {
+      newRecord.message = await appendTicketNumber(newRecord.message, await this.gitHelper.getCurrentBranch());
+    }
 
     try {
       await this.projectHelper.addRecordToProject(newRecord, project);
