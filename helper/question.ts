@@ -1,9 +1,10 @@
 import inquirer, { ListQuestion, Question } from "inquirer";
 import _ from "lodash";
 import moment from "moment";
-import { IJiraLink, IMultipieInputLink, IMultipieStoreLink, IProject, IRecord } from "../interfaces";
+import { IJiraLink, IMultipieInputLink, IMultipieStoreLink, IProject, IRecord, ISelectChoice } from "../interfaces";
 import { RECORD_TYPES } from "../types";
 import { ProjectHelper, ValidationHelper } from "./";
+import { MultipieHelper } from "./multipie";
 
 export class QuestionHelper {
   public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
@@ -271,7 +272,7 @@ export class QuestionHelper {
   }
 
   public static chooseType = async (oldType?: RECORD_TYPES): Promise<RECORD_TYPES> => {
-    const choices: Array<{ name: string; value: string }> = [
+    const choices: Array<ISelectChoice> = [
       {
         name: RECORD_TYPES.Time,
         value: RECORD_TYPES.Time,
@@ -287,6 +288,26 @@ export class QuestionHelper {
 
     if (oldType) {
       question.default = oldType;
+    }
+
+    const choice: any = await inquirer.prompt([question]);
+
+    return choice.choice;
+  }
+
+  public static chooseRole = async (project: IProject | undefined, oldRole?: string,): Promise<string> => {
+
+    const availableRoles: Array<ISelectChoice> = await MultipieHelper.getValidRoles(project, oldRole);
+
+    const question: ListQuestion = {
+      choices: availableRoles,
+      message: "Role",
+      name: "choice",
+      type: "list",
+    };
+
+    if (oldRole) {
+      question.default = oldRole;
     }
 
     const choice: any = await inquirer.prompt([question]);

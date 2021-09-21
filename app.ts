@@ -30,10 +30,12 @@ import {
   IMultipieInputLink,
   IPublishSummaryItem,
   IMultipieStoreLink,
+  ISelectChoice,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
-import { Token } from "client-oauth2";
+import { CodeFlow, Token } from "client-oauth2";
+import { MultipieHelper } from "./helper/multipie";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
@@ -72,7 +74,7 @@ export class App {
   public async setup(): Promise<void> {
     this.configDir = path.join(FileHelper.getHomeDir(), `${APP_CONFIG_DIR}`);
     this.fileHelper = new FileHelper(this.configDir, "config.json", "timer.json", "projects");
-    this.configHelper = new ConfigHelper(this.fileHelper);
+    this.configHelper = ConfigHelper.getInstance(this.fileHelper);
 
     if (!(await this.configHelper.isInitialized())) {
       if (await QuestionHelper.confirmSetup()) {
@@ -769,6 +771,7 @@ export class App {
     let message: string | undefined;
     let type: RECORD_TYPES;
     let project: IProject | undefined;
+    let role: string | undefined;
 
     try {
       if (!interactiveMode) {
@@ -799,6 +802,11 @@ export class App {
 
         project = await this.projectHelper.getProjectByName(cmd.project);
 
+        // get roles
+        // const availableRoles = await MultipieHelper.getValidRoles(this.configHelper.findLinksByProject(project, 'multipie'), cmd.role);
+        // role = availableRoles.find((role_: ISelectChoice) => role_ == cmd.role)?.value;
+        role = '?';
+
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
         year = await QuestionHelper.askYear();
@@ -808,6 +816,7 @@ export class App {
         minute = await QuestionHelper.askMinute();
         amount = await QuestionHelper.askAmount(1);
         message = await QuestionHelper.askMessage();
+        role = '?';//await QuestionHelper.chooseRole(project);
         type = await QuestionHelper.chooseType();
       }
     } catch (err) {
@@ -831,6 +840,7 @@ export class App {
       end,
       message: message ? message : undefined,
       type,
+      role,
     };
 
     if (newRecord.message) {

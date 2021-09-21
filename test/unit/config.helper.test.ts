@@ -20,7 +20,7 @@ describe("ConfigHelper", function () {
         public saveConfigObject = saveConfigObjectStub;
       }
 
-      const instance: ConfigHelper = new ConfigHelper(new mockedHelper.FileHelper());
+      const instance: ConfigHelper = ConfigHelper.getNewInstance(new mockedHelper.FileHelper());
 
       const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
         linkType: "mock",
@@ -51,7 +51,7 @@ describe("ConfigHelper", function () {
         public saveConfigObject = saveConfigObjectStub;
       }
 
-      const instance: ConfigHelper = new ConfigHelper(new mockedHelper.FileHelper());
+      const instance: ConfigHelper = ConfigHelper.getNewInstance(new mockedHelper.FileHelper());
 
       const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
         linkType: "other",
@@ -82,7 +82,7 @@ describe("ConfigHelper", function () {
         public saveConfigObject = saveConfigObjectStub;
       }
 
-      const instance: ConfigHelper = new ConfigHelper(new mockedHelper.FileHelper());
+      const instance: ConfigHelper = ConfigHelper.getNewInstance(new mockedHelper.FileHelper());
 
       const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
         endpoint: "http://test.com/api",
@@ -121,7 +121,7 @@ describe("ConfigHelper", function () {
         public saveConfigObject = saveConfigObjectStub;
       }
 
-      const instance: ConfigHelper = new ConfigHelper(new mockedHelper.FileHelper());
+      const instance: ConfigHelper = ConfigHelper.getNewInstance(new mockedHelper.FileHelper());
 
       const updatedConfigFile: IConfigFile = await instance.addOrUpdateLink({
         endpoint: "http://test.com/api",
@@ -171,7 +171,7 @@ describe("ConfigHelper", function () {
         });
       }
 
-      const instance: ConfigHelper = new ConfigHelper(new mockedHelper.FileHelper());
+      const instance: ConfigHelper = ConfigHelper.getNewInstance(new mockedHelper.FileHelper());
 
       const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
         meta: {
@@ -214,7 +214,7 @@ describe("ConfigHelper", function () {
         });
       }
 
-      const instance: ConfigHelper = new ConfigHelper(new mockedHelper.FileHelper());
+      const instance: ConfigHelper = ConfigHelper.getNewInstance(new mockedHelper.FileHelper());
 
       const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
         meta: {
@@ -247,7 +247,7 @@ describe("ConfigHelper", function () {
         });
       }
 
-      const instance: ConfigHelper = new ConfigHelper(new mockedHelper.FileHelper());
+      const instance: ConfigHelper = ConfigHelper.getNewInstance(new mockedHelper.FileHelper());
 
       const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
         meta: {
@@ -285,7 +285,7 @@ describe("ConfigHelper", function () {
         });
       }
 
-      const instance: ConfigHelper = new ConfigHelper(new mockedHelper.FileHelper());
+      const instance: ConfigHelper = ConfigHelper.getNewInstance(new mockedHelper.FileHelper());
 
       const foundLinks: IIntegrationLink[] = await instance.findLinksByProject({
         meta: {

@@ -10,6 +10,7 @@ export interface IRecord {
   amount: number;
   message?: string;
   type: RECORD_TYPES;
+  role?: string;
 }
 
 export interface IProject {
@@ -50,6 +51,7 @@ export interface IMultipieStoreLink extends IMultipieLink {
 
 export interface IGitttFile {
   name: string;
+  requires_roles?: boolean;
 }
 
 export interface IConfigFile {
@@ -81,4 +83,9 @@ export interface IPublishSummaryItem {
   success: boolean;
   type: string;
   reason?: string;
+}
+
+export interface ISelectChoice {
+  name: string;
+  value: string
 }

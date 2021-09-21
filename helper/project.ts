@@ -203,7 +203,7 @@ export class ProjectHelper {
     }, 0);
   }
 
-  public getProjectByName = async (name: string): Promise<IProject | undefined> => {
+  public getProjectByName = async (name: string): Promise<IProject> => {
     const projects: IProject[] = await this.fileHelper.findAllProjects();
     let foundProject: IProject | undefined = projects.find((p: IProject) => p.name === name);
 
@@ -223,6 +223,10 @@ export class ProjectHelper {
         LogHelper.debug(`Unable to get project from git directory: ${err.message}`);
         throw err;
       }
+    }
+
+    if (!foundProject) {
+      throw new Error("Unable to get gittt project")
     }
 
     return foundProject;
@@ -274,7 +278,7 @@ export class ProjectHelper {
     return parseProjectNameFromGitUrl(originUrl);
   }
 
-  public getOrAskForProjectFromGit = async (): Promise<IProject | undefined> => {
+  public getOrAskForProjectFromGit = async (): Promise<IProject> => {
     let projectName: string;
     let projectMeta: IProjectMeta | undefined;
 

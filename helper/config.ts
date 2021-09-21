@@ -2,11 +2,31 @@ import { FileHelper } from './file';
 import { IProject, IIntegrationLink, IConfigFile, IJiraLink, IMultipieInputLink, IMultipieStoreLink } from '../interfaces';
 
 export class ConfigHelper {
+  private static instance: ConfigHelper;
 
   private fileHelper: FileHelper;
 
   constructor(fileHelper: FileHelper) {
     this.fileHelper = fileHelper;
+  }
+
+  public static getInstance(fileHelper?: FileHelper): ConfigHelper {
+    if (!ConfigHelper.instance) {
+      if (!fileHelper) {
+        throw new Error('ConfigHelper has to be initialized with a FileHelper');
+      }
+      ConfigHelper.instance = new ConfigHelper(fileHelper);
+    }
+
+    return ConfigHelper.instance;
+  }
+
+  public static getNewInstance(fileHelper?: FileHelper): ConfigHelper {
+    if (!fileHelper) {
+      throw new Error('ConfigHelper has to be initialized with a FileHelper');
+    }
+    ConfigHelper.instance = new ConfigHelper(fileHelper);
+    return ConfigHelper.getInstance(fileHelper);
   }
 
   public isInitialized = async (): Promise<boolean> => {

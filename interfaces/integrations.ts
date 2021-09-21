@@ -9,3 +9,11 @@ export interface IMultipiePublishResult {
   data?: any;
   message?: string;
 }
+
+export interface IMultipieRolesResult {
+  success: boolean;
+  data?: {
+    roles: string[];
+  };
+  message?: string;
+}

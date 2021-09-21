@@ -105,6 +105,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -128,6 +130,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(false);
       }
 
@@ -159,6 +163,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(false);
       }
 
@@ -193,6 +199,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -231,6 +239,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -279,6 +289,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -318,6 +330,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -350,6 +364,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -379,6 +395,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -414,6 +432,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -479,6 +499,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -546,6 +568,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -593,6 +617,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -648,6 +674,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -713,6 +741,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -785,6 +815,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -853,6 +885,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -918,6 +952,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -986,6 +1022,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1027,6 +1065,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1094,6 +1134,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1147,6 +1189,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1198,6 +1242,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1255,6 +1301,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1322,6 +1370,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1389,6 +1439,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1452,6 +1504,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1494,6 +1548,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1542,6 +1598,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1603,6 +1661,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1668,6 +1728,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1730,6 +1792,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1789,6 +1853,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1829,6 +1895,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1870,6 +1938,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1908,6 +1978,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1941,6 +2013,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -1975,6 +2049,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2016,8 +2092,9 @@ describe("App", function () {
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
       }
-
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2075,6 +2152,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2139,6 +2218,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2197,6 +2278,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2261,6 +2344,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2352,6 +2437,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2413,6 +2500,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2453,6 +2542,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2497,6 +2588,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2549,6 +2642,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -2602,6 +2697,8 @@ describe("App", function () {
         }
 
         mockedHelper.ConfigHelper = class {
+          public static instance: any;
+          public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
           public isInitialized = sinon.stub().resolves(true);
         }
 
@@ -2649,6 +2746,8 @@ describe("App", function () {
         }
 
         mockedHelper.ConfigHelper = class {
+          public static instance: any;
+          public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
           public isInitialized = sinon.stub().resolves(true);
           public findLinksByProject = sinon.stub().resolves([]);
         }
@@ -2709,6 +2808,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = sinon.stub().resolves([]);
             public addOrUpdateLink = addOrUpdateLinkStub;
@@ -2780,6 +2881,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = sinon.stub().resolves([]);
             public addOrUpdateLink = addOrUpdateLinkStub;
@@ -2852,6 +2955,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves(
@@ -2928,6 +3033,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = sinon.stub().resolves([]);
             public addOrUpdateLink = addOrUpdateLinkStub;
@@ -2986,6 +3093,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
           }
 
@@ -3051,6 +3160,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3123,6 +3234,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3196,6 +3309,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3269,6 +3384,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3361,6 +3478,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3452,6 +3571,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3514,6 +3635,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
           }
 
@@ -3577,6 +3700,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3640,6 +3765,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3704,6 +3831,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3775,6 +3904,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3846,6 +3977,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3901,6 +4034,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -3969,6 +4104,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -4018,6 +4155,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
           }
 
@@ -4068,6 +4207,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = sinon.stub().resolves([]);
             public addOrUpdateLink = addOrUpdateLinkStub;
@@ -4154,6 +4295,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves([]);
@@ -4242,6 +4385,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves([
@@ -4328,6 +4473,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves([]);
@@ -4410,6 +4557,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public addOrUpdateLink = addOrUpdateLinkStub;
             public findLinksByProject = sinon.stub().resolves([]);
@@ -4504,6 +4653,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -4585,6 +4736,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -4661,6 +4814,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -4746,6 +4901,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
             public findLinksByProject = findLinksByProjectStub;
@@ -4838,6 +4995,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findProjectByName = findProjectByNameStub;
             public findLinksByProject = findLinksByProjectStub;
@@ -4923,6 +5082,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -5005,6 +5166,8 @@ describe("App", function () {
           }
 
           mockedHelper.ConfigHelper = class {
+            public static instance: any;
+            public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
             public isInitialized = sinon.stub().resolves(true);
             public findLinksByProject = findLinksByProjectStub;
           }
@@ -5099,6 +5262,8 @@ describe("App", function () {
         }
 
         mockedHelper.ConfigHelper = class {
+          public static instance: any;
+          public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
           public isInitialized = sinon.stub().resolves(true);
           public findLinksByProject = findLinksByProjectStub;
         }
@@ -5211,6 +5376,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5295,6 +5462,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5331,6 +5500,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5398,6 +5569,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5429,6 +5602,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5465,6 +5640,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5508,6 +5685,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5630,6 +5809,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5799,6 +5980,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
         public findLinksByProject = findLinksByProjectStub;
       }
@@ -5861,6 +6044,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5924,6 +6109,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -5965,6 +6152,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 
@@ -6014,6 +6203,8 @@ describe("App", function () {
       }
 
       mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
         public isInitialized = sinon.stub().resolves(true);
       }
 

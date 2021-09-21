@@ -51,6 +51,8 @@ describe("List test", function () {
     }
 
     mockedHelper.ConfigHelper = class {
+      public static instance: any;
+      public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
       public isInitialized = sinon.stub().resolves(true);
     }
 
