@@ -31,10 +31,11 @@ import {
   IPublishSummaryItem,
   IMultipieStoreLink,
   ISelectChoice,
+  IMultipiePublishResult,
 } from "./interfaces";
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
-import { CodeFlow, Token } from "client-oauth2";
+import { Token } from "client-oauth2";
 import { MultipieHelper } from "./helper/multipie";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
@@ -407,7 +408,7 @@ export class App {
 
               LogHelper.debug(`Publishing to ${multipieUrl}`);
 
-              const publishResult: AxiosResponse = await axios
+              const publishResult: AxiosResponse<IMultipiePublishResult> = await axios
                 .post(multipieUrl,
                   project,
                   {
@@ -419,7 +420,7 @@ export class App {
                   },
                 );
 
-              const data: any = publishResult.data;
+              const data: IMultipiePublishResult = publishResult.data;
 
               if (data && (publishResult.status === 200 || publishResult.status === 201)) {
                 publishSummary.push({
@@ -761,6 +762,7 @@ export class App {
 
   public async addAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
+    const multipieHelper = new MultipieHelper();
 
     let year: number;
     let month: number;
@@ -770,7 +772,7 @@ export class App {
     let amount: number;
     let message: string | undefined;
     let type: RECORD_TYPES;
-    let project: IProject | undefined;
+    let project: IProject;
     let role: string | undefined;
 
     try {
@@ -803,9 +805,10 @@ export class App {
         project = await this.projectHelper.getProjectByName(cmd.project);
 
         // get roles
-        // const availableRoles = await MultipieHelper.getValidRoles(this.configHelper.findLinksByProject(project, 'multipie'), cmd.role);
-        // role = availableRoles.find((role_: ISelectChoice) => role_ == cmd.role)?.value;
-        role = '?';
+        if (project.requiresRoles) {
+          const availableRoles = await multipieHelper.getValidRoles(project, cmd.role);
+          role = availableRoles.find((role_: ISelectChoice) => role_ == cmd.role)?.value;
+        }
 
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
@@ -816,7 +819,9 @@ export class App {
         minute = await QuestionHelper.askMinute();
         amount = await QuestionHelper.askAmount(1);
         message = await QuestionHelper.askMessage();
-        role = '?';//await QuestionHelper.chooseRole(project);
+        if (project.requiresRoles) {
+          role = await QuestionHelper.chooseRole(project);
+        }
         type = await QuestionHelper.chooseType();
       }
     } catch (err) {
@@ -1215,7 +1220,7 @@ export class App {
     }
   }
 
-  public initCommander() {
+  public initCommander(): void {
     // Only matters for tests to omit 'MaxListenersExceededWarning'
     commander.removeAllListeners();
     commander.on("command:*", () => {
@@ -1309,7 +1314,7 @@ export class App {
       .option("-k, --kill", "Kill the timer for a project")
       .option("-m, --message <message>", "Commit message for the project")
       .option("-p, --project [project]", "Specify the project to add your time to")
-      .action(async (cmd: any): Promise<void> => await this.stopAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => this.stopAction(cmd));
 
     // init command
     commander
@@ -1361,7 +1366,7 @@ export class App {
       .command("import <file>")
       .description("Import records from csv file to current project")
       .option("-p, --project [project]", "Specify the project to import records to")
-      .action(async (cmd: string, options: any): Promise<void> => await this.importCsv(cmd, options));
+      .action(async (cmd: string, options: any): Promise<void> => this.importCsv(cmd, options));
 
     // export command
     commander

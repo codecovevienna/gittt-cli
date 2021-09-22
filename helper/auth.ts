@@ -1,5 +1,5 @@
 import ClientOAuth2 from 'client-oauth2';
-import { IMultipieInputLink, IMultipieStoreLink, IIntegrationLink } from '../interfaces';
+import { IMultipieInputLink, IMultipieStoreLink } from '../interfaces';
 
 const MULTIPIE_OAUTH_CLIENT_ID = "cc-gittt-cli";
 const MULTIPIE_OAUTH_ACCESS_TOKEN_URI = "https://auth.multipie.cc/auth/realms/multipie/protocol/openid-connect/token";

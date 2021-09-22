@@ -16,6 +16,7 @@ export interface IRecord {
 export interface IProject {
   meta?: IProjectMeta;
   name: string;
+  requiresRoles?: boolean;
   records: IRecord[];
 }
 
@@ -34,9 +35,10 @@ export interface IJiraLink extends IIntegrationLink {
 }
 
 // Private per design to enforce one of the child interfaces
-interface IMultipieLink extends IIntegrationLink {
+export interface IMultipieLink extends IIntegrationLink {
   host: string;
   endpoint: string;
+  roleEndpoint?: string;
   clientSecret?: string;
   username?: string;
 }
@@ -51,7 +53,7 @@ export interface IMultipieStoreLink extends IMultipieLink {
 
 export interface IGitttFile {
   name: string;
-  requires_roles?: boolean;
+  requiresRoles?: boolean;
 }
 
 export interface IConfigFile {

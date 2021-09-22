@@ -1,5 +1,5 @@
 import { FileHelper } from './file';
-import { IProject, IIntegrationLink, IConfigFile, IJiraLink, IMultipieInputLink, IMultipieStoreLink } from '../interfaces';
+import { IProject, IIntegrationLink, IConfigFile, IJiraLink, IMultipieStoreLink } from '../interfaces';
 
 export class ConfigHelper {
   private static instance: ConfigHelper;

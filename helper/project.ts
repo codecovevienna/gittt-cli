@@ -82,6 +82,7 @@ export class ProjectHelper {
 
       project = {
         name: gitttFile.name,
+        requiresRoles: gitttFile.requiresRoles,
         records: []
       }
 
@@ -281,10 +282,12 @@ export class ProjectHelper {
   public getOrAskForProjectFromGit = async (): Promise<IProject> => {
     let projectName: string;
     let projectMeta: IProjectMeta | undefined;
+    let projectRequiresRoles: boolean | undefined;
 
     try {
       const gitttProject: IProject = await this.getGitttProject();
       projectName = gitttProject.name;
+      projectRequiresRoles = gitttProject.requiresRoles;
     } catch (e) {
       if (e instanceof GitRemoteError ||
         e instanceof GitNoRepoError ||
@@ -314,6 +317,11 @@ export class ProjectHelper {
 
     if (!project) {
       throw new Error(`Unable to find project "${projectName}" on disk`);
+    }
+
+    // requiresRoles from .gittt.yml file overwrites the config if it is set.
+    if (undefined !== projectRequiresRoles) {
+      project.requiresRoles = projectRequiresRoles;
     }
 
     return project;
