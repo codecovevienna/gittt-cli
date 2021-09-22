@@ -10,14 +10,10 @@ export class MultipieHelper {
   public getValidRoles = async (project: IProject, oldRole?: string): Promise<Array<ISelectChoice>> => {
     let roles: Array<ISelectChoice> = [
       {
-        name: DEFAULT_ROLE,
+        name: oldRole || DEFAULT_ROLE,
         value: oldRole || DEFAULT_ROLE,
       }
     ];
-
-    if (project === undefined) {
-      return roles;
-    }
 
     const configHelper = ConfigHelper.getInstance();
     const links = await configHelper.findLinksByProject(project, 'Multipie');

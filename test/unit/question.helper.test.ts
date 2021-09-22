@@ -391,6 +391,32 @@ describe("QuestionHelper", function () {
       expect(choice).to.eq(RECORD_TYPES.Time);
     });
 
+    it("should choose role", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: '?',
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.chooseRole();
+      expect(choice).to.eq('?');
+    });
+
+    it("should choose role [with old role]", async function () {
+      const proxy: any = proxyquire("../../helper/question", {
+        inquirer: {
+          prompt: sinon.stub().resolves({
+            choice: 'asdf',
+          }),
+        },
+      });
+
+      const choice: string = await proxy.QuestionHelper.chooseRole('asdf');
+      expect(choice).to.eq('asdf');
+    });
+
     it("should choose integration", async function () {
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
