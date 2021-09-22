@@ -44,7 +44,7 @@ describe("Helper", function () {
   it("should fail to parse git url [no port]", function () {
     try {
       parseProjectNameFromGitUrl("ssh://git@mock.github.com/test/mocked.git");
-    } catch (err) {
+    } catch (err: any) {
       assert.isDefined(err);
     }
   });
@@ -52,7 +52,7 @@ describe("Helper", function () {
   it("should fail to parse git url [no regex match]", function () {
     try {
       parseProjectNameFromGitUrl("ssh");
-    } catch (err) {
+    } catch (err: any) {
       assert.isDefined(err);
     }
   });

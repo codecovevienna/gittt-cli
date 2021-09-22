@@ -72,7 +72,7 @@ export class FileHelper {
       await this.saveProjectObject(project);
 
       return project;
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error writing project file", err);
       throw new Error("Error initializing project");
     }
@@ -85,7 +85,7 @@ export class FileHelper {
         stop: 0,
       };
       await fs.writeJson(this.timerFilePath, initial, this.jsonWriteOptions);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error initializing timer file", err);
       throw new Error("Error initializing timer file");
     }
@@ -94,7 +94,7 @@ export class FileHelper {
   public configDirExists = async (): Promise<boolean> => {
     try {
       return await fs.pathExists(this.configFilePath);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.error("Error checking config file existence");
       return false;
     }
@@ -105,7 +105,7 @@ export class FileHelper {
       return YAML.parse((await fs
         .readFile(".gittt.yml"))
         .toString()) as IGitttFile;
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Unable to parse .gittt.yml file", err);
       throw new GitttFileError("Unable to parse .gittt.yml file")
     }
@@ -120,7 +120,7 @@ export class FileHelper {
       } else {
         return this.configObject;
       }
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error reading config file", err);
       throw new Error("Error getting config object");
     }
@@ -131,7 +131,7 @@ export class FileHelper {
 
     try {
       config = await this.getConfigObject(true);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug(`Unable to parse config file: ${err.message}`);
       return false;
     }
@@ -139,7 +139,7 @@ export class FileHelper {
     try {
       parseProjectNameFromGitUrl(config.gitRepo);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Unable to get project name", err);
       return false;
     }
@@ -148,7 +148,7 @@ export class FileHelper {
   public timerFileExists = (): boolean => {
     try {
       return fs.existsSync(this.timerFilePath);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.error("Error checking timer file existence");
       return false;
     }
@@ -161,7 +161,7 @@ export class FileHelper {
       LogHelper.debug(`Saving project file to ${projectFilePath}`);
       await fs.writeJson(projectFilePath, project, this.jsonWriteOptions);
       // TODO update cache
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error writing project file", err);
       throw new Error("Error writing project file");
     }
@@ -175,7 +175,7 @@ export class FileHelper {
     try {
       const timerObj: ITimerFile = await fs.readJson(this.timerFilePath);
       return timerObj;
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error reading timer object", err);
       throw new Error("Error getting timer object");
     }
@@ -184,7 +184,7 @@ export class FileHelper {
   public initReadme = async (): Promise<void> => {
     try {
       await fs.writeFile(path.join(this.configDir, "README.md"), "# Initially generated gittt README.md file");
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error writing readme file", err);
       throw new Error("Error initializing readme file");
     }
@@ -241,7 +241,7 @@ export class FileHelper {
   public saveTimerObject = async (timer: ITimerFile): Promise<void> => {
     try {
       await fs.writeJson(this.timerFilePath, timer, this.jsonWriteOptions);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error writing timer file", err);
       throw new Error("Error writing timer file");
     }
@@ -310,7 +310,7 @@ export class FileHelper {
     try {
       await fs.writeJson(this.configFilePath, config, this.jsonWriteOptions);
       this.setConfigObject(config);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error writing config file", err);
       throw new Error("Error writing config file");
     }

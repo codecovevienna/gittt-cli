@@ -165,7 +165,7 @@ export class App {
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -191,7 +191,7 @@ export class App {
 
         try {
           await this.configHelper.addOrUpdateLink(jiraLink);
-        } catch (err) {
+        } catch (err: any) {
           LogHelper.debug(`Unable to add link to config file`, err);
           return this.exit(`Unable to add link to config file`, 1);
         }
@@ -222,11 +222,11 @@ export class App {
 
           try {
             await this.configHelper.addOrUpdateLink(offlineToken);
-          } catch (err) {
+          } catch (err: any) {
             LogHelper.debug(`Unable to add link to config file`, err);
             return this.exit(`Unable to add link to config file`, 1);
           }
-        } catch (err) {
+        } catch (err: any) {
           LogHelper.debug(`Unable to authenticate user`, err);
           return this.exit(`Unable to authenticate user`, 1);
         }
@@ -260,7 +260,7 @@ export class App {
           projects = [project];
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -269,7 +269,7 @@ export class App {
     }
 
     const projectIntegrationLinks = await Promise.all(
-      await projects.map(async (project) => {
+      projects.map(async (project) => {
         const links = await this.configHelper.findLinksByProject(project);
         return {
           name: project.name,
@@ -361,7 +361,7 @@ export class App {
                   reason: `Publishing failed [${publishResult.status}]`
                 })
               }
-            } catch (err) {
+            } catch (err: any) {
               delete err.config;
               delete err.request;
               delete err.response;
@@ -434,7 +434,7 @@ export class App {
                   reason: `Publishing failed [${publishResult.status}]`
                 })
               }
-            } catch (err) {
+            } catch (err: any) {
               delete err.config;
               delete err.request;
               delete err.response;
@@ -484,7 +484,7 @@ export class App {
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -667,10 +667,10 @@ export class App {
         } else {
           project = await this.projectHelper.getOrAskForProjectFromGit();
         }
-      } catch (err) {
+      } catch (err: any) {
         return this.exit(err.message, 1);
       }
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Unable to get project name from git folder", err);
       return this.exit("Unable to get project name from git folder", 1);
     }
@@ -753,7 +753,7 @@ export class App {
         project = await this.projectHelper.getOrAskForProjectFromGit();
         message = await QuestionHelper.askMessage();
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -780,7 +780,7 @@ export class App {
         message: commitMessage,
         type: RECORD_TYPES.Time,
       }, project);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Unable to add record to project", err);
       this.exit("Unable to add record to project", 1);
     }
@@ -855,7 +855,7 @@ export class App {
         }
         type = await QuestionHelper.chooseType();
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -885,7 +885,7 @@ export class App {
 
     try {
       await this.projectHelper.addRecordToProject(newRecord, project);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Unable to add record to project", err);
       this.exit("Unable to add record to project", 1);
     }
@@ -907,7 +907,7 @@ export class App {
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -921,7 +921,7 @@ export class App {
       const uniqueRecords = _.uniqWith(records, _.isEqual);
       LogHelper.debug(`Filtered out ${records.length - uniqueRecords.length} duplicates`);
       await this.projectHelper.addRecordsToProject(uniqueRecords, project, true, false);
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error importing records from csv", err);
       this.exit(err.message, 1);
     }
@@ -940,7 +940,7 @@ export class App {
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -998,24 +998,25 @@ export class App {
     }))
 
     // order projects
-    const orderedProjects: { hours: number; project: IProject }[] = projectsWithHours
-      .sort((a: { hours: number; project: IProject }, b: { hours: number; project: IProject }) => {
-        if (order === "hours") {
-          if (direction === "desc") {
-            return (a.hours - b.hours) * -1;
-          }
-          return (a.hours - b.hours);
+    // sort mutates the array so we cannot save it to orderedProjects directly
+    projectsWithHours.sort((a: { hours: number; project: IProject }, b: { hours: number; project: IProject }) => {
+      if (order === "hours") {
+        if (direction === "desc") {
+          return (a.hours - b.hours) * -1;
         }
+        return (a.hours - b.hours);
+      }
 
-        if (a.project.name < b.project.name) {
-          return (direction === "desc") ? 1 : -1;
-        }
-        if (a.project.name > b.project.name) {
-          return (direction === "desc") ? -1 : 1;
-        }
+      if (a.project.name < b.project.name) {
+        return (direction === "desc") ? 1 : -1;
+      }
+      if (a.project.name > b.project.name) {
+        return (direction === "desc") ? -1 : 1;
+      }
 
-        return 0;
-      });
+      return 0;
+    });
+    const orderedProjects = projectsWithHours;
 
     // print projects
     for (const prj of orderedProjects) {
@@ -1034,7 +1035,7 @@ export class App {
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -1047,12 +1048,14 @@ export class App {
     }
 
     // sorting newest to latest
-    const records: IRecord[] = project.records.sort((a: IRecord, b: IRecord) => {
+    // because sort mutates the array we cannot assign it to records directly
+    project.records.sort((a: IRecord, b: IRecord) => {
       const aStartTime: moment.Moment = moment(a.end).subtract(a.amount, "hours");
       const bStartTime: moment.Moment = moment(b.end).subtract(b.amount, "hours");
 
       return aStartTime.diff(bStartTime);
     });
+    const records: IRecord[] = project.records;
 
     LogHelper.info(`${project.name}`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
@@ -1094,10 +1097,8 @@ export class App {
       });
     });
 
-    const sortedTodaysRecords: {
-      project: IProject;
-      record: IRecord;
-    }[] = todaysRecords.sort((a: {
+    // because sort mutates the array we cannot assign it to sortedTodaysRecords directly
+    todaysRecords.sort((a: {
       project: IProject;
       record: IRecord;
     }, b: {
@@ -1106,6 +1107,7 @@ export class App {
     }) => {
       return moment(a.record.end).diff(moment(b.record.end));
     });
+    const sortedTodaysRecords = todaysRecords;
 
     LogHelper.info(`${moment().format("dddd, MMMM D, YYYY")}`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
@@ -1152,7 +1154,7 @@ export class App {
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
-    } catch (err) {
+    } catch (err: any) {
       return this.exit(err.message, 1);
     }
 
@@ -1226,7 +1228,7 @@ export class App {
         } else {
           project = await this.projectHelper.getOrAskForProjectFromGit();
         }
-      } catch (err) {
+      } catch (err: any) {
         return this.exit(err.message, 1);
       }
 
@@ -1242,7 +1244,7 @@ export class App {
     if (await QuestionHelper.confirmInit()) {
       try {
         await this.projectHelper.initProject();
-      } catch (err) {
+      } catch (err: any) {
         LogHelper.debug("Error initializing project", err);
         this.exit("Error initializing project", 1);
       }

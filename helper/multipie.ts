@@ -93,7 +93,7 @@ export class MultipieHelper {
       }
 
       return [];
-    } catch (err) {
+    } catch (err: any) {
       delete err.config;
       delete err.request;
       delete err.response;

@@ -133,7 +133,7 @@ describe("ProjectHelper", function () {
 
       try {
         await instance.getGitttProject()
-      } catch (err) {
+      } catch (err: any) {
         expect(err).to.not.be.undefined
       }
 
@@ -189,7 +189,7 @@ describe("ProjectHelper", function () {
 
       try {
         await instance.initProject();
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -257,7 +257,7 @@ describe("ProjectHelper", function () {
 
       try {
         await instance.getProjectByName("test_mocked");
-      } catch (err) {
+      } catch (err: any) {
         expect(err.message).to.eq("Mocked")
       }
 
@@ -372,7 +372,7 @@ describe("ProjectHelper", function () {
       let thrownError: Error | undefined;
       try {
         await instance.getOrAskForProjectFromGit();
-      } catch (err) {
+      } catch (err: any) {
         thrownError = err;
       }
       assert.isDefined(thrownError);
@@ -412,7 +412,7 @@ describe("ProjectHelper", function () {
       let thrownError: Error | undefined;
       try {
         await instance.getOrAskForProjectFromGit();
-      } catch (err) {
+      } catch (err: any) {
         thrownError = err;
       }
       assert.isDefined(thrownError);
@@ -792,7 +792,7 @@ describe("ProjectHelper", function () {
     //       message: "test",
     //       type: RECORD_TYPES.Time,
     //     });
-    //   } catch (err) {
+    //   } catch (err: any) {
     //     assert.isDefined(err);
     //   }
 
@@ -1295,7 +1295,7 @@ describe("ProjectHelper", function () {
 
       try {
         await instance.getTotalHours("test_mocked");
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -1384,7 +1384,7 @@ describe("ProjectHelper", function () {
       let thrownError: Error | undefined;
       try {
         instance.getProjectFromGit();
-      } catch (err) {
+      } catch (err: any) {
         thrownError = err;
       }
       assert.isDefined(thrownError);
@@ -1410,7 +1410,7 @@ describe("ProjectHelper", function () {
       let thrownError: Error | undefined;
       try {
         instance.getProjectFromGit();
-      } catch (err) {
+      } catch (err: any) {
         thrownError = err;
       }
       assert.isDefined(thrownError);
@@ -1436,7 +1436,7 @@ describe("ProjectHelper", function () {
       let thrownError: Error | undefined;
       try {
         instance.getProjectFromGit();
-      } catch (err) {
+      } catch (err: any) {
         thrownError = err;
       }
       assert.isDefined(thrownError);
@@ -1467,7 +1467,7 @@ describe("ProjectHelper", function () {
       let thrownError: Error | undefined;
       try {
         instance.getProjectFromGit();
-      } catch (err) {
+      } catch (err: any) {
         thrownError = err;
       }
       assert.isDefined(thrownError);
@@ -1498,7 +1498,7 @@ describe("ProjectHelper", function () {
       let thrownError: Error | undefined;
       try {
         instance.getProjectFromGit();
-      } catch (err) {
+      } catch (err: any) {
         thrownError = err;
       }
       assert.isDefined(thrownError);
@@ -1685,7 +1685,7 @@ describe("ProjectHelper", function () {
 
   //     try {
   //       await instance.migrate(fromProject, toProject);
-  //     } catch (err) {
+  //     } catch (err: any) {
   //       assert.isDefined(err);
   //     }
 

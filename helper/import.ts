@@ -79,7 +79,7 @@ export class ImportHelper {
                 type: RECORD_TYPES.Time,
               } as IRecord;
             }));
-          } catch (err) {
+          } catch (err: any) {
             reject(err)
           }
         },

@@ -51,7 +51,7 @@ export class GitHelper {
       }
       await this.git.pull("origin", "master");
       LogHelper.info("Pulled repo successfully");
-    } catch (err) {
+    } catch (err: any) {
 
       let override = 255;
 
@@ -77,7 +77,7 @@ export class GitHelper {
             LogHelper.info("Pushed to repo");
             const status: StatusResult = await this.git.status();
             LogHelper.debug(status);
-          } catch (err) {
+          } catch (err: any) {
             LogHelper.debug("Unable to fetch repo", err);
             throw new Error("Initialize repo failed");
           }
@@ -117,7 +117,7 @@ export class GitHelper {
         return undefined;
       }
       return gitBranchExec.stdout;
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Unable to get current branch", err);
       LogHelper.error("Unable to get current branch");
       return undefined;

@@ -91,7 +91,7 @@ describe("FileHelper", function () {
 
       try {
         proxy.FileHelper.getHomeDir();
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -132,7 +132,7 @@ describe("FileHelper", function () {
 
       try {
         await instance.initReadme();
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
       assert.isTrue(writeFileSpy.calledOnce);
@@ -218,7 +218,7 @@ describe("FileHelper", function () {
 
       try {
         await instance.initConfigFile(gitUrl);
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -371,7 +371,7 @@ describe("FileHelper", function () {
 
       try {
         await instance.getConfigObject(true);
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -407,7 +407,7 @@ describe("FileHelper", function () {
 
       try {
         await instance.initTimerFile();
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -447,7 +447,7 @@ describe("FileHelper", function () {
 
       try {
         await instance.getTimerObject();
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -498,7 +498,7 @@ describe("FileHelper", function () {
 
       try {
         instance.timerFileExists();
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -538,7 +538,7 @@ describe("FileHelper", function () {
           start: 6,
           stop: 9,
         });
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -595,7 +595,7 @@ describe("FileHelper", function () {
 
       try {
         await instance.initProject(project);
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -665,7 +665,7 @@ describe("FileHelper", function () {
 
       try {
         await instance.saveProjectObject(project);
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -988,7 +988,7 @@ describe("FileHelper", function () {
 
       try {
         await instance.findProjectByName("mock_project_1");
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 
@@ -1073,7 +1073,7 @@ describe("FileHelper", function () {
           host: "github.com",
           port: 443,
         } as IProjectMeta);
-      } catch (err) {
+      } catch (err: any) {
         assert.isDefined(err);
       }
 

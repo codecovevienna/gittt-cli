@@ -99,7 +99,7 @@ describe("ImportHelper", function () {
     let thrownError: AssertionError | undefined;
     try {
       await instance.importCsv(csvFilePath);
-    } catch (err) {
+    } catch (err: any) {
       thrownError = err;
     }
     assert.isDefined(thrownError);
@@ -147,7 +147,7 @@ describe("ImportHelper", function () {
     let thrownError: AssertionError | undefined;
     try {
       await instance.importCsv(csvFilePath);
-    } catch (err) {
+    } catch (err: any) {
       thrownError = err;
     }
     assert.isDefined(thrownError);
@@ -165,7 +165,7 @@ describe("ImportHelper", function () {
     let thrownError: AssertionError | undefined;
     try {
       await instance.importCsv(csvFilePath);
-    } catch (err) {
+    } catch (err: any) {
       thrownError = err;
     }
     assert.isDefined(thrownError);
@@ -183,7 +183,7 @@ describe("ImportHelper", function () {
     let thrownError: AssertionError | undefined;
     try {
       await instance.importCsv(csvFilePath);
-    } catch (err) {
+    } catch (err: any) {
       thrownError = err;
     }
     assert.isDefined(thrownError);
@@ -201,7 +201,7 @@ describe("ImportHelper", function () {
     let thrownError: AssertionError | undefined;
     try {
       await instance.importCsv(csvFilePath);
-    } catch (err) {
+    } catch (err: any) {
       thrownError = err;
     }
     assert.isDefined(thrownError);
@@ -233,7 +233,7 @@ describe("ImportHelper", function () {
     let thrownError: AssertionError | undefined;
     try {
       await instance.importCsv(csvFilePath);
-    } catch (err) {
+    } catch (err: any) {
       thrownError = err;
     }
     assert.isDefined(thrownError);

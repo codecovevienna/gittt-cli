@@ -83,7 +83,7 @@ export class ValidationHelper {
       // Will throw if parsing fails
       parseProjectNameFromGitUrl(input);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       return "The url has to look like ssh://git@github.com:22/gittt/project.git";
     }
   }
@@ -167,7 +167,7 @@ export class ValidationHelper {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static validateFile = (input: any): boolean => {
-    if (isString(input)) {
+    if (typeof input === 'string') {
       try {
         const inputFilePath: string = input;
         const stats: fs.Stats = fs.statSync(inputFilePath);
@@ -175,7 +175,7 @@ export class ValidationHelper {
           fs.accessSync(inputFilePath, plainFs.constants.R_OK | plainFs.constants.W_OK);
           return true;
         }
-      } catch (err) {
+      } catch (err: any) {
         return false;
       }
     }

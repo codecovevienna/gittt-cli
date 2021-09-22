@@ -368,7 +368,7 @@ describe("GitHelper", function () {
 
     try {
       await instance.pullRepo();
-    } catch (err) {
+    } catch (err: any) {
       assert.isDefined(err);
     }
   });
@@ -429,7 +429,7 @@ describe("GitHelper", function () {
 
     try {
       await instance.pullRepo();
-    } catch (err) {
+    } catch (err: any) {
       assert.isDefined(err);
     }
   });

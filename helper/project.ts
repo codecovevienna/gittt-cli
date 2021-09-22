@@ -91,11 +91,11 @@ export class ProjectHelper {
 
       LogHelper.debug("Got project from yaml file");
 
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error getting project from .gittt.yml file, trying git config");
       try {
         project = this.getProjectFromGit();
-      } catch (err) {
+      } catch (err: any) {
         LogHelper.debug("Unable to get project from git config", err);
         throw err;
       }
@@ -111,7 +111,7 @@ export class ProjectHelper {
       await this.gitHelper.commitChanges(`Initialized project`);
 
       return project;
-    } catch (err) {
+    } catch (err: any) {
       LogHelper.debug("Error initializing project", err);
       throw new Error("Error initializing project");
     }
@@ -223,7 +223,7 @@ export class ProjectHelper {
         } else {
           throw new Error("Unable to get gittt project")
         }
-      } catch (err) {
+      } catch (err: any) {
         LogHelper.debug(`Unable to get project from git directory: ${err.message}`);
         throw err;
       }
