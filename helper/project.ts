@@ -82,8 +82,11 @@ export class ProjectHelper {
 
       project = {
         name: gitttFile.name,
-        requiresRoles: gitttFile.requiresRoles,
         records: []
+      }
+
+      if (gitttFile.requiresRoles) {
+        project.requiresRoles = gitttFile.requiresRoles;
       }
 
       LogHelper.debug("Got project from yaml file");
