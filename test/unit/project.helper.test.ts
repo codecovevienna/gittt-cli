@@ -100,6 +100,25 @@ describe("ProjectHelper", function () {
       getGitttFileStub.restore();
     });
 
+    it("should get gittt project with requiresRoles from .gittt.yml", async function () {
+      const getGitttFileStub = sinon.stub(mockedFileHelper, "getGitttFile").resolves({
+        name: "mocked_project_1",
+        requiresRoles: true,
+      } as IGitttFile);
+
+      const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);
+
+      const project: IProject = await instance.getGitttProject();
+
+      expect(project).to.deep.eq({
+        name: "mocked_project_1",
+        records: [],
+        requiresRoles: true,
+      } as IProject);
+
+      getGitttFileStub.restore();
+    });
+
     it("should get gittt project from .git/config", async function () {
       const getGitttFileStub = sinon.stub(mockedFileHelper, "getGitttFile").throws(new Error("mocked"))
 

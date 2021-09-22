@@ -19,6 +19,7 @@ import {
   ValidationHelper,
   RecordHelper,
   ConfigHelper,
+  MultipieHelper,
   appendTicketNumber,
 } from "./helper";
 import {
@@ -36,7 +37,6 @@ import {
 import { ORDER_DIRECTION, ORDER_TYPE, RECORD_TYPES } from "./types";
 import { DefaultLogFields } from "simple-git/src/lib/tasks/log";
 import { Token } from "client-oauth2";
-import { MultipieHelper } from "./helper/multipie";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-explicit-any
 const packageJson: any = require("./package.json");
@@ -475,6 +475,7 @@ export class App {
   public async editAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
+
     let project: IProject | undefined;
 
     // TODO move to own function, is used multiple times
@@ -581,7 +582,6 @@ export class App {
           LogHelper.debug(`Role ${cmd.role} not allowed for project ${project.name}`);
           return this.exit(`Role ${cmd.role} not allowed for project ${project.name}`, 1);
         }
-
         role = cmd.role;
       }
 
@@ -599,6 +599,7 @@ export class App {
       if (project.requiresRoles) {
         role = await QuestionHelper.chooseRole(project, chosenRecord.role);
       }
+      console.log(role);
     }
 
     updatedRecord.updated = Date.now();

@@ -479,6 +479,7 @@ describe("App", function () {
           port: 443,
         },
         name: "mocked",
+        requiresRoles: true,
       } as IProject);
       const findProjectByNameStub = sinon.stub().resolves({
         meta: {
@@ -486,11 +487,11 @@ describe("App", function () {
           port: 443,
         },
         name: "mocked",
+        requiresRoles: true,
         records: mockedRecords,
       } as IProject);
       const commitChangesStub = sinon.stub().resolves();
       const saveProjectObjectStub = sinon.stub().resolves();
-
 
       mockedHelper.FileHelper = class {
         public static getHomeDir = sinon.stub().returns("/home/test");
@@ -528,6 +529,11 @@ describe("App", function () {
         public static askYear = sinon.stub().resolves(2019);
         public static chooseRecord = sinon.stub().resolves(mockedRecords[0]);
         public static chooseType = sinon.stub().resolves("Time");
+        public static chooseRole = sinon.stub().resolves("?");
+      }
+
+      mockedHelper.MultipieHelper = class {
+        public getValidRoles = sinon.stub().resolves([{ name: '?', value: '?' }]);
       }
 
       const proxy: any = proxyquire("../../app", {
@@ -540,9 +546,6 @@ describe("App", function () {
 
       const program = new commander.Command();
       const mockedCommand: commander.Command = program.createCommand();
-      mockedCommand.amount = 69;
-      mockedCommand.guid = "mocked-guid";
-      mockedCommand.type = RECORD_TYPES.Time;
 
       // Mock arguments array to enable interactive mode
       process.argv = ["1", "2", "3"];
@@ -552,10 +555,11 @@ describe("App", function () {
       assert.isTrue(getOrAskForProjectFromGitStub.calledOnce);
       assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(saveProjectObjectStub.calledOnce);
-      expect(saveProjectObjectStub.args[0][0].records[0].amount).to.eq(mockedCommand.amount);
+      expect(saveProjectObjectStub.args[0][0].records[0].amount).to.eq(69);
+      expect(saveProjectObjectStub.args[0][0].records[0].role).to.eq('?');
+      expect(saveProjectObjectStub.args[0][0].records[0].message).to.eq("Mocked message");
+      expect(saveProjectObjectStub.args[0][0].records[0].type).to.eq("Time");
       assert.isTrue(commitChangesStub.calledOnce);
-
-      // getOrAskForProjectFromGitStub.restore();
     });
 
     it("should fail to edit specific record [unable to get project from git]", async function () {
@@ -756,6 +760,10 @@ describe("App", function () {
         public static validateNumber = sinon.stub().returns(true);
       }
 
+      mockedHelper.MultipieHelper = class {
+        public getValidRoles = sinon.stub().resolves([{ name: '?', value: '?' }]);
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
@@ -768,7 +776,9 @@ describe("App", function () {
       const mockedCommand: commander.Command = program.createCommand();
       mockedCommand.amount = 69;
       mockedCommand.guid = "mocked-guid";
+      mockedCommand.message = "mocked-message";
       mockedCommand.type = RECORD_TYPES.Time;
+      mockedCommand.role = '?';
 
       // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
@@ -779,6 +789,10 @@ describe("App", function () {
       assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(saveProjectObjectStub.calledOnce);
       expect(saveProjectObjectStub.args[0][0].records[0].amount).to.eq(mockedCommand.amount);
+      expect(saveProjectObjectStub.args[0][0].records[0].role).to.eq(mockedCommand.role);
+      expect(saveProjectObjectStub.args[0][0].records[0].type).to.eq(mockedCommand.type);
+      expect(saveProjectObjectStub.args[0][0].records[0].guid).to.eq(mockedCommand.guid);
+      expect(saveProjectObjectStub.args[0][0].records[0].message).to.eq(mockedCommand.message);
       assert.isTrue(commitChangesStub.calledOnce);
     });
 
@@ -1054,6 +1068,156 @@ describe("App", function () {
       assert.isTrue(getProjectByNameStub.calledOnce);
       assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(helpStub.calledOnce);
+    });
+
+    it("should fail to edit specific record with arguments [no role]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+      const mockedRecords: IRecord[] = [
+        {
+          amount: 1337,
+          created: 1234,
+          guid: "mocked-guid",
+          type: RECORD_TYPES.Time,
+        } as IRecord,
+      ];
+
+      const getProjectByNameStub = sinon.stub().returns({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+        requiresRoles: true,
+      } as IProject);
+      const findProjectByNameStub = sinon.stub().resolves({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+        records: mockedRecords,
+      });
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateNumber = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
+      mockedCommand.amount = 420;
+      mockedCommand.guid = "mocked-guid";
+      mockedCommand.type = "Time";
+
+      const helpStub = sinon.stub(mockedCommand, "help");
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      await mockedApp.editAction(mockedCommand);
+
+      assert.isTrue(getProjectByNameStub.calledOnce);
+      assert.isTrue(findProjectByNameStub.calledOnce);
+      assert.isTrue(helpStub.calledOnce);
+    });
+
+    it("should fail to edit specific record with arguments [wrong role]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+      const mockedRecords: IRecord[] = [
+        {
+          amount: 1337,
+          created: 1234,
+          guid: "mocked-guid",
+          type: RECORD_TYPES.Time,
+        } as IRecord,
+      ];
+
+      const getProjectByNameStub = sinon.stub().returns({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+        requiresRoles: true,
+      } as IProject);
+      const findProjectByNameStub = sinon.stub().resolves({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+        records: mockedRecords,
+      });
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+        public findProjectByName = findProjectByNameStub;
+      }
+
+      mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateNumber = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public getProjectByName = getProjectByNameStub;
+      }
+      mockedHelper.MultipieHelper = class {
+        public getValidRoles = sinon.stub().resolves([{ name: '?', value: '?' }]);
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
+      mockedCommand.amount = 420;
+      mockedCommand.guid = "mocked-guid";
+      mockedCommand.type = "Time";
+      mockedCommand.role = "Not found";
+
+      const helpStub = sinon.stub(mockedCommand, "help");
+
+      // Mock arguments array to disable interactive mode
+      process.argv = ["1", "2", "3", "4"];
+
+      const exitStub = sinon.stub(process, "exit");
+
+      await mockedApp.editAction(mockedCommand);
+
+      exitStub.restore();
     });
 
     it("should fail to edit specific record with arguments [throws]", async function () {
@@ -2086,6 +2250,7 @@ describe("App", function () {
           port: 443,
         },
         name: "mocked",
+        requiresRoles: true,
       } as IProject);
       const addRecordToProjectStub = sinon.stub().resolves();
 
@@ -2107,6 +2272,71 @@ describe("App", function () {
         public static validateNumber = sinon.stub().returns(true);
       }
 
+      mockedHelper.MultipieHelper = class {
+        public getValidRoles = sinon.stub().resolves([{ name: '?', value: '?' }]);
+      }
+
+      const proxy: any = proxyquire("../../app", {
+        "./helper": mockedHelper,
+      });
+
+      const mockedApp: App = new proxy.App();
+
+      await mockedApp.setup();
+
+      const program = new commander.Command();
+      const mockedCommand: commander.Command = program.createCommand();
+      mockedCommand.amount = 2;
+      mockedCommand.type = RECORD_TYPES.Time;
+      mockedCommand.year = 2019;
+      mockedCommand.month = 5;
+      mockedCommand.day = 12;
+      mockedCommand.hour = 12;
+      mockedCommand.minute = 0;
+      mockedCommand.message = null;
+      mockedCommand.role = '?';
+
+      await mockedApp.addAction(mockedCommand);
+
+      assert.isTrue(getProjectByNameStub.called);
+      assert.isTrue(addRecordToProjectStub.calledOnce);
+    });
+
+    it("should not add record to project [no cmd role]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      const getProjectByNameStub = sinon.stub().returns({
+        meta: {
+          host: "test.git.com",
+          port: 443,
+        },
+        name: "mocked",
+        requiresRoles: true,
+      } as IProject);
+      const addRecordToProjectStub = sinon.stub().resolves();
+
+      mockedHelper.FileHelper = class {
+        public static getHomeDir = sinon.stub().returns("/home/test");
+      }
+      mockedHelper.ConfigHelper = class {
+        public static instance: any;
+        public static getInstance(): any { if (!this.instance) { this.instance = new this() } return this.instance }
+        public isInitialized = sinon.stub().resolves(true);
+      }
+
+      mockedHelper.ProjectHelper = class {
+        public addRecordToProject = addRecordToProjectStub;
+        public getProjectByName = getProjectByNameStub;
+      }
+
+      mockedHelper.ValidationHelper = class {
+        public static validateNumber = sinon.stub().returns(true);
+      }
+
+      mockedHelper.MultipieHelper = class {
+        public getValidRoles = sinon.stub().resolves([{ name: '?', value: '?' }]);
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
@@ -2126,10 +2356,11 @@ describe("App", function () {
       mockedCommand.minute = 0;
       mockedCommand.message = null;
 
+      const helpStub = sinon.stub(mockedCommand, "help");
+
       await mockedApp.addAction(mockedCommand);
 
-      assert.isTrue(getProjectByNameStub.called);
-      assert.isTrue(addRecordToProjectStub.calledOnce);
+      assert.isTrue(helpStub.calledOnce);
     });
 
     it("should add record to the past", async function () {
@@ -2143,6 +2374,7 @@ describe("App", function () {
             port: 0,
           },
           name: "mocked",
+          requiresRoles: true,
           records: [],
         } as IProject,
       );
@@ -2171,6 +2403,7 @@ describe("App", function () {
         public static askMonth = sinon.stub().resolves(24);
         public static askYear = sinon.stub().resolves(2019);
         public static chooseType = sinon.stub().resolves("Time");
+        public static chooseRole = sinon.stub().resolves("?");
       }
 
       mockedHelper.GitHelper = class {

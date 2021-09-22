@@ -15,5 +15,6 @@ export const emptyHelper: any = {
   QuestionHelper: class { },
   ChartHelper: class { },
   AuthHelper: class { },
+  MultipieHelper: class { },
   LogHelper,
 };
