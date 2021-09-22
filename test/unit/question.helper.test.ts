@@ -5,6 +5,7 @@ import { QuestionHelper } from "../../helper";
 import { IJiraLink, IProject, IRecord } from "../../interfaces";
 import { RECORD_TYPES } from "../../types";
 import { IMultipieInputLink } from '../../interfaces/index';
+import { emptyHelper } from "../helper";
 
 describe("QuestionHelper", function () {
   describe("Static", function () {
@@ -392,12 +393,19 @@ describe("QuestionHelper", function () {
     });
 
     it("should choose role", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      mockedHelper.MultipieHelper = class {
+        public getValidRoles = sinon.stub().resolves([{ name: '?', value: '?' }]);
+      }
+
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
           prompt: sinon.stub().resolves({
             choice: '?',
           }),
         },
+        ".": mockedHelper,
       });
 
       const choice: string = await proxy.QuestionHelper.chooseRole();
@@ -405,12 +413,19 @@ describe("QuestionHelper", function () {
     });
 
     it("should choose role [with old role]", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      mockedHelper.MultipieHelper = class {
+        public getValidRoles = sinon.stub().resolves([{ name: '?', value: '?' }]);
+      }
+
       const proxy: any = proxyquire("../../helper/question", {
         inquirer: {
           prompt: sinon.stub().resolves({
             choice: 'asdf',
           }),
         },
+        ".": mockedHelper,
       });
 
       const choice: string = await proxy.QuestionHelper.chooseRole('asdf');

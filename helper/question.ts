@@ -3,8 +3,7 @@ import _ from "lodash";
 import moment from "moment";
 import { IJiraLink, IMultipieInputLink, IMultipieStoreLink, IProject, IRecord, ISelectChoice } from "../interfaces";
 import { RECORD_TYPES } from "../types";
-import { ProjectHelper, ValidationHelper } from "./";
-import { MultipieHelper } from "./multipie";
+import { MultipieHelper, ProjectHelper, ValidationHelper } from ".";
 
 export class QuestionHelper {
   public static filterJiraEndpoint = (input: any): boolean | string | Promise<boolean | string> => {
