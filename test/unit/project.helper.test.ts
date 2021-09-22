@@ -85,7 +85,7 @@ describe("ProjectHelper", function () {
 
     it("should get gittt project from .gittt.yml", async function () {
       const getGitttFileStub = sinon.stub(mockedFileHelper, "getGitttFile").resolves({
-        name: "mocked_project_1"
+        name: "mocked_project_1",
       } as IGitttFile);
 
       const instance: ProjectHelper = new ProjectHelper(mockedGitHelper, mockedFileHelper);

@@ -599,7 +599,6 @@ export class App {
       if (project.requiresRoles) {
         role = await QuestionHelper.chooseRole(project, chosenRecord.role);
       }
-      console.log(role);
     }
 
     updatedRecord.updated = Date.now();

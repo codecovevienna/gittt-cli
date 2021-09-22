@@ -6,6 +6,22 @@ import { emptyHelper } from "../helper";
 
 describe("ConfigHelper", function () {
   describe("Links", function () {
+    it("should fail to initialize (no FileHelper)", async function () {
+      try {
+        const instance: ConfigHelper = ConfigHelper.getInstance();
+      } catch (err) {
+        assert.isTrue(true);
+      }
+    });
+
+    it("should fail to initialize new instance (no FileHelper)", async function () {
+      try {
+        const instance: ConfigHelper = ConfigHelper.getNewInstance();
+      } catch (err) {
+        assert.isTrue(true);
+      }
+    });
+
     it("should add link to config file", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
       const saveConfigObjectStub = sinon.stub().resolves();
