@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
-import commander from "commander";
+import commander, { CommanderStatic } from "commander";
 import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
@@ -531,6 +531,7 @@ export class App {
     }
 
     const updatedRecord: IRecord = Object.assign({}, chosenRecord);
+    const multipieHelper = new MultipieHelper();
 
     let year: number;
     let month: number;
@@ -539,6 +540,7 @@ export class App {
     let minute: number;
     let amount: number;
     let message: string | undefined;
+    let role: string | undefined;
 
     if (!interactiveMode) {
       if (cmd.type) {
@@ -550,6 +552,11 @@ export class App {
 
       if (!ValidationHelper.validateNumber(cmd.amount)) {
         LogHelper.error("No amount option found");
+        return cmd.help();
+      }
+
+      if (!cmd.role && project.requiresRoles) {
+        LogHelper.error("No role option found");
         return cmd.help();
       }
 
@@ -566,6 +573,18 @@ export class App {
       minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
         ? parseInt(cmd.minute, 10) : moment().minute();
 
+      if (cmd.role) {
+        const allowedRoles = await multipieHelper.getValidRoles(project);
+
+        // check if role is allowed
+        if (!allowedRoles.find(choice => choice.name == cmd.role)) {
+          LogHelper.debug(`Role ${cmd.role} not allowed for project ${project.name}`);
+          return this.exit(`Role ${cmd.role} not allowed for project ${project.name}`, 1);
+        }
+
+        role = cmd.role;
+      }
+
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
     } else {
       updatedRecord.type = await QuestionHelper.chooseType(chosenRecord.type);
@@ -577,11 +596,15 @@ export class App {
       minute = await QuestionHelper.askMinute(moment(chosenRecord.end).minute());
       amount = await QuestionHelper.askAmount(chosenRecord.amount);
       message = await QuestionHelper.askMessage(chosenRecord.message);
+      if (project.requiresRoles) {
+        role = await QuestionHelper.chooseRole(project, chosenRecord.role);
+      }
     }
 
     updatedRecord.updated = Date.now();
     updatedRecord.message = message;
     updatedRecord.amount = amount;
+    updatedRecord.role = role;
 
     const modifiedMoment: Moment = moment().set({
       date: day,
@@ -618,11 +641,14 @@ export class App {
     if (updatedRecord.type !== chosenRecord.type) {
       changes += `type: ${updatedRecord.type}, `;
     }
+    if (updatedRecord.role !== chosenRecord.role) {
+      changes += `role: ${updatedRecord.role}, `;
+    }
     if (changes.length > 0) {
       changes = changes.slice(0, -2);
     }
 
-    const commitMessage: string = changes.length > 0 ? `Updated record (${changes}) at ${updatedProject.name}` : `Updated record at ${updatedProject.name}`;
+    const commitMessage: string = changes.length > 0 ? `Updated record(${changes}) at ${updatedProject.name} ` : `Updated record at ${updatedProject.name} `;
 
     await this.gitHelper.commitChanges(commitMessage);
 
@@ -803,6 +829,11 @@ export class App {
         message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
 
         project = await this.projectHelper.getProjectByName(cmd.project);
+
+        if (!cmd.role && project.requiresRoles) {
+          LogHelper.error("No role option found");
+          return cmd.help();
+        }
 
         // get roles
         if (project.requiresRoles) {
@@ -1220,7 +1251,7 @@ export class App {
     }
   }
 
-  public initCommander(): void {
+  public initCommander(): CommanderStatic {
     // Only matters for tests to omit 'MaxListenersExceededWarning'
     commander.removeAllListeners();
     commander.on("command:*", () => {
@@ -1238,7 +1269,7 @@ export class App {
       .option("-a, --amount <amount>", "Amount of hours spent")
       .option("-m, --message [message]", "Description of the spent hours")
       .option("-p, --project [project]", "Specify a project to commit to")
-      .action(async (cmd: commander.Command): Promise<void> => await this.commitAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => this.commitAction(cmd));
 
     // add command
     commander
@@ -1252,8 +1283,9 @@ export class App {
       .option("-M, --minute [minute]", "Specify the minute, defaults to current minute")
       .option("-w, --message [message]", "Specify the message of the record")
       .option("-t, --type [type]", "Specify the type of the record")
+      .option("-r, --role [role]", "Specify the role of the record")
       .option("-p, --project [project]", "Specify the project to add the record")
-      .action(async (cmd: commander.Command): Promise<void> => await this.addAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => this.addAction(cmd));
 
     // push command
     commander
@@ -1299,13 +1331,13 @@ export class App {
     commander
       .command("setup")
       .description("Initializes config directory and setup of gittt git project")
-      .action(async (): Promise<void> => await this.initConfigDir());
+      .action(async (): Promise<void> => this.initConfigDir());
 
     // start command
     commander
       .command("start")
       .description("Start the timer")
-      .action(async (): Promise<void> => await this.timerHelper.startTimer());
+      .action(async (): Promise<void> => this.timerHelper.startTimer());
 
     // stop command
     commander
@@ -1320,14 +1352,14 @@ export class App {
     commander
       .command("init")
       .description("Initializes the project in current git directory")
-      .action(async (): Promise<void> => await this.initAction());
+      .action(async (): Promise<void> => this.initAction());
 
     // link command
     commander
       .command("link")
       .description("Initialize or edit link to third party applications")
       .option("-p, --project [project]", "Specify the project to link")
-      .action(async (cmd: commander.Command): Promise<void> => await this.linkAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => this.linkAction(cmd));
 
     // publish command
     commander
@@ -1335,7 +1367,7 @@ export class App {
       .description("Publishes stored records to external endpoint")
       .option("-p, --project [project]", "Specify the project to publish")
       .option("-a, --all", "Publish all projects")
-      .action(async (cmd: commander.Command): Promise<void> => await this.publishAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => this.publishAction(cmd));
 
     // edit command
     commander
@@ -1350,8 +1382,9 @@ export class App {
       .option("-M, --minute [minute]", "Specify the minute, defaults to current minute")
       .option("-w, --message [message]", "Specify the message of the record")
       .option("-t, --type [type]", "Specify the type of the record")
+      .option("-r, --role [role]", "Specify the role of the record")
       .option("-p, --project [project]", "Specify the project to edit")
-      .action(async (cmd: commander.Command): Promise<void> => await this.editAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => this.editAction(cmd));
 
     // remove command
     commander
@@ -1359,7 +1392,7 @@ export class App {
       .description("Remove record from a project")
       .option("-g, --guid [guid]", "GUID of the record to remove")
       .option("-p, --project [project]", "Specify the project to remove a record")
-      .action(async (cmd: commander.Command): Promise<void> => await this.removeAction(cmd));
+      .action(async (cmd: commander.Command): Promise<void> => this.removeAction(cmd));
 
     // import command
     commander
@@ -1376,9 +1409,7 @@ export class App {
       .option("-d, --directory [directory]", "Directory where to store the export (default: current working dir)")
       .option("-t, --type [file type]", "File type of the export (default: ods) - supported types: https://github.com/SheetJS/sheetjs#supported-output-formats")
       .option("-p, --project [project to export]", "Name of the project")
-      .action(async (cmd: commander.Command): Promise<void> => {
-        await this.exportAction(cmd);
-      });
+      .action(async (cmd: commander.Command): Promise<void> => this.exportAction(cmd));
 
     return commander;
   }

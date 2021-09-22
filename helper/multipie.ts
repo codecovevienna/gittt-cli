@@ -8,7 +8,7 @@ export const DEFAULT_ROLE = '?'
 export class MultipieHelper {
 
   public getValidRoles = async (project: IProject, oldRole?: string): Promise<Array<ISelectChoice>> => {
-    const roles: Array<ISelectChoice> = [
+    let roles: Array<ISelectChoice> = [
       {
         name: DEFAULT_ROLE,
         value: oldRole || DEFAULT_ROLE,
@@ -31,9 +31,13 @@ export class MultipieHelper {
       throw new Error(`No role endpoint set in link for "${project.name}".`);
     }
     const rolesFromApi = await this.getRolesFromApi(link);
-    // console.log(rolesFromApi);
 
-    // console.log(project);
+    // merge roles with default roles
+    // so if we have an oldRole that is not in the rolesFromApi it will be available afterwards
+    roles = [
+      ...roles.filter(choice => !rolesFromApi.includes(choice.name)),
+      ...rolesFromApi.map(role => ({ name: role, value: role }))
+    ];
 
     return roles;
   }
