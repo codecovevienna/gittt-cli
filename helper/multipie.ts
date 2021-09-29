@@ -42,34 +42,34 @@ export class MultipieHelper {
     const multipieLink: IMultipieStoreLink = link as IMultipieStoreLink;
     const authHelper = new AuthHelper();
 
-    try {
-      let authorizationHeader = "";
 
-      if (multipieLink.username) {
-        // Legacy flow
-        LogHelper.debug("Found username parameter in link configuration, using legacy auth method")
-        authorizationHeader = authHelper.getLegacyAuth(multipieLink);
-      } else {
-        const multipieAuth = authHelper.getAuthClient(multipieLink);
+    let authorizationHeader = "";
 
-        const { refreshToken } = multipieLink;
-        if (!refreshToken) {
-          throw new Error(`Unable to find refresh token for this project, please login via 'gittt link'`);
-        }
+    if (multipieLink.username) {
+      // Legacy flow
+      LogHelper.debug("Found username parameter in link configuration, using legacy auth method")
+      authorizationHeader = authHelper.getLegacyAuth(multipieLink);
+    } else {
+      const multipieAuth = authHelper.getAuthClient(multipieLink);
 
-        const offlineToken: Token = await multipieAuth.createToken("", refreshToken, {});
-
-        LogHelper.debug(`Refreshing token to get access token`);
-
-        const refreshedToken: Token = await offlineToken.refresh();
-        LogHelper.debug(`Got access token`);
-
-        authorizationHeader = `Bearer ${refreshedToken.accessToken}`
+      const { refreshToken } = multipieLink;
+      if (!refreshToken) {
+        throw new Error(`Unable to find refresh token for this project, please login via 'gittt link'`);
       }
-      const rolesUrl = `${link.host}${link.roleEndpoint}?project=${link.projectName}`;
 
+      const offlineToken: Token = await multipieAuth.createToken("", refreshToken, {});
+
+      LogHelper.debug(`Refreshing token to get access token`);
+
+      const refreshedToken: Token = await offlineToken.refresh();
+      LogHelper.debug(`Got access token`);
+
+      authorizationHeader = `Bearer ${refreshedToken.accessToken}`
+    }
+    const rolesUrl = `${link.host}${link.roleEndpoint}?project=${link.projectName}`;
+
+    try {
       LogHelper.debug(`Loading roles from ${rolesUrl}`);
-
       const rolesResult: AxiosResponse<IMultipieRolesResult> = await axios
         .get(rolesUrl,
           {
