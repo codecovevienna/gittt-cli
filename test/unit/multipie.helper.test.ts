@@ -318,7 +318,6 @@ describe("MultipieHelper", function () {
       }
     });
 
-
     it("should throw when request fails", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
@@ -362,6 +361,49 @@ describe("MultipieHelper", function () {
       } catch (err: any) {
         expect(err.message).contains('Loading roles request failed');
       }
+    });
+
+    it("should return empty roles without correct data", async function () {
+      const mockedHelper: any = Object.assign({}, emptyHelper);
+
+      mockedHelper.ConfigHelper = class {
+        public static getInstance(): any { return new this() }
+        public isInitialized = sinon.stub().resolves(true);
+        public findLinksByProject = sinon.stub().resolves([{}, {}]);
+      }
+      mockedHelper.AuthHelper = class {
+        public getLegacyAuth = () => {
+          return "19666a4f-32dd-4049-b082-684c74115f28";
+        }
+      }
+      const axiosGetStub = sinon.stub().resolves({
+        status: 200,
+        data: {
+          success: true,
+          data: {
+          }
+        } as IMultipieRolesResult,
+      });
+      const multipieProxy: any = proxyquire("../../helper/multipie", {
+        ".": mockedHelper,
+        "axios": {
+          get: axiosGetStub,
+        },
+      });
+
+      const link = {
+        projectName: 'project',
+        linkType: 'Multipie',
+        host: 'https://test.com',
+        endpoint: 'endpoint',
+        roleEndpoint: 'roles',
+        clientSecret: 'secret',
+        username: 'username',
+      } as IMultipieLink;
+
+      const multipieHelper = new multipieProxy.MultipieHelper();
+      const roles = await multipieHelper.getRolesFromApi(link);
+      expect(roles.length).to.equals(0);
     });
   });
 });
