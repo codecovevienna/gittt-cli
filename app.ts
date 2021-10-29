@@ -582,7 +582,7 @@ export class App {
           LogHelper.debug(`Role ${cmd.role} not allowed for project ${project.name}`);
           return this.exit(`Role ${cmd.role} not allowed for project ${project.name}`, 1);
         }
-        role = cmd.role;
+        role = allowedRoles.find((role_: ISelectChoice) => role_.name == cmd.role)?.value;
       }
 
       message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
@@ -737,21 +737,37 @@ export class App {
 
   public async commitAction(cmd: commander.Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
+    const multipieHelper = new MultipieHelper();
 
     let amount: number;
     let message: string | undefined;
     let commitMessage: string;
     let project: IProject | undefined;
+    let role: string | undefined;
 
     try {
       if (!interactiveMode) {
         amount = parseFloat(cmd.amount);
         message = cmd.message;
         project = await this.projectHelper.getProjectByName(cmd.project);
+
+        if (!cmd.role && project.requiresRoles) {
+          LogHelper.error("No role option found");
+          return cmd.help();
+        }
+
+        // get roles
+        if (project.requiresRoles) {
+          const availableRoles = await multipieHelper.getValidRoles(project, cmd.role);
+          role = availableRoles.find((role_: ISelectChoice) => role_.name == cmd.role)?.value;
+        }
       } else {
         amount = await QuestionHelper.askAmount(1);
         project = await this.projectHelper.getOrAskForProjectFromGit();
         message = await QuestionHelper.askMessage();
+        if (project.requiresRoles) {
+          role = await QuestionHelper.chooseRole(project);
+        }
       }
     } catch (err: any) {
       return this.exit(err.message, 1);
@@ -774,12 +790,16 @@ export class App {
     commitMessage = await appendTicketNumber(commitMessage, await this.gitHelper.getCurrentBranch())
 
     try {
-      await this.projectHelper.addRecordToProject({
+      let data: IRecord = {
         amount,
         end: Date.now(),
         message: commitMessage,
         type: RECORD_TYPES.Time,
-      }, project);
+      };
+      if (project.requiresRoles) {
+        data.role = role;
+      }
+      await this.projectHelper.addRecordToProject(data, project);
     } catch (err: any) {
       LogHelper.debug("Unable to add record to project", err);
       this.exit("Unable to add record to project", 1);
@@ -838,7 +858,7 @@ export class App {
         // get roles
         if (project.requiresRoles) {
           const availableRoles = await multipieHelper.getValidRoles(project, cmd.role);
-          role = availableRoles.find((role_: ISelectChoice) => role_ == cmd.role)?.value;
+          role = availableRoles.find((role_: ISelectChoice) => role_.name == cmd.role)?.value;
         }
 
       } else {
@@ -1271,6 +1291,7 @@ export class App {
       .option("-a, --amount <amount>", "Amount of hours spent")
       .option("-m, --message [message]", "Description of the spent hours")
       .option("-p, --project [project]", "Specify a project to commit to")
+      .option("-r, --role [role]", "Specify a role string")
       .action(async (cmd: commander.Command): Promise<void> => this.commitAction(cmd));
 
     // add command
