@@ -1755,6 +1755,7 @@ describe("App", function () {
           port: 443,
         },
         name: "mocked",
+        requiresRoles: true,
       } as IProject);
 
       mockedHelper.FileHelper = class {
@@ -1778,6 +1779,10 @@ describe("App", function () {
 
       mockedHelper.appendTicketNumber = sinon.stub().resolves("Committed 1337 hours to mocked");
 
+      mockedHelper.MultipieHelper = class {
+        public getValidRoles = sinon.stub().resolves([{ name: '?', value: '?' }]);
+      }
+
       const proxy: any = proxyquire("../../app", {
         "./helper": mockedHelper,
       });
@@ -1790,9 +1795,10 @@ describe("App", function () {
 
       const program = new commander.Command();
       const mockedCommand: commander.Command = program.createCommand();
-      mockedCommand.amount = 1337
+      mockedCommand.amount = 1337;
+      mockedCommand.role = '?';
 
-      process.argv = ["namespace", "mocked", "commit", "-a", "1337"];
+      // process.argv = ["namespace", "mocked", "commit", "-a", "1337", "-r", "?"];
 
       await mockedApp.commitAction(mockedCommand);
 
@@ -1802,6 +1808,7 @@ describe("App", function () {
         end: 123456789,
         message: `Committed 1337 hours to mocked`,
         type: RECORD_TYPES.Time,
+        role: `?`,
       }));
 
       dateStub.restore();
@@ -1818,6 +1825,7 @@ describe("App", function () {
           port: 443,
         },
         name: "mocked",
+        requiresRoles: true,
       } as IProject);
 
       mockedHelper.FileHelper = class {
@@ -1838,6 +1846,7 @@ describe("App", function () {
       mockedHelper.QuestionHelper = class {
         public static askAmount = sinon.stub().resolves(1337);
         public static askMessage = sinon.stub().resolves("");
+        public static chooseRole = sinon.stub().resolves("?");
       }
 
       mockedHelper.GitHelper = class {
@@ -1869,6 +1878,7 @@ describe("App", function () {
         end: 123456789,
         message: `Committed 1337 hours to mocked`,
         type: RECORD_TYPES.Time,
+        role: '?',
       }));
 
       dateStub.restore();
