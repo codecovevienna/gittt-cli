@@ -116,3 +116,36 @@ export async function appendTicketNumber(initialMessage: string, branchName: str
 
   return commitMessage;
 }
+
+/**
+ * Truncates and extends a given string to a given length
+ * 
+ * @param text which should be return to a fixed length
+ * @param length of the string
+ * @param dots how many '.' should be added to the end of the string when text length is longer than length
+ * @returns fixed length string
+ */
+export function toFixedLength(text: string | undefined, length: number, dots = 3): string {
+
+  if (length < 0) {
+    length = 0;
+  }
+
+  if (dots < 0) {
+    dots = 0;
+  }
+
+  if (dots > length) {
+    return '.'.repeat(length);
+  }
+
+  if (text) {
+    if (text.length > length) {
+      return `${text.slice(0, length - dots)}` + '.'.repeat(dots);
+    } else {
+      return `${text}` + ' '.repeat(length - text.length);
+    }
+  } else {
+    return ' '.repeat(length)
+  }
+}

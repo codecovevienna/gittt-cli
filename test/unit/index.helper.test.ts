@@ -3,6 +3,7 @@ import sinon from "sinon";
 import { assert, expect } from "chai";
 import { parseProjectNameFromGitUrl, findTicketNumberInBranch, findTicketNumberInMessage } from "../../helper";
 import { IProject } from "../../interfaces";
+import { toFixedLength } from '../../helper/index';
 
 describe("Helper", function () {
   it("should parse git url [with namespace]", function () {
@@ -168,4 +169,21 @@ describe("Helper", function () {
       expect(appendedMessage).to.eq("initial message");
     })
   })
+
+  describe("toFixedLength", function () {
+    it("should return correct strings", async function () {
+      const proxy: any = proxyquire("../../helper", {});
+
+      expect(proxy.toFixedLength('test', 5)).to.eq("test ");
+      expect(proxy.toFixedLength('test', 4)).to.eq("test");
+      expect(proxy.toFixedLength('testtest', 4)).to.eq("t...");
+      expect(proxy.toFixedLength('testtest', 4, 5)).to.eq("....");
+      expect(proxy.toFixedLength('testtest', 6, 5)).to.eq("t.....");
+      expect(proxy.toFixedLength('testtest', 4, 0)).to.eq("test");
+      expect(proxy.toFixedLength('testtest', 4, -1)).to.eq("test");
+      expect(proxy.toFixedLength('testtest', -1, -1)).to.eq("");
+      expect(proxy.toFixedLength('testtest', -1, 4)).to.eq("");
+      expect(proxy.toFixedLength(undefined, 4)).to.eq("    ");
+    })
+  });
 });

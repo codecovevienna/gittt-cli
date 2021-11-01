@@ -1,4 +1,4 @@
-import { LogHelper } from "../helper/index";
+import { LogHelper, toFixedLength } from "../helper/index";
 
 LogHelper.DEBUG = false;
 LogHelper.silence = true;
@@ -17,4 +17,5 @@ export const emptyHelper: any = {
   AuthHelper: class { },
   MultipieHelper: class { },
   LogHelper,
+  toFixedLength,
 };
