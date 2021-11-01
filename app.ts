@@ -21,6 +21,7 @@ import {
   ConfigHelper,
   MultipieHelper,
   appendTicketNumber,
+  toFixedLength,
 } from "./helper";
 import {
   IIntegrationLink,
@@ -1059,7 +1060,7 @@ export class App {
 
     LogHelper.info(`${project.name}`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
-    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT`);
+    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\t\tCOMMENT\t\t\t\tROLE`);
     LogHelper.print(`--------------------------------------------------------------------------------`);
 
     let sumOfTime = 0;
@@ -1068,7 +1069,8 @@ export class App {
       line += `${record.type}\t`;
       line += chalk.yellow.bold(`${record.amount.toFixed(2)}h\t`);
       line += `${moment(record.end).format("DD.MM.YYYY HH:mm:ss")}\t`;
-      line += chalk.yellow.bold(`${record.message}`);
+      line += chalk.yellow.bold(`${toFixedLength(record.message, 24)}\t`);
+      line += chalk.yellow.bold(`${record.role}`);
       sumOfTime += record.amount;
       LogHelper.print(line);
     }
