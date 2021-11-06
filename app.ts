@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
-import commander, { CommanderStatic } from "commander";
+import commander, { Command } from "commander";
 import _, { isString } from "lodash";
 import moment, { Moment } from "moment";
 import path from "path";
@@ -55,12 +55,13 @@ export class App {
   private projectHelper: ProjectHelper;
   private importHelper: ImportHelper;
   private authHelper: AuthHelper;
+  private commander: commander.Command;
 
   public start(): void {
     if (process.argv.length === 2) {
-      commander.help();
+      this.commander.help();
     } else {
-      commander.parse(process.argv);
+      this.commander.parse(process.argv);
     }
   }
 
@@ -136,13 +137,16 @@ export class App {
     }
   }
 
-  public async exportAction(cmd: commander.Command): Promise<void> {
+  public async exportAction(cmd: Command): Promise<void> {
     LogHelper.print(`Gathering projects...`)
     let projectsToExport: IProject[] = [];
-    if (cmd.project) {
-      const projectToExport: IProject | undefined = await this.fileHelper.findProjectByName(cmd.project);
+    const options = cmd.opts()
+    const { project, directory, filename, type } = options;
+
+    if (project) {
+      const projectToExport: IProject | undefined = await this.fileHelper.findProjectByName(project);
       if (!projectToExport) {
-        this.exit(`✗ Project "${cmd.project}" not found`, 1)
+        this.exit(`✗ Project "${project}" not found`, 1)
       } else {
         projectsToExport.push(projectToExport);
       }
@@ -151,18 +155,20 @@ export class App {
     }
     LogHelper.info(`✓ Got all ${projectsToExport.length} projects`);
 
-    ExportHelper.export(cmd.directory, cmd.filename, cmd.type, projectsToExport);
+    ExportHelper.export(directory, filename, type, projectsToExport);
     LogHelper.info(`✓ Export done`)
   }
 
-  public async linkAction(cmd: commander.Command): Promise<void> {
+  public async linkAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
+
+    const options = cmd.opts()
 
     let project: IProject | undefined;
 
     try {
       if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        project = await this.projectHelper.getProjectByName(options.project);
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
@@ -240,17 +246,19 @@ export class App {
     }
   }
 
-  public async publishAction(cmd: commander.Command): Promise<void> {
+  public async publishAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
+
+    const options = cmd.opts()
 
     let projects: Array<IProject> = [];
 
     try {
       if (!interactiveMode) {
-        if (cmd.all) {
+        if (options.all) {
           projects = await this.projectHelper.getAllProjects();
         } else {
-          const project: IProject | undefined = await this.projectHelper.getProjectByName(cmd.project);
+          const project: IProject | undefined = await this.projectHelper.getProjectByName(options.project);
           if (project) {
             projects = [project];
           }
@@ -473,16 +481,17 @@ export class App {
     }
   }
 
-  public async editAction(cmd: commander.Command): Promise<void> {
+  public async editAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
+    const options = cmd.opts()
 
     let project: IProject | undefined;
 
     // TODO move to own function, is used multiple times
     try {
       if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        project = await this.projectHelper.getProjectByName(options.project);
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
@@ -508,12 +517,12 @@ export class App {
     let chosenRecord: IRecord;
 
     if (!interactiveMode) {
-      if (!cmd.guid) {
+      if (!options.guid) {
         LogHelper.error("No guid option found");
         return cmd.help();
       }
 
-      const recordGuid: string = cmd.guid;
+      const recordGuid: string = options.guid;
 
       const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
         return rc.guid === recordGuid;
@@ -545,48 +554,50 @@ export class App {
     let role: string | undefined;
 
     if (!interactiveMode) {
-      if (cmd.type) {
-        updatedRecord.type = cmd.type;
+      if (options.type) {
+        updatedRecord.type = options.type;
       } else {
         LogHelper.error("No type option found");
         return cmd.help();
       }
 
-      if (!ValidationHelper.validateNumber(cmd.amount)) {
+      console.log(ValidationHelper, options);
+
+      if (!ValidationHelper.validateNumber(options.amount)) {
         LogHelper.error("No amount option found");
         return cmd.help();
       }
 
-      if (!cmd.role && project.requiresRoles) {
+      if (!options.role && project.requiresRoles) {
         LogHelper.error("No role option found");
         return cmd.help();
       }
 
-      amount = parseFloat(cmd.amount);
+      amount = parseFloat(options.amount);
 
-      year = ValidationHelper.validateNumber(cmd.year)
-        ? parseInt(cmd.year, 10) : moment().year();
-      month = ValidationHelper.validateNumber(cmd.month, 1, 12)
-        ? parseInt(cmd.month, 10) : moment().month() + 1;
-      day = ValidationHelper.validateNumber(cmd.day, 1, 31)
-        ? parseInt(cmd.day, 10) : moment().date();
-      hour = ValidationHelper.validateNumber(cmd.hour, 0, 23)
-        ? parseInt(cmd.hour, 10) : moment().hour();
-      minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
-        ? parseInt(cmd.minute, 10) : moment().minute();
+      year = ValidationHelper.validateNumber(options.year)
+        ? parseInt(options.year, 10) : moment().year();
+      month = ValidationHelper.validateNumber(options.month, 1, 12)
+        ? parseInt(options.month, 10) : moment().month() + 1;
+      day = ValidationHelper.validateNumber(options.day, 1, 31)
+        ? parseInt(options.day, 10) : moment().date();
+      hour = ValidationHelper.validateNumber(options.hour, 0, 23)
+        ? parseInt(options.hour, 10) : moment().hour();
+      minute = ValidationHelper.validateNumber(options.minute, 0, 59)
+        ? parseInt(options.minute, 10) : moment().minute();
 
-      if (cmd.role) {
+      if (options.role) {
         const allowedRoles = await multipieHelper.getValidRoles(project);
 
         // check if role is allowed
-        if (!allowedRoles.find(choice => choice.name == cmd.role)) {
-          LogHelper.debug(`Role ${cmd.role} not allowed for project ${project.name}`);
-          return this.exit(`Role ${cmd.role} not allowed for project ${project.name}`, 1);
+        if (!allowedRoles.find(choice => choice.name == options.role)) {
+          LogHelper.debug(`Role ${options.role} not allowed for project ${project.name}`);
+          return this.exit(`Role ${options.role} not allowed for project ${project.name}`, 1);
         }
-        role = allowedRoles.find((role_: ISelectChoice) => role_.name == cmd.role)?.value;
+        role = allowedRoles.find((role_: ISelectChoice) => role_.name == options.role)?.value;
       }
 
-      message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
+      message = (options.message && options.message.length > 0) ? options.message : undefined;
     } else {
       updatedRecord.type = await QuestionHelper.chooseType(chosenRecord.type);
 
@@ -657,14 +668,16 @@ export class App {
   }
 
   // TODO pretty much the same as editAction, refactor?
-  public async removeAction(cmd: commander.Command): Promise<void> {
+  public async removeAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
+
+    const options = cmd.opts()
 
     let project: IProject | undefined;
     try {
       try {
         if (!interactiveMode) {
-          project = await this.projectHelper.getProjectByName(cmd.project);
+          project = await this.projectHelper.getProjectByName(options.project);
         } else {
           project = await this.projectHelper.getOrAskForProjectFromGit();
         }
@@ -694,12 +707,12 @@ export class App {
     let chosenRecord: IRecord;
 
     if (!interactiveMode) {
-      if (!cmd.guid) {
+      if (!options.guid) {
         LogHelper.error("No guid option found");
         return cmd.help();
       }
 
-      const recordGuid: string = cmd.guid;
+      const recordGuid: string = options.guid;
 
       const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
         return rc.guid === recordGuid;
@@ -736,9 +749,11 @@ export class App {
       }: ${chosenRecord.amount} ${chosenRecord.type} - "${_.truncate(chosenRecord.message)}") from project ${updatedProject.name}`);
   }
 
-  public async commitAction(cmd: commander.Command): Promise<void> {
+  public async commitAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
     const multipieHelper = new MultipieHelper();
+
+    const options = cmd.opts()
 
     let amount: number;
     let message: string | undefined;
@@ -748,19 +763,19 @@ export class App {
 
     try {
       if (!interactiveMode) {
-        amount = parseFloat(cmd.amount);
-        message = cmd.message;
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        amount = parseFloat(options.amount);
+        message = options.message;
+        project = await this.projectHelper.getProjectByName(options.project);
 
-        if (!cmd.role && project.requiresRoles) {
+        if (!options.role && project.requiresRoles) {
           LogHelper.error("No role option found");
           return cmd.help();
         }
 
         // get roles
         if (project.requiresRoles) {
-          const availableRoles = await multipieHelper.getValidRoles(project, cmd.role);
-          role = availableRoles.find((role_: ISelectChoice) => role_.name == cmd.role)?.value;
+          const availableRoles = await multipieHelper.getValidRoles(project, options.role);
+          role = availableRoles.find((role_: ISelectChoice) => role_.name == options.role)?.value;
         }
       } else {
         amount = await QuestionHelper.askAmount(1);
@@ -807,9 +822,11 @@ export class App {
     }
   }
 
-  public async addAction(cmd: commander.Command): Promise<void> {
+  public async addAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
     const multipieHelper = new MultipieHelper();
+
+    const options = cmd.opts()
 
     let year: number;
     let month: number;
@@ -824,42 +841,42 @@ export class App {
 
     try {
       if (!interactiveMode) {
-        if (!ValidationHelper.validateNumber(cmd.amount)) {
+        if (!ValidationHelper.validateNumber(options.amount)) {
           LogHelper.error("No amount option found");
           return cmd.help();
         }
-        if (!cmd.type) {
+        if (!options.type) {
           LogHelper.error("No type option found");
           return cmd.help();
         }
 
-        amount = parseFloat(cmd.amount);
-        type = cmd.type;
+        amount = parseFloat(options.amount);
+        type = options.type;
 
-        year = ValidationHelper.validateNumber(cmd.year)
-          ? parseInt(cmd.year, 10) : moment().year();
-        month = ValidationHelper.validateNumber(cmd.month, 1, 12)
-          ? parseInt(cmd.month, 10) : moment().month() + 1;
-        day = ValidationHelper.validateNumber(cmd.day, 1, 31)
-          ? parseInt(cmd.day, 10) : moment().date();
-        hour = ValidationHelper.validateNumber(cmd.hour, 0, 23)
-          ? parseInt(cmd.hour, 10) : moment().hour();
-        minute = ValidationHelper.validateNumber(cmd.minute, 0, 59)
-          ? parseInt(cmd.minute, 10) : moment().minute();
+        year = ValidationHelper.validateNumber(options.year)
+          ? parseInt(options.year, 10) : moment().year();
+        month = ValidationHelper.validateNumber(options.month, 1, 12)
+          ? parseInt(options.month, 10) : moment().month() + 1;
+        day = ValidationHelper.validateNumber(options.day, 1, 31)
+          ? parseInt(options.day, 10) : moment().date();
+        hour = ValidationHelper.validateNumber(options.hour, 0, 23)
+          ? parseInt(options.hour, 10) : moment().hour();
+        minute = ValidationHelper.validateNumber(options.minute, 0, 59)
+          ? parseInt(options.minute, 10) : moment().minute();
 
-        message = (cmd.message && cmd.message.length > 0) ? cmd.message : undefined;
+        message = (options.message && options.message.length > 0) ? options.message : undefined;
 
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        project = await this.projectHelper.getProjectByName(options.project);
 
-        if (!cmd.role && project.requiresRoles) {
+        if (!options.role && project.requiresRoles) {
           LogHelper.error("No role option found");
           return cmd.help();
         }
 
         // get roles
         if (project.requiresRoles) {
-          const availableRoles = await multipieHelper.getValidRoles(project, cmd.role);
-          role = availableRoles.find((role_: ISelectChoice) => role_.name == cmd.role)?.value;
+          const availableRoles = await multipieHelper.getValidRoles(project, options.role);
+          role = availableRoles.find((role_: ISelectChoice) => role_.name == options.role)?.value;
         }
 
       } else {
@@ -948,16 +965,18 @@ export class App {
     }
   }
 
-  public async infoAction(cmd: commander.Command): Promise<void> {
+  public async infoAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
 
-    const order: string = ORDER_TYPE.indexOf(cmd.order) === -1 ? ORDER_TYPE[0] : cmd.order;
-    const direction: string = ORDER_DIRECTION.indexOf(cmd.direction) === -1 ? ORDER_DIRECTION[0] : cmd.direction;
+    const options = cmd.opts();
+
+    const order: string = ORDER_TYPE.indexOf(options.order) === -1 ? ORDER_TYPE[0] : options.order;
+    const direction: string = ORDER_DIRECTION.indexOf(options.direction) === -1 ? ORDER_DIRECTION[0] : options.direction;
     let project: IProject | undefined;
 
     try {
       if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        project = await this.projectHelper.getProjectByName(options.project);
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
@@ -1045,14 +1064,16 @@ export class App {
     }
   }
 
-  public async listAction(cmd: commander.Command): Promise<void> {
+  public async listAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
+
+    const options = cmd.opts();
 
     let project: IProject | undefined;
 
     try {
       if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        project = await this.projectHelper.getProjectByName(options.project);
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
@@ -1154,14 +1175,16 @@ export class App {
     LogHelper.info(`SUM:\t${sumOfTime}h`);
   }
 
-  public async reportAction(cmd: commander.Command): Promise<void> {
+  public async reportAction(cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
+
+    const options = cmd.opts();
 
     let project: IProject | undefined;
 
     try {
       if (!interactiveMode) {
-        project = await this.projectHelper.getProjectByName(cmd.project);
+        project = await this.projectHelper.getProjectByName(options.project);
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
       }
@@ -1173,7 +1196,7 @@ export class App {
       return this.exit("No valid git project", 1);
     }
 
-    const days: number = parseInt(cmd.days, 10) || 14; // default is 14 days (2 weeks sprint)
+    const days: number = parseInt(options.days, 10) || 14; // default is 14 days (2 weeks sprint)
     const daysData: any = {};
     const weekdayData: any = { Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0 };
 
@@ -1227,15 +1250,17 @@ export class App {
     LogHelper.log(ChartHelper.chart(weekdayData, true, 50, false, "h"));
   }
 
-  public async stopAction(cmd: commander.Command): Promise<void> {
+  public async stopAction(cmd: Command): Promise<void> {
     let project: IProject | undefined;
 
-    if (cmd.kill) {
+    const options = cmd.opts();
+
+    if (options.kill) {
       await this.timerHelper.killTimer();
     } else {
       try {
-        if (cmd.project) {
-          project = await this.projectHelper.getProjectByName(cmd.project);
+        if (options.project) {
+          project = await this.projectHelper.getProjectByName(options.project);
         } else {
           project = await this.projectHelper.getOrAskForProjectFromGit();
         }
@@ -1247,7 +1272,7 @@ export class App {
         return this.exit("No valid git project", 1);
       }
 
-      await this.timerHelper.stopTimer(cmd.message, project);
+      await this.timerHelper.stopTimer(options.message, project);
     }
   }
 
@@ -1264,29 +1289,31 @@ export class App {
     }
   }
 
-  public initCommander(): CommanderStatic {
+  public initCommander(): void {
     // Only matters for tests to omit 'MaxListenersExceededWarning'
-    commander.removeAllListeners();
-    commander.on("command:*", () => {
-      commander.help();
-    });
+    // commander.removeAllListeners();
+    // commander.on("command:*", () => {
+    //   commander.help();
+    // });
+
+    this.commander = new Command();
 
     // add version command
-    commander
+    this.commander
       .version(APP_VERSION);
 
     // Commit action
-    commander
+    this.commander
       .command("commit")
       .description("Committing certain hours to a project")
       .option("-a, --amount <amount>", "Amount of hours spent")
       .option("-m, --message [message]", "Description of the spent hours")
       .option("-p, --project [project]", "Specify a project to commit to")
       .option("-r, --role [role]", "Specify a role string")
-      .action(async (cmd: commander.Command): Promise<void> => this.commitAction(cmd));
+      .action(async (cmd: Command): Promise<void> => this.commitAction(cmd));
 
     // add command
-    commander
+    this.commander
       .command("add")
       .description("Adding hours to the project in the past")
       .option("-a, --amount <amount>", "Specify the amount")
@@ -1299,10 +1326,10 @@ export class App {
       .option("-t, --type [type]", "Specify the type of the record")
       .option("-r, --role [role]", "Specify the role of the record")
       .option("-p, --project [project]", "Specify the project to add the record")
-      .action(async (cmd: commander.Command): Promise<void> => this.addAction(cmd));
+      .action(async (cmd: Command): Promise<void> => this.addAction(cmd));
 
     // push command
-    commander
+    this.commander
       .command("push")
       .description("Pushing changes to repository")
       .action(async (): Promise<void> => {
@@ -1312,79 +1339,79 @@ export class App {
       });
 
     // info command
-    commander
+    this.commander
       .command("info")
       .description("Lists info about gittt for this users (projects and hours)")
       .option("-o, --order <type>", "Specify the ordering (hours or name) default is " + ORDER_TYPE[0])
       .option("-d, --direction <direction>", "Specify the ordering direction (asc, desc)" + ORDER_DIRECTION[0])
       .option("-p, --project [project]", "Specify the project to get the information")
-      .action((cmd: commander.Command): Promise<void> => this.infoAction(cmd));
+      .action((cmd: Command): Promise<void> => this.infoAction(cmd));
 
     // list command
     // will be changed in GITTT-85
-    commander
+    this.commander
       .command("list")
       .description("List of time tracks in project")
       .option("-p, --project [project]", "Specify the project to get the time tracks")
-      .action((cmd: commander.Command): Promise<void> => this.listAction(cmd));
+      .action((cmd: Command): Promise<void> => this.listAction(cmd));
 
-    commander
+    this.commander
       .command("today")
       .description("List of time tracks of current day")
       .action((): Promise<void> => this.todayAction());
 
     // report command
     // will be changed in GITTT-85
-    commander
+    this.commander
       .command("report")
       .description("Prints a small report")
       .option("-d, --days [number]", "Specify for how many days the report should be printed.")
       .option("-p, --project [project]", "Specify the project the report should be printed for")
-      .action((cmd: commander.Command): Promise<void> => this.reportAction(cmd));
+      .action((cmd: Command): Promise<void> => this.reportAction(cmd));
 
-    commander
+    this.commander
       .command("setup")
       .description("Initializes config directory and setup of gittt git project")
       .action(async (): Promise<void> => this.initConfigDir());
 
     // start command
-    commander
+    this.commander
       .command("start")
       .description("Start the timer")
       .action(async (): Promise<void> => this.timerHelper.startTimer());
 
     // stop command
-    commander
+    this.commander
       .command("stop")
       .description("Stop the timer and commit to a project")
       .option("-k, --kill", "Kill the timer for a project")
       .option("-m, --message <message>", "Commit message for the project")
       .option("-p, --project [project]", "Specify the project to add your time to")
-      .action(async (cmd: commander.Command): Promise<void> => this.stopAction(cmd));
+      .action(async (cmd: Command): Promise<void> => this.stopAction(cmd));
 
     // init command
-    commander
+    this.commander
       .command("init")
       .description("Initializes the project in current git directory")
       .action(async (): Promise<void> => this.initAction());
 
     // link command
-    commander
+    this.commander
       .command("link")
       .description("Initialize or edit link to third party applications")
       .option("-p, --project [project]", "Specify the project to link")
-      .action(async (cmd: commander.Command): Promise<void> => this.linkAction(cmd));
+      .action(async (cmd: Command): Promise<void> => this.linkAction(cmd));
 
     // publish command
-    commander
+    this.commander
       .command("publish")
       .description("Publishes stored records to external endpoint")
       .option("-p, --project [project]", "Specify the project to publish")
       .option("-a, --all", "Publish all projects")
-      .action(async (cmd: commander.Command): Promise<void> => this.publishAction(cmd));
+      .action(async (cmd: Command): Promise<void> => this.publishAction(cmd));
 
     // edit command
-    commander
+    this.commander
       .command("edit")
       .description("Edit record of current project")
       .option("-g, --guid [guid]", "GUID of the record to edit")
@@ -1398,33 +1425,31 @@ export class App {
       .option("-t, --type [type]", "Specify the type of the record")
       .option("-r, --role [role]", "Specify the role of the record")
       .option("-p, --project [project]", "Specify the project to edit")
-      .action(async (cmd: commander.Command): Promise<void> => this.editAction(cmd));
+      .action(async (cmd: Command): Promise<void> => this.editAction(cmd));
 
     // remove command
-    commander
+    this.commander
       .command("remove")
       .description("Remove record from a project")
       .option("-g, --guid [guid]", "GUID of the record to remove")
       .option("-p, --project [project]", "Specify the project to remove a record")
-      .action(async (cmd: commander.Command): Promise<void> => this.removeAction(cmd));
+      .action(async (cmd: Command): Promise<void> => this.removeAction(cmd));
 
     // import command
-    commander
+    this.commander
       .command("import <file>")
       .description("Import records from csv file to current project")
       .option("-p, --project [project]", "Specify the project to import records to")
       .action(async (cmd: string, options: any): Promise<void> => this.importCsv(cmd, options));
 
     // export command
-    commander
+    this.commander
       .command("export")
       .description("Exports projects to ods file")
       .option("-f, --filename [filename]", "Filename of the output file (default: gittt-report)")
       .option("-d, --directory [directory]", "Directory where to store the export (default: current working dir)")
       .option("-t, --type [file type]", "File type of the export (default: ods) - supported types: https://github.com/SheetJS/sheetjs#supported-output-formats")
       .option("-p, --project [project to export]", "Name of the project")
-      .action(async (cmd: commander.Command): Promise<void> => this.exportAction(cmd));
-
-    return commander;
+      .action(async (cmd: Command): Promise<void> => this.exportAction(cmd));
   }
 }

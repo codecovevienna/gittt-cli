@@ -5,7 +5,9 @@ import sinon from "sinon";
 import { App } from "../../app";
 import { emptyHelper } from "../helper";
 
-describe("Unknown command test", function () {
+// This behavior will be tackled with version 8 of commander
+// https://github.com/tj/commander.js/pull/1534
+describe.skip("Unknown command test", function () {
   before(function () {
     proxyquire.noCallThru();
   });

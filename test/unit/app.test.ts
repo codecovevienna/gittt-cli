@@ -772,27 +772,30 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const program = new commander.Command();
-      const mockedCommand: commander.Command = program.createCommand();
-      mockedCommand.amount = 69;
-      mockedCommand.guid = "mocked-guid";
-      mockedCommand.message = "mocked-message";
-      mockedCommand.type = RECORD_TYPES.Time;
-      mockedCommand.role = '?';
+      const mockedCommand = new Command();
+      sinon.stub(mockedCommand, "opts").returns({
+        amount: 69,
+        guid: "mocked-guid",
+        message: "mocked-message",
+        type: RECORD_TYPES.Time,
+        role: '?',
+      });
 
       // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
 
       await mockedApp.editAction(mockedCommand);
 
+      const opts = mockedCommand.opts()
+
       assert.isTrue(getProjectByNameStub.calledOnce);
       assert.isTrue(findProjectByNameStub.calledOnce);
       assert.isTrue(saveProjectObjectStub.calledOnce);
-      expect(saveProjectObjectStub.args[0][0].records[0].amount).to.eq(mockedCommand.amount);
-      expect(saveProjectObjectStub.args[0][0].records[0].role).to.eq(mockedCommand.role);
-      expect(saveProjectObjectStub.args[0][0].records[0].type).to.eq(mockedCommand.type);
-      expect(saveProjectObjectStub.args[0][0].records[0].guid).to.eq(mockedCommand.guid);
-      expect(saveProjectObjectStub.args[0][0].records[0].message).to.eq(mockedCommand.message);
+      expect(saveProjectObjectStub.args[0][0].records[0].amount).to.eq(opts.amount);
+      expect(saveProjectObjectStub.args[0][0].records[0].role).to.eq(opts.role);
+      expect(saveProjectObjectStub.args[0][0].records[0].type).to.eq(opts.type);
+      expect(saveProjectObjectStub.args[0][0].records[0].guid).to.eq(opts.guid);
+      expect(saveProjectObjectStub.args[0][0].records[0].message).to.eq(opts.message);
       assert.isTrue(commitChangesStub.calledOnce);
     });
 
@@ -848,11 +851,12 @@ describe("App", function () {
 
       await mockedApp.setup();
 
-      const program = new commander.Command();
-      const mockedCommand: commander.Command = program.createCommand();
-      mockedCommand.amount = 69;
-      mockedCommand.guid = "unknown-guid";
-      mockedCommand.type = RECORD_TYPES.Time;
+      const mockedCommand = new Command();
+      sinon.stub(mockedCommand, "opts").returns({
+        amount: 69,
+        guid: "unknown-guid",
+        type: RECORD_TYPES.Time,
+      });
 
       // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
