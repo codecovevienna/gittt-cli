@@ -791,7 +791,7 @@ export class App {
     commitMessage = await appendTicketNumber(commitMessage, await this.gitHelper.getCurrentBranch())
 
     try {
-      let data: IRecord = {
+      const data: IRecord = {
         amount,
         end: Date.now(),
         message: commitMessage,
@@ -1132,36 +1132,25 @@ export class App {
     const sortedTodaysRecords = todaysRecords;
 
     LogHelper.info(`${moment().format("dddd, MMMM D, YYYY")}`);
-    LogHelper.print(`--------------------------------------------------------------------------------`);
-    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\tPROJECT\t\t\t\tCOMMENT`);
-    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.print(`-------------------------------------------------------------------------------------------------------`);
+    LogHelper.info(`TYPE\tAMOUNT\tTIME\t\tPROJECT\t\t\tCOMMENT\t\t\t\tROLE`);
+    LogHelper.print(`-------------------------------------------------------------------------------------------------------`);
 
     let sumOfTime = 0;
     for (const todayRecord of sortedTodaysRecords) {
       const { record, project } = todayRecord;
       let line = "";
-      // Type
       line += `${record.type}\t`;
-      // Amount
       line += chalk.yellow.bold(`${record.amount.toFixed(2)}h\t`);
-      // Time
       line += `${moment(record.end).format("HH:mm:ss")}\t`;
-      // Project
-      if (project.name.length > 24) {
-        line += `${project.name.slice(0, 24)}\t`
-      } else {
-        line += `${project.name}\t`;
-      }
-      for (let i = 0; i < Math.ceil(3 - project.name.length / 8); i++) {
-        line += "\t"
-      }
-      // Message
-      line += chalk.yellow.bold(`${record.message}`);
+      line += chalk.yellow.bold(`${toFixedLength(project.name, 16)}\t`);
+      line += chalk.yellow.bold(`${toFixedLength(record.message, 24)}\t`);
+      line += chalk.yellow.bold(`${record.role}`);
       sumOfTime += record.amount;
       LogHelper.print(line);
     }
 
-    LogHelper.print(`--------------------------------------------------------------------------------`);
+    LogHelper.print(`-------------------------------------------------------------------------------------------------------`);
     LogHelper.info(`SUM:\t${sumOfTime}h`);
   }
 
