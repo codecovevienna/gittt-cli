@@ -137,10 +137,9 @@ export class App {
     }
   }
 
-  public async exportAction(cmd: Command): Promise<void> {
+  public async exportAction(options: any): Promise<void> {
     LogHelper.print(`Gathering projects...`)
     let projectsToExport: IProject[] = [];
-    const options = cmd.opts()
     const { project, directory, filename, type } = options;
 
     if (project) {
@@ -159,10 +158,8 @@ export class App {
     LogHelper.info(`✓ Export done`)
   }
 
-  public async linkAction(cmd: Command): Promise<void> {
+  public async linkAction(options: any): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-
-    const options = cmd.opts()
 
     let project: IProject | undefined;
 
@@ -246,10 +243,8 @@ export class App {
     }
   }
 
-  public async publishAction(cmd: Command): Promise<void> {
+  public async publishAction(options: any): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-
-    const options = cmd.opts()
 
     let projects: Array<IProject> = [];
 
@@ -292,9 +287,9 @@ export class App {
     if (projectIntegrationLinks.length === 1 && projectIntegrationLinks[0].integrationLinks.length === 0) {
       LogHelper.warn(`Unable to find a link for "${projectIntegrationLinks[0].name}"`);
       if (await QuestionHelper.confirmLinkCreation()) {
-        await this.linkAction(cmd);
+        await this.linkAction(options);
 
-        return await this.publishAction(cmd);
+        return await this.publishAction(options);
       } else {
         return this.exit(`Unable to publish without link`, 1);
       }
@@ -481,10 +476,8 @@ export class App {
     }
   }
 
-  public async editAction(cmd: Command): Promise<void> {
+  public async editAction(options: any, cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-
-    const options = cmd.opts()
 
     let project: IProject | undefined;
 
@@ -517,11 +510,6 @@ export class App {
     let chosenRecord: IRecord;
 
     if (!interactiveMode) {
-      if (!options.guid) {
-        LogHelper.error("No guid option found");
-        return cmd.help();
-      }
-
       const recordGuid: string = options.guid;
 
       const chosenRecords: IRecord[] = records.filter((rc: IRecord) => {
@@ -668,10 +656,8 @@ export class App {
   }
 
   // TODO pretty much the same as editAction, refactor?
-  public async removeAction(cmd: Command): Promise<void> {
+  public async removeAction(options: any, cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-
-    const options = cmd.opts()
 
     let project: IProject | undefined;
     try {
@@ -749,11 +735,9 @@ export class App {
       }: ${chosenRecord.amount} ${chosenRecord.type} - "${_.truncate(chosenRecord.message)}") from project ${updatedProject.name}`);
   }
 
-  public async commitAction(cmd: Command): Promise<void> {
+  public async commitAction(options: any, cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
     const multipieHelper = new MultipieHelper();
-
-    const options = cmd.opts()
 
     let amount: number;
     let message: string | undefined;
@@ -774,8 +758,16 @@ export class App {
 
         // get roles
         if (project.requiresRoles) {
-          const availableRoles = await multipieHelper.getValidRoles(project, options.role);
+          const availableRoles = await multipieHelper.getValidRoles(project);
           role = availableRoles.find((role_: ISelectChoice) => role_.name == options.role)?.value;
+
+          if (role === undefined) {
+            LogHelper.info(`Available roles for ${project.name} are: \n${availableRoles
+              .map(availableRole => `  - ${availableRole.name}`)
+              .sort()
+              .join(",\n")}`);
+            return this.exit(`Role "${options.role}" is not available in this project`, 1);
+          }
         }
       } else {
         amount = await QuestionHelper.askAmount(1);
@@ -822,11 +814,9 @@ export class App {
     }
   }
 
-  public async addAction(cmd: Command): Promise<void> {
+  public async addAction(options: any, cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
     const multipieHelper = new MultipieHelper();
-
-    const options = cmd.opts()
 
     let year: number;
     let month: number;
@@ -841,6 +831,7 @@ export class App {
 
     try {
       if (!interactiveMode) {
+        // TODO move to option of commander
         if (!ValidationHelper.validateNumber(options.amount)) {
           LogHelper.error("No amount option found");
           return cmd.help();
@@ -875,8 +866,16 @@ export class App {
 
         // get roles
         if (project.requiresRoles) {
-          const availableRoles = await multipieHelper.getValidRoles(project, options.role);
+          const availableRoles = await multipieHelper.getValidRoles(project);
           role = availableRoles.find((role_: ISelectChoice) => role_.name == options.role)?.value;
+
+          if (role === undefined) {
+            LogHelper.info(`Available roles for ${project.name} are: \n${availableRoles
+              .map(availableRole => `  - ${availableRole.name}`)
+              .sort()
+              .join(",\n")}`);
+            return this.exit(`Role "${options.role}" is not available in this project`, 1);
+          }
         }
 
       } else {
@@ -965,10 +964,8 @@ export class App {
     }
   }
 
-  public async infoAction(cmd: Command): Promise<void> {
+  public async infoAction(options: any): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-
-    const options = cmd.opts();
 
     const order: string = ORDER_TYPE.indexOf(options.order) === -1 ? ORDER_TYPE[0] : options.order;
     const direction: string = ORDER_DIRECTION.indexOf(options.direction) === -1 ? ORDER_DIRECTION[0] : options.direction;
@@ -1064,10 +1061,8 @@ export class App {
     }
   }
 
-  public async listAction(cmd: Command): Promise<void> {
+  public async listAction(options: any): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-
-    const options = cmd.opts();
 
     let project: IProject | undefined;
 
@@ -1175,10 +1170,8 @@ export class App {
     LogHelper.info(`SUM:\t${sumOfTime}h`);
   }
 
-  public async reportAction(cmd: Command): Promise<void> {
+  public async reportAction(options: any): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-
-    const options = cmd.opts();
 
     let project: IProject | undefined;
 
@@ -1250,10 +1243,8 @@ export class App {
     LogHelper.log(ChartHelper.chart(weekdayData, true, 50, false, "h"));
   }
 
-  public async stopAction(cmd: Command): Promise<void> {
+  public async stopAction(options: any): Promise<void> {
     let project: IProject | undefined;
-
-    const options = cmd.opts();
 
     if (options.kill) {
       await this.timerHelper.killTimer();
@@ -1310,9 +1301,7 @@ export class App {
       .option("-m, --message [message]", "Description of the spent hours")
       .option("-p, --project [project]", "Specify a project to commit to")
       .option("-r, --role [role]", "Specify a role string")
-      .action(async (cmd: Command): Promise<void> => this.commitAction(cmd));
-
-    // add command
+      .action(async (options, cmd): Promise<void> => this.commitAction(options, cmd))    // add command
     this.commander
       .command("add")
       .description("Adding hours to the project in the past")
@@ -1326,7 +1315,7 @@ export class App {
       .option("-t, --type [type]", "Specify the type of the record")
       .option("-r, --role [role]", "Specify the role of the record")
       .option("-p, --project [project]", "Specify the project to add the record")
-      .action(async (cmd: Command): Promise<void> => this.addAction(cmd));
+      .action(async (options, cmd): Promise<void> => this.addAction(options, cmd));
 
     // push command
     this.commander
@@ -1345,15 +1334,15 @@ export class App {
       .option("-o, --order <type>", "Specify the ordering (hours or name) default is " + ORDER_TYPE[0])
       .option("-d, --direction <direction>", "Specify the ordering direction (asc, desc)" + ORDER_DIRECTION[0])
       .option("-p, --project [project]", "Specify the project to get the information")
-      .action((cmd: Command): Promise<void> => this.infoAction(cmd));
+      .action((options): Promise<void> => this.infoAction(options));
 
     // list command
     // will be changed in GITTT-85
     this.commander
       .command("list")
       .description("List of time tracks in project")
-      .option("-p, --project [project]", "Specify the project to get the time tracks")
-      .action((cmd: Command): Promise<void> => this.listAction(cmd));
+      .option("-p, --project <project>", "Specify the project to get the time tracks")
+      .action((options): Promise<void> => this.listAction(options));
 
     this.commander
       .command("today")
@@ -1365,9 +1354,9 @@ export class App {
     this.commander
       .command("report")
       .description("Prints a small report")
-      .option("-d, --days [number]", "Specify for how many days the report should be printed.")
+      .option("-d, --days [number]", "Specify for how many days the report should be printed. Default: 14")
       .option("-p, --project [project]", "Specify the project the report should be printed for")
-      .action((cmd: Command): Promise<void> => this.reportAction(cmd));
+      .action((options): Promise<void> => this.reportAction(options));
 
     this.commander
       .command("setup")
@@ -1387,7 +1376,7 @@ export class App {
       .option("-k, --kill", "Kill the timer for a project")
       .option("-m, --message <message>", "Commit message for the project")
       .option("-p, --project [project]", "Specify the project to add your time to")
-      .action(async (cmd: Command): Promise<void> => this.stopAction(cmd));
+      .action(async (options): Promise<void> => this.stopAction(options));
 
     // init command
     this.commander
@@ -1400,7 +1389,7 @@ export class App {
       .command("link")
       .description("Initialize or edit link to third party applications")
       .option("-p, --project [project]", "Specify the project to link")
-      .action(async (cmd: Command): Promise<void> => this.linkAction(cmd));
+      .action(async (options): Promise<void> => this.linkAction(options));
 
     // publish command
     this.commander
@@ -1408,13 +1397,13 @@ export class App {
       .description("Publishes stored records to external endpoint")
       .option("-p, --project [project]", "Specify the project to publish")
       .option("-a, --all", "Publish all projects")
-      .action(async (cmd: Command): Promise<void> => this.publishAction(cmd));
+      .action(async (options): Promise<void> => this.publishAction(options));
 
     // edit command
     this.commander
       .command("edit")
       .description("Edit record of current project")
-      .option("-g, --guid [guid]", "GUID of the record to edit")
+      .option("-g, --guid <guid>", "GUID of the record to edit")
       .option("-a, --amount <amount>", "Specify the amount")
       .option("-y, --year [year]", "Specify the year, defaults to current year")
       .option("-m, --month [month]", "Specify the month, defaults to current month")
@@ -1425,7 +1414,7 @@ export class App {
       .option("-t, --type [type]", "Specify the type of the record")
       .option("-r, --role [role]", "Specify the role of the record")
       .option("-p, --project [project]", "Specify the project to edit")
-      .action(async (cmd: Command): Promise<void> => this.editAction(cmd));
+      .action(async (options, cmd): Promise<void> => this.editAction(options, cmd));
 
     // remove command
     this.commander
@@ -1433,7 +1422,7 @@ export class App {
       .description("Remove record from a project")
       .option("-g, --guid [guid]", "GUID of the record to remove")
       .option("-p, --project [project]", "Specify the project to remove a record")
-      .action(async (cmd: Command): Promise<void> => this.removeAction(cmd));
+      .action(async (options, cmd): Promise<void> => this.removeAction(options, cmd));
 
     // import command
     this.commander
@@ -1450,6 +1439,6 @@ export class App {
       .option("-d, --directory [directory]", "Directory where to store the export (default: current working dir)")
       .option("-t, --type [file type]", "File type of the export (default: ods) - supported types: https://github.com/SheetJS/sheetjs#supported-output-formats")
       .option("-p, --project [project to export]", "Name of the project")
-      .action(async (cmd: Command): Promise<void> => this.exportAction(cmd));
+      .action(async (options): Promise<void> => this.exportAction(options));
   }
 }

@@ -42,7 +42,6 @@ export class MultipieHelper {
     const multipieLink: IMultipieStoreLink = link as IMultipieStoreLink;
     const authHelper = new AuthHelper();
 
-
     let authorizationHeader = "";
 
     if (multipieLink.username) {
