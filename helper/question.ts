@@ -250,7 +250,7 @@ export class QuestionHelper {
       {
         choices: records.map((rc: IRecord) => {
           return {
-            name: `${moment(rc.end).format("DD.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} - "${_.
+            name: `${moment(rc.end).format("DD.MM.YYYY, HH:mm:ss")}: ${rc.amount} ${rc.type} as "${rc.role}" - "${_.
               truncate(rc.message)}"`,
             value: rc.guid,
           };
