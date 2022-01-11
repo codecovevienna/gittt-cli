@@ -26,7 +26,7 @@ export class MultipieHelper {
     // check if everything is configured
     const link = links[0] as IMultipieLink;
     if (!link.rolesEndpoint) {
-      throw new Error(`No role endpoint set in link for "${project.name}".`);
+      throw new Error(`No roles endpoint set in link for "${project.name}".`);
     }
     const rolesFromApi: IMultipieRole[] = await this.getRolesFromApi(link, record);
 

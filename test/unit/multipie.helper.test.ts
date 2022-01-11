@@ -71,7 +71,7 @@ describe("MultipieHelper", function () {
       try {
         await multipieHelper.getValidRoles(project);
       } catch (err: any) {
-        expect(err.message).contains('No role endpoint set');
+        expect(err.message).contains('No roles endpoint set');
       }
     });
 
