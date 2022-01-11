@@ -154,7 +154,7 @@ export class ProjectHelper {
     if (records.length === 1) {
       let record: IRecord = records[0];
 
-      LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}) to ${selectedProject.name}`);
+      LogHelper.info(`Adding record (amount: ${record.amount}, type: ${record.type}, role: ${record.role}) to ${selectedProject.name}`);
 
       record = RecordHelper.setRecordDefaults(record);
 
