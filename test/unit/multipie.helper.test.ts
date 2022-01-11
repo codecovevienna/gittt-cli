@@ -31,9 +31,14 @@ describe("MultipieHelper", function () {
         records: [],
       } as IProject;
 
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
       const multipieHelper = new proxy.MultipieHelper();
       try {
-        await multipieHelper.getValidRoles(project);
+        await multipieHelper.getValidRoles(project, record);
       } catch (err: any) {
         expect(err.message).contains('Multiple multipie links found');
       }
@@ -67,9 +72,14 @@ describe("MultipieHelper", function () {
         records: [],
       } as IProject;
 
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
       const multipieHelper = new proxy.MultipieHelper();
       try {
-        await multipieHelper.getValidRoles(project);
+        await multipieHelper.getValidRoles(project, record);
       } catch (err: any) {
         expect(err.message).contains('No roles endpoint set');
       }
