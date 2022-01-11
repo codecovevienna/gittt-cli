@@ -294,9 +294,9 @@ export class QuestionHelper {
     return choice.choice;
   }
 
-  public static chooseRole = async (project: IProject, oldRole?: string,): Promise<string> => {
+  public static chooseRole = async (project: IProject, record: IRecord, oldRole?: string,): Promise<string> => {
     const multipieHelper = new MultipieHelper();
-    const availableRoles: Array<ISelectChoice> = await multipieHelper.getValidRoles(project, oldRole);
+    const availableRoles: Array<ISelectChoice> = await multipieHelper.getValidRoles(project, record, oldRole);
 
     const question: ListQuestion = {
       choices: availableRoles,

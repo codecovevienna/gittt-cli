@@ -5,6 +5,7 @@ import sinon from "sinon";
 import { FileHelper, MultipieHelper } from "../../helper";
 import { IMultipieLink, IMultipieRolesResult, IProject } from "../../interfaces";
 import { emptyHelper } from "../helper";
+import { IRecord } from '../../interfaces/index';
 
 const sandboxDir = "./sandbox";
 const configDir: string = path.join(sandboxDir, ".git-time-tracker");
@@ -111,9 +112,19 @@ describe("MultipieHelper", function () {
 
       const multipieHelper = new proxy.MultipieHelper();
 
-      const getRolesFromApiStub = sinon.stub(multipieHelper, "getRolesFromApi").resolves(["?", "1"]);
+      const getRolesFromApiStub = sinon.stub(multipieHelper, "getRolesFromApi")
+        .resolves([
+          {
+            role: "1"
+          }
+        ]);
 
-      const roles = await multipieHelper.getValidRoles(project);
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
+      const roles = await multipieHelper.getValidRoles(project, record);
       assert.isTrue(getRolesFromApiStub.calledOnce);
 
       expect(roles).to.deep.eq([
@@ -156,19 +167,25 @@ describe("MultipieHelper", function () {
 
       const multipieHelper = new proxy.MultipieHelper();
 
-      const getRolesFromApiStub = sinon.stub(multipieHelper, "getRolesFromApi").resolves(["?", "1"]);
+      const getRolesFromApiStub = sinon.stub(multipieHelper, "getRolesFromApi")
+        .resolves([
+          {
+            role: "1"
+          }
+        ]);
 
-      const roles = await multipieHelper.getValidRoles(project, 'old');
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
+      const roles = await multipieHelper.getValidRoles(project, record, 'old');
       assert.isTrue(getRolesFromApiStub.calledOnce);
 
       expect(roles).to.deep.eq([
         {
           name: 'old',
           value: 'old'
-        },
-        {
-          name: '?',
-          value: '?'
         },
         {
           name: '1',
@@ -195,9 +212,14 @@ describe("MultipieHelper", function () {
         status: 200,
         data: {
           success: true,
-          data: {
-            roles: ['test_role'],
-          }
+          data: [
+            {
+              role: 'test_role',
+              start_date: "2021-01-01",
+              end_date: "2025-01-01",
+              factor: "1.0000"
+            }
+          ]
         } as IMultipieRolesResult,
       });
       const multipieProxy: any = proxyquire("../../helper/multipie", {
@@ -217,10 +239,21 @@ describe("MultipieHelper", function () {
         username: 'username',
       } as IMultipieLink;
 
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
       const multipieHelper = new multipieProxy.MultipieHelper();
-      const roles = await multipieHelper.getRolesFromApi(link);
-      expect(roles.length).to.equals(1);
-      expect(roles[0]).to.equals('test_role');
+      const roles = await multipieHelper.getRolesFromApi(link, record);
+      expect(roles).to.deep.eq([
+        {
+          role: 'test_role',
+          start_date: "2021-01-01",
+          end_date: "2025-01-01",
+          factor: "1.0000"
+        }
+      ]);
     });
 
     it("should load roles with OAuth", async function () {
@@ -246,9 +279,14 @@ describe("MultipieHelper", function () {
         status: 200,
         data: {
           success: true,
-          data: {
-            roles: ['test_role'],
-          }
+          data: [
+            {
+              role: 'test_role',
+              start_date: "2021-01-01",
+              end_date: "2025-01-01",
+              factor: "1.0000"
+            }
+          ]
         } as IMultipieRolesResult,
       });
       const multipieProxy: any = proxyquire("../../helper/multipie", {
@@ -268,14 +306,21 @@ describe("MultipieHelper", function () {
         refreshToken: 'token',
       } as IMultipieLink;
 
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
       const multipieHelper = new multipieProxy.MultipieHelper();
-      try {
-        const roles = await multipieHelper.getRolesFromApi(link);
-        expect(roles.length).to.equals(1);
-        expect(roles[0]).to.equals('test_role');
-      } catch (err) {
-        console.log(err);
-      }
+      const roles = await multipieHelper.getRolesFromApi(link, record);
+      expect(roles).to.deep.eq([
+        {
+          role: 'test_role',
+          start_date: "2021-01-01",
+          end_date: "2025-01-01",
+          factor: "1.0000"
+        }
+      ]);
     });
 
     it("should throw without refreshToken", async function () {
@@ -310,9 +355,14 @@ describe("MultipieHelper", function () {
         clientSecret: 'secret',
       } as IMultipieLink;
 
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
       const multipieHelper = new multipieProxy.MultipieHelper();
       try {
-        await multipieHelper.getRolesFromApi(link);
+        await multipieHelper.getRolesFromApi(link, record);
       } catch (err: any) {
         expect(err.message).contains('Unable to find refresh token for this project');
       }
@@ -355,9 +405,14 @@ describe("MultipieHelper", function () {
         refreshToken: 'token',
       } as IMultipieLink;
 
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
       const multipieHelper = new multipieProxy.MultipieHelper();
       try {
-        await multipieHelper.getRolesFromApi(link);
+        await multipieHelper.getRolesFromApi(link, record);
       } catch (err: any) {
         expect(err.message).contains('Loading roles request failed');
       }
@@ -379,9 +434,8 @@ describe("MultipieHelper", function () {
       const axiosGetStub = sinon.stub().resolves({
         status: 200,
         data: {
-          success: true,
-          data: {
-          }
+          success: false,
+          message: "Mocked error"
         } as IMultipieRolesResult,
       });
       const multipieProxy: any = proxyquire("../../helper/multipie", {
@@ -401,8 +455,13 @@ describe("MultipieHelper", function () {
         username: 'username',
       } as IMultipieLink;
 
+      const record = {
+        amount: 69,
+        end: Date.now()
+      } as IRecord
+
       const multipieHelper = new multipieProxy.MultipieHelper();
-      const roles = await multipieHelper.getRolesFromApi(link);
+      const roles = await multipieHelper.getRolesFromApi(link, record);
       expect(roles.length).to.equals(0);
     });
   });

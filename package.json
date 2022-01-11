@@ -1,6 +1,6 @@
 {
   "name": "@codecovevienna/gittt-cli",
-  "version": "1.12.0-rc2",
+  "version": "1.12.0-rc3",
   "description": "Tracking time with CLI into a git repository",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

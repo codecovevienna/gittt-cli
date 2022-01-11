@@ -1,13 +1,15 @@
 import axios, { AxiosResponse } from "axios";
 import { Token } from "client-oauth2";
 import { AuthHelper, ConfigHelper, LogHelper } from ".";
-import { IMultipieLink, IMultipieRolesResult, IMultipieStoreLink, IProject, ISelectChoice } from "../interfaces";
+import { IMultipieLink, IMultipieRole, IMultipieRolesResult, IMultipieStoreLink, IProject, ISelectChoice } from "../interfaces";
+import { IRecord } from '../interfaces/index';
+import moment from "moment";
 
 export const DEFAULT_ROLE = '?'
 
 export class MultipieHelper {
 
-  public getValidRoles = async (project: IProject, oldRole?: string): Promise<Array<ISelectChoice>> => {
+  public getValidRoles = async (project: IProject, record: IRecord, oldRole?: string): Promise<Array<ISelectChoice>> => {
     let roles: Array<ISelectChoice> = [
       {
         name: oldRole || DEFAULT_ROLE,
@@ -26,19 +28,30 @@ export class MultipieHelper {
     if (!link.roleEndpoint) {
       throw new Error(`No role endpoint set in link for "${project.name}".`);
     }
-    const rolesFromApi = await this.getRolesFromApi(link);
+    const rolesFromApi: IMultipieRole[] = await this.getRolesFromApi(link, record);
 
     // merge roles with default roles
     // so if we have an oldRole that is not in the rolesFromApi it will be available afterwards
     roles = [
-      ...roles.filter(choice => !rolesFromApi.includes(choice.name)),
-      ...rolesFromApi.map(role => ({ name: role, value: role }))
+      ...roles
+        .filter(
+          choice => !rolesFromApi
+            .map(multipieApiRole => multipieApiRole.role)
+            .includes(choice.name)
+        ),
+      ...rolesFromApi
+        .map(multipieApiRole => (
+          {
+            name: multipieApiRole.role,
+            value: multipieApiRole.role
+          })
+        )
     ];
 
     return roles;
   }
 
-  private getRolesFromApi = async (link: IMultipieLink): Promise<Array<string>> => {
+  private getRolesFromApi = async (link: IMultipieLink, record: IRecord): Promise<Array<IMultipieRole>> => {
     const multipieLink: IMultipieStoreLink = link as IMultipieStoreLink;
     const authHelper = new AuthHelper();
 
@@ -65,7 +78,8 @@ export class MultipieHelper {
 
       authorizationHeader = `Bearer ${refreshedToken.accessToken}`
     }
-    const rolesUrl = `${link.host}${link.roleEndpoint}?project=${link.projectName}`;
+    const rolesUrl = `${link.host}${link.roleEndpoint}?project=${link.projectName}&time=${moment(record.end)
+      .format('YYYY-MM-DDTHH:mm:ss')}`;
 
     try {
       LogHelper.debug(`Loading roles from ${rolesUrl}`);
@@ -80,14 +94,13 @@ export class MultipieHelper {
           },
         );
 
-      const data: IMultipieRolesResult = rolesResult.data;
+      const { data } = rolesResult;
 
-      // naming is not the best - but the roles are in data.data.roles
-      if (data && data.data && data.data.roles && rolesResult.status == 200) {
-        return data.data.roles;
+      if (!data.success) {
+        return [];
       }
 
-      return [];
+      return data.data || [];
     } catch (err: any) {
       delete err.config;
       delete err.request;

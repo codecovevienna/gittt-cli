@@ -137,6 +137,44 @@ export class App {
     }
   }
 
+  private async handleRole(cmd: Command, interactive: boolean, project: IProject, record: IRecord, inputRole?: string): Promise<IRecord> {
+    const multipieHelper = new MultipieHelper();
+
+    const updatedRecord = record;
+
+    // Project does not require a role, just return the original record
+    if (!project.requiresRoles) {
+      return updatedRecord;
+    }
+
+    if (!interactive) {
+      if (!inputRole) {
+        LogHelper.error("No role option found");
+        return cmd.help();
+      }
+
+      // get roles
+      if (project.requiresRoles) {
+        const availableRoles = await multipieHelper.getValidRoles(project, record);
+        const role = availableRoles.find((role_: ISelectChoice) => role_.name == inputRole)?.value;
+
+        if (role === undefined) {
+          LogHelper.info(`Available roles for ${project.name} are: \n${availableRoles
+            .map(availableRole => `  - ${availableRole.name}`)
+            .sort()
+            .join(",\n")}`);
+          this.exit(`Role "${inputRole}" is not available in this project`, 1);
+        }
+
+        updatedRecord.role = role;
+      }
+    } else {
+      updatedRecord.role = await QuestionHelper.chooseRole(project, record);
+    }
+
+    return updatedRecord;
+  }
+
   public async exportAction(options: any): Promise<void> {
     LogHelper.print(`Gathering projects...`)
     let projectsToExport: IProject[] = [];
@@ -529,8 +567,7 @@ export class App {
       chosenRecord = await QuestionHelper.chooseRecord(recordsToEdit);
     }
 
-    const updatedRecord: IRecord = Object.assign({}, chosenRecord);
-    const multipieHelper = new MultipieHelper();
+    let updatedRecord: IRecord = Object.assign({}, chosenRecord);
 
     let year: number;
     let month: number;
@@ -539,7 +576,6 @@ export class App {
     let minute: number;
     let amount: number;
     let message: string | undefined;
-    let role: string | undefined;
 
     if (!interactiveMode) {
       if (options.type) {
@@ -548,8 +584,6 @@ export class App {
         LogHelper.error("No type option found");
         return cmd.help();
       }
-
-      console.log(ValidationHelper, options);
 
       if (!ValidationHelper.validateNumber(options.amount)) {
         LogHelper.error("No amount option found");
@@ -574,17 +608,6 @@ export class App {
       minute = ValidationHelper.validateNumber(options.minute, 0, 59)
         ? parseInt(options.minute, 10) : moment().minute();
 
-      if (options.role) {
-        const allowedRoles = await multipieHelper.getValidRoles(project);
-
-        // check if role is allowed
-        if (!allowedRoles.find(choice => choice.name == options.role)) {
-          LogHelper.debug(`Role ${options.role} not allowed for project ${project.name}`);
-          return this.exit(`Role ${options.role} not allowed for project ${project.name}`, 1);
-        }
-        role = allowedRoles.find((role_: ISelectChoice) => role_.name == options.role)?.value;
-      }
-
       message = (options.message && options.message.length > 0) ? options.message : undefined;
     } else {
       updatedRecord.type = await QuestionHelper.chooseType(chosenRecord.type);
@@ -596,15 +619,13 @@ export class App {
       minute = await QuestionHelper.askMinute(moment(chosenRecord.end).minute());
       amount = await QuestionHelper.askAmount(chosenRecord.amount);
       message = await QuestionHelper.askMessage(chosenRecord.message);
-      if (project.requiresRoles) {
-        role = await QuestionHelper.chooseRole(project, chosenRecord.role);
-      }
     }
 
     updatedRecord.updated = Date.now();
     updatedRecord.message = message;
     updatedRecord.amount = amount;
-    updatedRecord.role = role;
+
+    updatedRecord = await this.handleRole(cmd, interactiveMode, project, updatedRecord, options.role)
 
     const modifiedMoment: Moment = moment().set({
       date: day,
@@ -737,45 +758,21 @@ export class App {
 
   public async commitAction(options: any, cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-    const multipieHelper = new MultipieHelper();
 
     let amount: number;
     let message: string | undefined;
     let commitMessage: string;
     let project: IProject | undefined;
-    let role: string | undefined;
 
     try {
       if (!interactiveMode) {
         amount = parseFloat(options.amount);
         message = options.message;
         project = await this.projectHelper.getProjectByName(options.project);
-
-        if (!options.role && project.requiresRoles) {
-          LogHelper.error("No role option found");
-          return cmd.help();
-        }
-
-        // get roles
-        if (project.requiresRoles) {
-          const availableRoles = await multipieHelper.getValidRoles(project);
-          role = availableRoles.find((role_: ISelectChoice) => role_.name == options.role)?.value;
-
-          if (role === undefined) {
-            LogHelper.info(`Available roles for ${project.name} are: \n${availableRoles
-              .map(availableRole => `  - ${availableRole.name}`)
-              .sort()
-              .join(",\n")}`);
-            return this.exit(`Role "${options.role}" is not available in this project`, 1);
-          }
-        }
       } else {
         amount = await QuestionHelper.askAmount(1);
         project = await this.projectHelper.getOrAskForProjectFromGit();
         message = await QuestionHelper.askMessage();
-        if (project.requiresRoles) {
-          role = await QuestionHelper.chooseRole(project);
-        }
       }
     } catch (err: any) {
       return this.exit(err.message, 1);
@@ -804,10 +801,10 @@ export class App {
         message: commitMessage,
         type: RECORD_TYPES.Time,
       };
-      if (project.requiresRoles) {
-        data.role = role;
-      }
-      await this.projectHelper.addRecordToProject(data, project);
+
+      const updatedData = await this.handleRole(cmd, interactiveMode, project, data, options.role)
+
+      await this.projectHelper.addRecordToProject(updatedData, project);
     } catch (err: any) {
       LogHelper.debug("Unable to add record to project", err);
       this.exit("Unable to add record to project", 1);
@@ -816,7 +813,6 @@ export class App {
 
   public async addAction(options: any, cmd: Command): Promise<void> {
     const interactiveMode: boolean = process.argv.length === 3;
-    const multipieHelper = new MultipieHelper();
 
     let year: number;
     let month: number;
@@ -827,7 +823,6 @@ export class App {
     let message: string | undefined;
     let type: RECORD_TYPES;
     let project: IProject;
-    let role: string | undefined;
 
     try {
       if (!interactiveMode) {
@@ -859,25 +854,6 @@ export class App {
 
         project = await this.projectHelper.getProjectByName(options.project);
 
-        if (!options.role && project.requiresRoles) {
-          LogHelper.error("No role option found");
-          return cmd.help();
-        }
-
-        // get roles
-        if (project.requiresRoles) {
-          const availableRoles = await multipieHelper.getValidRoles(project);
-          role = availableRoles.find((role_: ISelectChoice) => role_.name == options.role)?.value;
-
-          if (role === undefined) {
-            LogHelper.info(`Available roles for ${project.name} are: \n${availableRoles
-              .map(availableRole => `  - ${availableRole.name}`)
-              .sort()
-              .join(",\n")}`);
-            return this.exit(`Role "${options.role}" is not available in this project`, 1);
-          }
-        }
-
       } else {
         project = await this.projectHelper.getOrAskForProjectFromGit();
         year = await QuestionHelper.askYear();
@@ -887,9 +863,6 @@ export class App {
         minute = await QuestionHelper.askMinute();
         amount = await QuestionHelper.askAmount(1);
         message = await QuestionHelper.askMessage();
-        if (project.requiresRoles) {
-          role = await QuestionHelper.chooseRole(project);
-        }
         type = await QuestionHelper.chooseType();
       }
     } catch (err: any) {
@@ -908,13 +881,14 @@ export class App {
 
     const end: number = modifiedMoment.unix() * 1000;
 
-    const newRecord: IRecord = {
+    let newRecord: IRecord = {
       amount,
       end,
       message: message ? message : undefined,
       type,
-      role,
     };
+
+    newRecord = await this.handleRole(cmd, interactiveMode, project, newRecord, options.role)
 
     if (newRecord.message) {
       newRecord.message = await appendTicketNumber(newRecord.message, await this.gitHelper.getCurrentBranch());
