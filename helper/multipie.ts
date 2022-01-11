@@ -25,7 +25,7 @@ export class MultipieHelper {
 
     // check if everything is configured
     const link = links[0] as IMultipieLink;
-    if (!link.roleEndpoint) {
+    if (!link.rolesEndpoint) {
       throw new Error(`No role endpoint set in link for "${project.name}".`);
     }
     const rolesFromApi: IMultipieRole[] = await this.getRolesFromApi(link, record);
@@ -78,7 +78,7 @@ export class MultipieHelper {
 
       authorizationHeader = `Bearer ${refreshedToken.accessToken}`
     }
-    const rolesUrl = `${link.host}${link.roleEndpoint}?project=${link.projectName}&time=${moment(record.end)
+    const rolesUrl = `${link.rolesEndpoint}?project=${link.projectName}&time=${moment(record.end)
       .format('YYYY-MM-DDTHH:mm:ss')}`;
 
     try {

@@ -195,11 +195,20 @@ export class QuestionHelper {
   public static askMultipieLink = async (project: IProject, prevData?: IMultipieStoreLink): Promise<IMultipieInputLink> => {
     const multipieAnswers = await inquirer.prompt([
       {
-        default: prevData ? prevData.host : "https://multipie.gittt.org",
+        default: prevData ? prevData.endpoint : "https://multipie.gittt.org/v1/publish",
         // also works for generic hosts
         filter: QuestionHelper.filterJiraEndpoint,
-        message: "Multipie host",
-        name: "host",
+        message: "Multipie publish endpoint",
+        name: "endpoint",
+        type: "input",
+        validate: ValidationHelper.validateJiraEndpoint,
+      },
+      {
+        default: prevData ? prevData.rolesEndpoint : "https://multipie.gittt.org/v1/roles",
+        // also works for generic hosts
+        filter: QuestionHelper.filterJiraEndpoint,
+        message: "Multipie roles endpoint",
+        name: "rolesEndpoint",
         type: "input",
         validate: ValidationHelper.validateJiraEndpoint,
       },
@@ -222,19 +231,20 @@ export class QuestionHelper {
         validate: ValidationHelper.validatePassword
       },
     ]) as {
-      host: string;
+      endpoint: string;
+      rolesEndpoint: string;
       username: string;
       password: string;
       clientSecret: string;
     };
 
-    const { host, username, password, clientSecret } = multipieAnswers;
+    const { endpoint, rolesEndpoint, username, password, clientSecret } = multipieAnswers;
 
     const projectName: string = project.name;
 
     const link: IMultipieInputLink = {
-      host,
-      endpoint: `/v1/publish`,
+      endpoint,
+      rolesEndpoint,
       linkType: "Multipie",
       projectName,
       username,

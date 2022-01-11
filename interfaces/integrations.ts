@@ -13,8 +13,11 @@ export interface IMultipiePublishResult {
 export interface IMultipieRole {
   role: string,
   // format: 2021-01-01
+  /* that's the hurdle talking to python... */
+  /* eslint-disable @typescript-eslint/naming-convention */
   start_date: string,
   end_date: string,
+  /* eslint-enable @typescript-eslint/naming-convention */
   // actually a float
   factor: string
 }

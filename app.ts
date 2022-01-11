@@ -256,7 +256,6 @@ export class App {
           const offlineToken: IMultipieStoreLink = {
             projectName: multiPieInputLink.projectName,
             linkType: multiPieInputLink.linkType,
-            host: multiPieInputLink.host,
             endpoint: multiPieInputLink.endpoint,
             clientSecret: multiPieInputLink.clientSecret,
             refreshToken: authResponse.refreshToken,
@@ -446,7 +445,7 @@ export class App {
                 authorizationHeader = `Bearer ${refreshedToken.accessToken}`
               }
 
-              const multipieUrl = `${multipieLink.host}${multipieLink.endpoint}`;
+              const multipieUrl = `${multipieLink.endpoint}`;
 
               LogHelper.debug(`Publishing to ${multipieUrl}`);
 
@@ -988,7 +987,7 @@ export class App {
               const multipieLink: IMultipieInputLink = link as IMultipieInputLink;
               LogHelper.log("");
               LogHelper.log("Multipie link:");
-              LogHelper.log(`> Host:\t\t${multipieLink.host}`);
+              LogHelper.log(`> Host:\t\t${multipieLink.endpoint}`);
               LogHelper.log(`> Project:\t${multipieLink.projectName}`);
               break;
           }

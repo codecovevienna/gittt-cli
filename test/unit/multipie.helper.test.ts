@@ -1,17 +1,9 @@
 import { assert, expect } from "chai";
-import path from "path";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
-import { FileHelper, MultipieHelper } from "../../helper";
 import { IMultipieLink, IMultipieRolesResult, IProject } from "../../interfaces";
 import { emptyHelper } from "../helper";
 import { IRecord } from '../../interfaces/index';
-
-const sandboxDir = "./sandbox";
-const configDir: string = path.join(sandboxDir, ".git-time-tracker");
-const configFileName = "config.json";
-const timerFileName = "timer.json";
-const projectsDir = "projects";
 
 describe("MultipieHelper", function () {
   before(function () {
@@ -47,7 +39,7 @@ describe("MultipieHelper", function () {
       }
     });
 
-    it("should throw when no roleEndpoint exists", async function () {
+    it("should throw when no rolesEndpoint exists", async function () {
       const mockedHelper: any = Object.assign({}, emptyHelper);
 
       mockedHelper.ConfigHelper = class {
@@ -55,11 +47,10 @@ describe("MultipieHelper", function () {
         public isInitialized = sinon.stub().resolves(true);
         public findLinksByProject = sinon.stub().resolves([
           {
-            "host": "https://test.com",
-            "endpoint": "/v1/publish",
-            "linkType": "Multipie",
-            "projectName": "asdf",
-            "username": "asdf"
+            endpoint: "https://test.com/v1/publish",
+            linkType: "Multipie",
+            projectName: "asdf",
+            username: "asdf"
           }
         ]);
       }
@@ -92,12 +83,11 @@ describe("MultipieHelper", function () {
         public isInitialized = sinon.stub().resolves(true);
         public findLinksByProject = sinon.stub().resolves([
           {
-            "host": "https://test.com",
-            "endpoint": "/v1/publish",
-            "roleEndpoint": "/v1/roles",
-            "linkType": "Multipie",
-            "projectName": "asdf",
-            "username": "asdf"
+            endpoint: "https://test.com/v1/publish",
+            rolesEndpoint: "https://test.com/v1/roles",
+            linkType: "Multipie",
+            projectName: "asdf",
+            username: "asdf"
           }
         ]);
       }
@@ -147,12 +137,11 @@ describe("MultipieHelper", function () {
         public isInitialized = sinon.stub().resolves(true);
         public findLinksByProject = sinon.stub().resolves([
           {
-            "host": "https://test.com",
-            "endpoint": "/v1/publish",
-            "roleEndpoint": "/v1/roles",
-            "linkType": "Multipie",
-            "projectName": "asdf",
-            "username": "asdf"
+            endpoint: "https://test.com/v1/publish",
+            rolesEndpoint: "https://test.com/v1/roles",
+            linkType: "Multipie",
+            projectName: "asdf",
+            username: "asdf"
           }
         ]);
       }
@@ -215,8 +204,10 @@ describe("MultipieHelper", function () {
           data: [
             {
               role: 'test_role',
+              /* eslint-disable @typescript-eslint/naming-convention */
               start_date: "2021-01-01",
               end_date: "2025-01-01",
+              /* eslint-enable @typescript-eslint/naming-convention */
               factor: "1.0000"
             }
           ]
@@ -232,9 +223,8 @@ describe("MultipieHelper", function () {
       const link = {
         projectName: 'project',
         linkType: 'Multipie',
-        host: 'https://test.com',
         endpoint: 'endpoint',
-        roleEndpoint: 'roles',
+        rolesEndpoint: 'roles',
         clientSecret: 'secret',
         username: 'username',
       } as IMultipieLink;
@@ -249,8 +239,10 @@ describe("MultipieHelper", function () {
       expect(roles).to.deep.eq([
         {
           role: 'test_role',
+          /* eslint-disable @typescript-eslint/naming-convention */
           start_date: "2021-01-01",
           end_date: "2025-01-01",
+          /* eslint-enable @typescript-eslint/naming-convention */
           factor: "1.0000"
         }
       ]);
@@ -282,8 +274,10 @@ describe("MultipieHelper", function () {
           data: [
             {
               role: 'test_role',
+              /* eslint-disable @typescript-eslint/naming-convention */
               start_date: "2021-01-01",
               end_date: "2025-01-01",
+              /* eslint-enable @typescript-eslint/naming-convention */
               factor: "1.0000"
             }
           ]
@@ -299,9 +293,8 @@ describe("MultipieHelper", function () {
       const link = {
         projectName: 'project',
         linkType: 'Multipie',
-        host: 'https://test.com',
         endpoint: 'endpoint',
-        roleEndpoint: 'roles',
+        rolesEndpoint: 'roles',
         clientSecret: 'secret',
         refreshToken: 'token',
       } as IMultipieLink;
@@ -316,8 +309,10 @@ describe("MultipieHelper", function () {
       expect(roles).to.deep.eq([
         {
           role: 'test_role',
+          /* eslint-disable @typescript-eslint/naming-convention */
           start_date: "2021-01-01",
           end_date: "2025-01-01",
+          /* eslint-enable @typescript-eslint/naming-convention */
           factor: "1.0000"
         }
       ]);
@@ -349,9 +344,8 @@ describe("MultipieHelper", function () {
       const link = {
         projectName: 'project',
         linkType: 'Multipie',
-        host: 'https://test.com',
         endpoint: 'endpoint',
-        roleEndpoint: 'roles',
+        rolesEndpoint: 'roles',
         clientSecret: 'secret',
       } as IMultipieLink;
 
@@ -398,9 +392,8 @@ describe("MultipieHelper", function () {
       const link = {
         projectName: 'project',
         linkType: 'Multipie',
-        host: 'https://test.com',
         endpoint: 'endpoint',
-        roleEndpoint: 'roles',
+        rolesEndpoint: 'roles',
         clientSecret: 'secret',
         refreshToken: 'token',
       } as IMultipieLink;
@@ -448,9 +441,8 @@ describe("MultipieHelper", function () {
       const link = {
         projectName: 'project',
         linkType: 'Multipie',
-        host: 'https://test.com',
         endpoint: 'endpoint',
-        roleEndpoint: 'roles',
+        rolesEndpoint: 'roles',
         clientSecret: 'secret',
         username: 'username',
       } as IMultipieLink;

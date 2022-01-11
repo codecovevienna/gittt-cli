@@ -36,9 +36,8 @@ export interface IJiraLink extends IIntegrationLink {
 
 // Private per design to enforce one of the child interfaces
 export interface IMultipieLink extends IIntegrationLink {
-  host: string;
   endpoint: string;
-  roleEndpoint?: string;
+  rolesEndpoint?: string;
   clientSecret?: string;
   username?: string;
 }

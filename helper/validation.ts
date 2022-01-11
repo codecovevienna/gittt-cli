@@ -1,7 +1,6 @@
 
 import plainFs from "fs";
 import fs from "fs-extra";
-import { isString } from "util";
 import { parseProjectNameFromGitUrl } from "./";
 
 export class ValidationHelper {

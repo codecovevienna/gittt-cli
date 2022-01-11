@@ -20,7 +20,6 @@ describe("AuthHelper", function () {
     const client = await instance.getAuthClient({
       clientSecret: "mocked",
       endpoint: "mocked",
-      host: "mocked",
       linkType: "mocked",
       username: "mocked",
       password: "mocked",
@@ -39,7 +38,6 @@ describe("AuthHelper", function () {
     const instance: AuthHelper = new proxy.AuthHelper();
 
     const legacyAuth = await instance.getLegacyAuth({
-      host: "mocked",
       endpoint: "mocked",
       linkType: "mocked",
       username: "mocked",

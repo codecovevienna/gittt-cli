@@ -1214,8 +1214,6 @@ describe.skip("App", function () {
       mockedCommand.type = "Time";
       mockedCommand.role = "Not found";
 
-      const helpStub = sinon.stub(mockedCommand, "help");
-
       // Mock arguments array to disable interactive mode
       process.argv = ["1", "2", "3", "4"];
 

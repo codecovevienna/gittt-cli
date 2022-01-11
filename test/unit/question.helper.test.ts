@@ -282,7 +282,7 @@ describe("QuestionHelper", function () {
         const proxy: any = proxyquire("../../helper/question", {
           inquirer: {
             prompt: sinon.stub().resolves({
-              host: "http://mocked.com",
+              endpoint: "http://mocked.com/v1/publish",
               username: "mocked",
             }),
           },
@@ -296,8 +296,7 @@ describe("QuestionHelper", function () {
           name: "mocked_project_1",
         } as IProject);
 
-        expect(choice.host).to.eq("http://mocked.com");
-        expect(choice.endpoint).to.eq("/v1/publish");
+        expect(choice.endpoint).to.eq("http://mocked.com/v1/publish");
         expect(choice.username).to.eq("mocked");
         expect(choice.linkType).to.eq("Multipie");
         expect(choice.projectName).to.eq("mocked_project_1");
@@ -307,7 +306,7 @@ describe("QuestionHelper", function () {
         const proxy: any = proxyquire("../../helper/question", {
           inquirer: {
             prompt: sinon.stub().resolves({
-              host: "http://mocked.com",
+              endpoint: "http://mocked.com/v1/publish",
               username: "mocked",
             }),
           },
@@ -321,15 +320,13 @@ describe("QuestionHelper", function () {
           name: "mocked_project_1",
         } as IProject
           , {
-            endpoint: "/v1/publish",
-            host: "http://mocked.com",
+            endpoint: "http://mocked.com/v1/publish",
             linkType: "Multipie",
             projectName: "mocked_project_1",
             username: "mocked"
           } as IMultipieInputLink);
 
-        expect(choice.host).to.eq("http://mocked.com");
-        expect(choice.endpoint).to.eq("/v1/publish");
+        expect(choice.endpoint).to.eq("http://mocked.com/v1/publish");
         expect(choice.username).to.eq("mocked");
         expect(choice.linkType).to.eq("Multipie");
         expect(choice.projectName).to.eq("mocked_project_1");

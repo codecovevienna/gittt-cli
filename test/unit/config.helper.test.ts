@@ -8,7 +8,7 @@ describe("ConfigHelper", function () {
   describe("Links", function () {
     it("should fail to initialize (no FileHelper)", async function () {
       try {
-        const instance: ConfigHelper = ConfigHelper.getInstance();
+        ConfigHelper.getInstance();
       } catch (err) {
         assert.isTrue(true);
       }
@@ -16,7 +16,7 @@ describe("ConfigHelper", function () {
 
     it("should fail to initialize new instance (no FileHelper)", async function () {
       try {
-        const instance: ConfigHelper = ConfigHelper.getNewInstance();
+        ConfigHelper.getNewInstance();
       } catch (err) {
         assert.isTrue(true);
       }
