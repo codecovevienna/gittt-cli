@@ -61,6 +61,49 @@ mv github_com/project_to_migrate.json .
 ```
 5. Save the file and you are good to go
 
+### Roles (MultiPie)
+
+Version `1.12.0` introduced the ability to add a `rolesEndpoint` url to a `link`. 
+
+```
+// ~/.gittt-cli/config.json
+{
+    "endpoint": "https://multipie.at/v1/publish",
+    "rolesEndpoint": "https://admin.multipie.at/api/v3/roles",
+    "linkType": "Multipie",
+    "projectName": "company_project_1",
+    "username": "developer"
+}
+```
+
+In order to select roles for a certain entry the `.gittt.yml` has to be altered:
+
+```
+name: company_project_1
+requiresRoles: true
+```
+
+This will force the user to select/add a role to an entry:
+
+```
+$ gittt add
+? Year 2022
+? Month 9
+? Day 10
+? Hour 12
+? Minute 10
+? Amount 1
+? Message Worked on issue #1337
+? Type Time
+? Role (Use arrow keys)
+❯ ? 
+  Project Lead 
+  Dev 
+  Technical Lead 
+  Consultant 
+  DevOps 
+  Facilitator / SM 
+```
 
 ## Bash completion
 
